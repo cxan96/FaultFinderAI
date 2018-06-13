@@ -1,5 +1,8 @@
 package client;
 
+import java.util.concurrent.ThreadLocalRandom;
+
+import org.jlab.groot.data.H1F;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 
@@ -14,17 +17,21 @@ public class App {
 		// faultData.plotData();
 		TCanvas canvas = new TCanvas("Training Data", 800, 1200);
 		H2F hData = new H2F("Training Data", 8, 1, 9, 1, 1, 6);
-		for (int i = 0; i < 150; i++) {
+		H1F hFaults = new H1F("NFaults", 6, 1, 7);
+		for (int i = 0; i < 10000; i++) {
 			FaultFactory factory = new FaultFactory();
 			// FaultData fault = new HVPinFault();
 			// FaultData fault = new HVChannelFault();
-			FaultData fault = factory.getFault(2);
-
+			int rndFault = ThreadLocalRandom.current().nextInt(0, 6);
+			FaultData fault = factory.getFault(rndFault);
+			hFaults.fill(rndFault + 1);
+			// fault.plotData();
 			// new HVChannelFault().plotData();
-			System.out.println((fault.getXRand() + 1) + "  " + (fault.getYRand() + 1));
-			hData.fill(fault.getXRand() + 1, fault.getYRand() + 1);
+			// System.out.println((fault.getXRand() + 1) + " " +
+			// (fault.getYRand() + 1));
+			// hData.fill(fault.getXRand() + 1, fault.getYRand() + 1);
 		}
-		canvas.draw(hData);
+		canvas.draw(hFaults);
 
 	}
 

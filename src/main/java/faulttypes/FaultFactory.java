@@ -12,6 +12,14 @@ public class FaultFactory {
 			return new HVPinFault();
 		} else if (type == 1) {
 			return new HVChannelFault();
+		} else if (type == 2) {
+			return new HVConnectorFault();
+		} else if (type == 3) {
+			return new HVFuseFault();
+		} else if (type == 4) {
+			return new HVDeadWire();
+		} else if (type == 5) {
+			return new HVHotWire();
 		}
 		return null;
 	}
