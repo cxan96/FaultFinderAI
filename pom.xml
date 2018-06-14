@@ -6,6 +6,11 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<packaging>pom</packaging>
+
+	<properties>
+		<datavec.version>0.9.1</datavec.version>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>

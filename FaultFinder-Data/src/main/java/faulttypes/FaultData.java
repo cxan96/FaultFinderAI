@@ -2,6 +2,9 @@ package faulttypes;
 
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.util.ArrayUtil;
+import org.nd4j.linalg.util.NDArrayUtil;
 
 public abstract class FaultData {
 
@@ -44,4 +47,8 @@ public abstract class FaultData {
 
 	}
 
+	public INDArray asRowVector() {
+		return NDArrayUtil.toNDArray(ArrayUtil.flatten(data));
+	}
+	// I should probably model this after the MNST datsetinterator....
 }

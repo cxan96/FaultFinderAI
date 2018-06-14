@@ -31,5 +31,10 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>4.1</version>
 		</dependency>
+		<dependency>
+			<artifactId>datavec-data-codec</artifactId>
+			<groupId>org.datavec</groupId>
+			<version>${datavec.version}</version>
+		</dependency>
 	</dependencies>
 </project>
