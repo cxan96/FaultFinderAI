@@ -1,0 +1,9 @@
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/HVChannelFault.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/HVHotWire.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/HVFuseFault.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/HVPinFault.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/HVConnectorFault.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/client/App.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/HVDeadWire.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/FaultData.java
+/home/peters/Projekte/FaultFinderAI/FaultFinder-Data/src/main/java/faulttypes/FaultFactory.java
