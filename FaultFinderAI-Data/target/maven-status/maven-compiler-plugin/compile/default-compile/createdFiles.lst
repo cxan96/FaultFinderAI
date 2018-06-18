@@ -1,0 +1,9 @@
+client/App.class
+faulttypes/HVChannelFault.class
+faulttypes/HVFuseFault.class
+faulttypes/HVPinFault.class
+faulttypes/FaultFactory.class
+faulttypes/HVDeadWire.class
+faulttypes/HVHotWire.class
+faulttypes/FaultData.class
+faulttypes/HVConnectorFault.class

@@ -25,7 +25,9 @@
 		</plugins>
 	</build>
 	<modules>
-		<module>FaultFinder-Data</module>
+		<module>FaultFinderAI-Data</module>
 		<module>FaultFinderAI-DL4J</module>
+		<module>FaultFinderAI-Utils</module>
+		<module>FaultFinderAI-TestingArea</module>
 	</modules>
 </project>
