@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.jlab.groot.data.H1F;
-import org.jlab.groot.ui.TCanvas;
 
 import arrayUtils.ArrayUtilities;
 
@@ -87,25 +85,25 @@ public class HVPinFault extends FaultData {
 		return this.faultLocation;
 	}
 
-	public static void main(String[] args) {
-		H1F aH1f = new H1F("name", 72 * 2, 0, 72);
-		for (int i = 0; i < 100000; i++) {
-			HVPinFault hvConnectorFault = new HVPinFault();
-			// System.out.println(hvConnectorFault.getFaultLocation() + " iInc
-			// ");
-			aH1f.fill(hvConnectorFault.getFaultLocation());
-			// hvConnectorFault.plotData();
-			// int[] fArray = hvConnectorFault.getFaultLabel();
-			// System.out.println("Fault Location = " +
-			// hvConnectorFault.getFaultLocation());
-			// for (int j = 0; j < fArray.length; j++) {
-			// System.out.print(fArray[j] + " ");
-			// }
-			// System.out.println("");
-		}
-		TCanvas canvas = new TCanvas("canvas", 800, 1200);
-		canvas.draw(aH1f);
-
-	}
+	// public static void main(String[] args) {
+	// H1F aH1f = new H1F("name", 72 * 2, 0, 72);
+	// for (int i = 0; i < 100000; i++) {
+	// HVPinFault hvConnectorFault = new HVPinFault();
+	// // System.out.println(hvConnectorFault.getFaultLocation() + " iInc
+	// // ");
+	// aH1f.fill(hvConnectorFault.getFaultLocation());
+	// // hvConnectorFault.plotData();
+	// // int[] fArray = hvConnectorFault.getFaultLabel();
+	// // System.out.println("Fault Location = " +
+	// // hvConnectorFault.getFaultLocation());
+	// // for (int j = 0; j < fArray.length; j++) {
+	// // System.out.print(fArray[j] + " ");
+	// // }
+	// // System.out.println("");
+	// }
+	// TCanvas canvas = new TCanvas("canvas", 800, 1200);
+	// canvas.draw(aH1f);
+	//
+	// }
 
 }
