@@ -1,5 +1,8 @@
 package faulttypes;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.util.NDArrayUtil;
+
 import arrayUtils.ArrayUtilities;
 
 public class FaultFactory {
@@ -31,6 +34,10 @@ public class FaultFactory {
 
 	public int[] getLabel() {
 		return this.faultLabel;
+	}
+
+	public INDArray getLabelVector() {
+		return NDArrayUtil.toNDArray(this.faultLabel);
 	}
 	// The array is always made in the following order
 	// HVPinFault->HVChannelFault->HVConnectorFault->HVFuseFault->HVDeadWire->HVHotWire
