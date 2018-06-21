@@ -6,12 +6,14 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
+import arrayUtils.ArrayUtilities;
+
 public abstract class FaultData {
 
 	protected int xRnd;
 	protected int yRnd;
 
-	protected int nLayers = 6;
+	protected int nLayers = ArrayUtilities.nLayers;
 	protected int rangeMax = 200;
 	protected int rangeMin = 100;
 
@@ -51,7 +53,7 @@ public abstract class FaultData {
 
 	}
 
-	public INDArray asRowVector() {
+	public INDArray getFeatureVector() {
 		return NDArrayUtil.toNDArray(ArrayUtil.flatten(data));
 	}
 	// I should probably model this after the MNST datsetinterator....

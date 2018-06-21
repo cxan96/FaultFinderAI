@@ -31,5 +31,15 @@
 			<artifactId>deeplearning4j-ui_2.11</artifactId>
 			<version>1.0.0-beta</version>
 		</dependency>
+		<dependency>
+			<artifactId>FaultFinderAI-Data</artifactId>
+			<groupId>com.IKP.data</groupId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<artifactId>FaultFinderAI-Utils</artifactId>
+			<groupId>com.IKP.faultfinderai-utils</groupId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>

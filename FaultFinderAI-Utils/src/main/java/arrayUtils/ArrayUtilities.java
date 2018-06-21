@@ -6,6 +6,8 @@ public class ArrayUtilities {
 
 	}
 
+	public static int nLayers = 6;
+	public static int nWires = 112;
 	public static int[] hvPinFault = new int[72];
 	public static int[] hvChannelFault = new int[8];
 	public static int[] hvConnectorFault = new int[42];

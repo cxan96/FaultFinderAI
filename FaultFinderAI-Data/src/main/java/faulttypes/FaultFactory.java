@@ -1,12 +1,14 @@
 package faulttypes;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
 import arrayUtils.ArrayUtilities;
 
 public class FaultFactory {
 	private int[] faultLabel = null;
+	int[][] featureData = null;
 
 	public FaultFactory() {
 		this.faultLabel = new int[ArrayUtilities.faultLableSize];
@@ -29,6 +31,7 @@ public class FaultFactory {
 			retFault = new HVHotWire();
 		}
 		makeLabel(retFault);
+		this.featureData = retFault.getData();
 		return retFault;
 	}
 
@@ -36,9 +39,6 @@ public class FaultFactory {
 		return this.faultLabel;
 	}
 
-	public INDArray getLabelVector() {
-		return NDArrayUtil.toNDArray(this.faultLabel);
-	}
 	// The array is always made in the following order
 	// HVPinFault->HVChannelFault->HVConnectorFault->HVFuseFault->HVDeadWire->HVHotWire
 
@@ -185,5 +185,21 @@ public class FaultFactory {
 			deFault[i] = 0;
 		}
 		return deFault;
+	}
+
+	public INDArray getLabelVector() {
+		return NDArrayUtil.toNDArray(this.faultLabel);
+	}
+
+	public INDArray getFeatureVector() {
+		return NDArrayUtil.toNDArray(ArrayUtil.flatten(this.featureData));
+	}
+
+	public int[] getLabelArray() {
+		return this.faultLabel;
+	}
+
+	public int[] getFeatureArray() {
+		return ArrayUtil.flatten(this.featureData);
 	}
 }// end of FaultFactory class.
