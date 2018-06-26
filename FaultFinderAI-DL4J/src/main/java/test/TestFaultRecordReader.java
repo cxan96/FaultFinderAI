@@ -9,6 +9,7 @@ import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import arrayUtils.ArrayUtilities;
 import faultrecordreader.FaultRecordReader;
 
 /**
@@ -56,23 +57,43 @@ public class TestFaultRecordReader {
 	protected static boolean save = false;
 	protected static int maxPathsPerLabel = 18;
 
-	protected static String modelType = "AlexNet"; // LeNet, AlexNet or Custom
-													// but you need to fill it
-													// out
 	private int numLabels;
 
 	public static void main(String[] args) {
+
+		/**
+		 * Data Setup -> define how to load data into net: - recordReader = the
+		 * reader that loads and converts image data pass in inputSplit to
+		 * initialize - dataIter = a generator that only loads one batch at a
+		 * time into memory to save memory - trainIter = uses
+		 * MultipleEpochsIterator to ensure model runs through the data for all
+		 * epochs
+		 **/
 
 		DataNormalization scaler = new ImagePreProcessingScaler(0, 1, 1);
 		FaultRecordReader recordReader = new FaultRecordReader();
 		DataSetIterator dataIter;
 
 		log.info("Train model....");
-		// Train without transformations
-		recordReader.initialize(trainData, null);
-		dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-		scaler.fit(dataIter);
-		dataIter.setPreProcessor(scaler);
-		network.fit(dataIter, epochs);
+		// dataIter = new RecordReaderDataSetIterator(recordReader, batchSize,
+		// 1, numLabels);
+		dataIter = new RecordReaderDataSetIterator.Builder(recordReader, 32)
+				.classification(1, ArrayUtilities.faultLableSize).preProcessor(new ImagePreProcessingScaler(0, 1, 1)) // For
+				// normalization
+				// of
+				// image
+				// values
+				// 0-MAX
+				// to
+				// 0-1
+				.build();
+
+		// // Train without transformations
+		// recordReader.initialize(trainData, null);
+		// dataIter = new RecordReaderDataSetIterator(recordReader, batchSize,
+		// 1, numLabels);
+		// scaler.fit(dataIter);
+		// dataIter.setPreProcessor(scaler);
+		// network.fit(dataIter, epochs);
 	}
 }
