@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.jlab.groot.data.H1F;
 import org.jlab.groot.ui.TCanvas;
 
-import arrayUtils.ArrayUtilities;
+import utils.ArrayUtilities;
 
 public class HVHotWire extends FaultData {
 	private int[] hvFaultLabel;

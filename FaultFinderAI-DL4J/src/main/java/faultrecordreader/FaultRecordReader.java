@@ -11,8 +11,10 @@ import org.datavec.api.conf.Configuration;
 import org.datavec.api.records.Record;
 import org.datavec.api.records.listener.RecordListener;
 import org.datavec.api.records.metadata.RecordMetaData;
+import org.datavec.api.records.metadata.RecordMetaDataURI;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.split.InputSplit;
+import org.datavec.api.writable.IntWritable;
 import org.datavec.api.writable.NDArrayWritable;
 import org.datavec.api.writable.Writable;
 
@@ -21,6 +23,7 @@ import faulttypes.FaultFactory;
 public class FaultRecordReader implements RecordReader {
 
 	FaultFactory factory = null;
+	int label;
 
 	public FaultRecordReader() {
 		this.factory = new FaultFactory();
@@ -32,7 +35,7 @@ public class FaultRecordReader implements RecordReader {
 		// I might want to set this to true so that I train in batches, reduces
 		// memory
 		// will get back to this after impl of modes
-		return false;
+		return true;
 	}
 
 	@Override
@@ -47,7 +50,11 @@ public class FaultRecordReader implements RecordReader {
 		factory.getFault(1);
 		List<Writable> ret = new ArrayList<>();
 		ret.add(new NDArrayWritable(factory.getFeatureVector()));
-		ret.add(new NDArrayWritable(factory.getLabelVector()));
+		// ret.add(new NDArrayWritable(factory.getLabelVector()));
+		// List<Writable> ret =
+		// RecordConverter.toRecord(factory.getFeatureVector());
+		// factory.getLabelVector().
+		ret.add(new IntWritable(getLabelInt(factory.getLabel())));
 
 		return ret;
 	}
@@ -128,8 +135,11 @@ public class FaultRecordReader implements RecordReader {
 
 	@Override
 	public Record nextRecord() {
-		// TODO Auto-generated method stub
-		return null;
+		List<Writable> list = next();
+		URI uri = URI.create("FaultFinder");
+		// return new org.datavec.api.records.impl.Record(list, metaData)
+		return new org.datavec.api.records.impl.Record(list, new RecordMetaDataURI(null, FaultRecordReader.class));
+
 	}
 
 	@Override
@@ -148,6 +158,21 @@ public class FaultRecordReader implements RecordReader {
 	public void setListeners(Collection<RecordListener> arg0) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private int getLabelInt(int[] labels) {
+		for (int i = 0; i < labels.length; i++) {
+			if (labels[i] == 1) {
+				this.label = i;
+				return i;
+			}
+		}
+		this.label = -1;
+		return -1;
+	}
+
+	public int getLabelInt() {
+		return this.label;
 	}
 
 }

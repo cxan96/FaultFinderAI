@@ -6,7 +6,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
-import arrayUtils.ArrayUtilities;
+import utils.ArrayUtilities;
+import utils.FaultUtils;
 
 public abstract class FaultData {
 
@@ -14,11 +15,11 @@ public abstract class FaultData {
 	protected int yRnd;
 
 	protected int nLayers = ArrayUtilities.nLayers;
-	protected int rangeMax = 200;
-	protected int rangeMin = 100;
+	protected int rangeMax = FaultUtils.RANGE_MAX;
+	protected int rangeMin = FaultUtils.RANGE_MIN;
 
-	protected int faultRangeMax = 50;
-	protected int faultRangeMin = 0;
+	protected int faultRangeMax = FaultUtils.FAULT_RANGE_MAX;
+	protected int faultRangeMin = FaultUtils.FAULT_RANGE_MIN;
 	// Here I want to see which datasets are needed by DL4J, but for now lets
 	// just make it a 2D array.
 	protected int[][] data = new int[112][6];

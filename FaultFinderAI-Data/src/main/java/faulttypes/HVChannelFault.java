@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import arrayUtils.ArrayUtilities;
+import utils.ArrayUtilities;
 
 public class HVChannelFault extends FaultData {
 

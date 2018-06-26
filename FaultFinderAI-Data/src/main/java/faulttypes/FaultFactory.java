@@ -4,7 +4,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
-import arrayUtils.ArrayUtilities;
+import utils.ArrayUtilities;
 
 public class FaultFactory {
 	private int[] faultLabel = null;
