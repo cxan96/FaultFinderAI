@@ -67,11 +67,12 @@ import utils.ArrayUtilities;
 public class TestFaultRecordReader {
 
 	private static final Logger log = LoggerFactory.getLogger(TestFaultRecordReader.class);
-	private static int batchSize = 10;
-	private static int testSize = 2;
+	private static int batchSize = 200;
+	private static int testSize = 20;
+	private static int MAX_BATCHES = 100000;
 
 	private static long seed = 42;
-	private static int epochs = 5;
+	private static int epochs = 50;
 	private double learningRate = 0.005;
 
 	private static int numInputs = ArrayUtilities.nLayers * ArrayUtilities.nWires;
@@ -104,7 +105,7 @@ public class TestFaultRecordReader {
 		 * reader that loads the fault data pass
 		 **/
 		this.recordReader = new FaultRecordReader();
-		trainIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+		trainIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels, MAX_BATCHES);
 
 		scaler.fit(trainIter);
 		trainIter.setPreProcessor(scaler);
@@ -117,7 +118,7 @@ public class TestFaultRecordReader {
 		 * the reader that loads the fault data pass
 		 **/
 		this.recordReaderTest = new FaultRecordReader();
-		testIter = new RecordReaderDataSetIterator(recordReaderTest, testSize, 1, numLabels);
+		testIter = new RecordReaderDataSetIterator(recordReaderTest, testSize, 1, numLabels, MAX_BATCHES);
 
 		scaler.fit(testIter);
 		testIter.setPreProcessor(scaler);
@@ -139,8 +140,8 @@ public class TestFaultRecordReader {
 	private void initModel() {
 		this.model = new MultiLayerNetwork(conf);
 		model.init();
-		model.setListeners(new ScoreIterationListener(100)); // Print score
-																// every 100
+		model.setListeners(new ScoreIterationListener(500)); // Print score
+																// every 500
 																// parameter
 																// updates
 	}

@@ -57,5 +57,4 @@ public abstract class FaultData {
 	public INDArray getFeatureVector() {
 		return NDArrayUtil.toNDArray(ArrayUtil.flatten(data));
 	}
-	// I should probably model this after the MNST datsetinterator....
 }

@@ -24,9 +24,11 @@ public class FaultRecordReader implements RecordReader {
 
 	FaultFactory factory = null;
 	int label;
+	FaultRandomizer faultRandomizer = null;
 
 	public FaultRecordReader() {
 		this.factory = new FaultFactory();
+		this.faultRandomizer = new FaultRandomizer();
 		// TODO Auto-generated constructor stub
 	}
 
@@ -47,7 +49,7 @@ public class FaultRecordReader implements RecordReader {
 
 	@Override
 	public List<Writable> next() {
-		factory.getFault(1);
+		factory.getFault(faultRandomizer.getFaultNumber());
 		List<Writable> ret = new ArrayList<>();
 		ret.add(new NDArrayWritable(factory.getFeatureVector()));
 		// ret.add(new NDArrayWritable(factory.getLabelVector()));
