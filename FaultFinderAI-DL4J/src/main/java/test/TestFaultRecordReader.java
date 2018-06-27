@@ -1,7 +1,9 @@
 package test;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.datavec.api.writable.Writable;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
@@ -15,6 +17,7 @@ import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.util.ModelSerializer;
 import org.jlab.groot.data.H1F;
 import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.activations.Activation;
@@ -67,14 +70,15 @@ import utils.ArrayUtilities;
 public class TestFaultRecordReader {
 
 	private static final Logger log = LoggerFactory.getLogger(TestFaultRecordReader.class);
-	private static int batchSize = 200;
+	private static int batchSize = 2000;
 	private static int testSize = 20;
-	private static int MAX_BATCHES = 1000000;
+	private static int MAX_BATCHES = 100000;
+	private static boolean save = true;
 
 	private static long seed = 42;
 	private static int epochs = 50;
 	private double learningRate = 0.005;
-
+	private int scoreIterations = 500;
 	private static int numInputs = ArrayUtilities.nLayers * ArrayUtilities.nWires;
 	private static int numHiddenNodes = ArrayUtilities.nWires;
 	private static int numLabels = ArrayUtilities.faultLableSize;
@@ -140,10 +144,8 @@ public class TestFaultRecordReader {
 	private void initModel() {
 		this.model = new MultiLayerNetwork(conf);
 		model.init();
-		model.setListeners(new ScoreIterationListener(500)); // Print score
-																// every 500
-																// parameter
-																// updates
+		// Print score every scoreIterations updates
+		model.setListeners(new ScoreIterationListener(scoreIterations));
 	}
 
 	public void train() {
@@ -164,6 +166,22 @@ public class TestFaultRecordReader {
 
 		// Print the evaluation statistics
 		System.out.println(eval.stats());
+		save();
+	}
+
+	private void save() {
+		if (save) {
+			log.info("Save model....");
+			String basePath = FilenameUtils.concat(System.getProperty("user.dir"), "src/main/resources/");
+			System.out.println(basePath + "  basePath");
+			try {
+				ModelSerializer.writeModel(network, basePath + "model.bin", true);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		log.info("****************Example finished********************");
 	}
 
 	public static void main(String[] args) {

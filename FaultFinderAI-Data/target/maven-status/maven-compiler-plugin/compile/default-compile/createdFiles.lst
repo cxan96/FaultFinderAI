@@ -1,4 +1,5 @@
 client/App.class
+faulttypes/HVNoFault.class
 faulttypes/HVChannelFault.class
 faulttypes/HVFuseFault.class
 faulttypes/HVPinFault.class

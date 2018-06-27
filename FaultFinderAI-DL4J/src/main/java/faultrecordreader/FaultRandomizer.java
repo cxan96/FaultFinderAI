@@ -22,12 +22,12 @@ public class FaultRandomizer {
 		// 90% of time we want to train on ind.wires
 		if (this.primaryRnd > 0.1) {
 			if (ThreadLocalRandom.current().nextDouble() > 0.5) {
-				this.faultNumber = 4;
-			} else {
 				this.faultNumber = 5;
+			} else {
+				this.faultNumber = 6;
 			}
 		} else {
-			this.faultNumber = ThreadLocalRandom.current().nextInt(4);
+			this.faultNumber = ThreadLocalRandom.current().nextInt(5);
 		}
 	}
 

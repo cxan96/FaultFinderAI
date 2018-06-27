@@ -1,19 +1,16 @@
 package faulttypes;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.jlab.groot.data.H1F;
-import org.jlab.groot.ui.TCanvas;
 
 import utils.ArrayUtilities;
 
 public class HVFuseFault extends FaultData {
-
-	private int[] hvFaultLabel;
-	private int faultLocation;
 
 	private Map<Integer, Pair<Integer, Integer>> eMap = new HashMap<>();
 	private Map<Integer, Pair<Integer, Integer>> treeMap = new HashMap<>();
@@ -27,8 +24,13 @@ public class HVFuseFault extends FaultData {
 		setupBundles();
 		this.xRnd = ThreadLocalRandom.current().nextInt(1, 113);
 		this.yRnd = ThreadLocalRandom.current().nextInt(1, 7);
+		this.faultLocation = findFaultLocation();
+
+		this.label = ArrayUtilities.hvFuseFault;
+		/**
+		 * reducedLabel is initialized as a IntStream in findFaultLocation
+		 */
 		makeDataSet();
-		this.hvFaultLabel = ArrayUtilities.hvFuseFault;
 		makeFaultArray();
 	}
 
@@ -39,18 +41,10 @@ public class HVFuseFault extends FaultData {
 		for (int i = 0; i < data[0].length; i++) { // i are the rows (layers)
 			for (int j = 0; j < data.length; j++) { // j are the columns (wires)
 				if (j <= rndmPair.get(i + 1).getRight() - 1 && j >= rndmPair.get(i + 1).getLeft() - 1) {
-					data[j][i] = makeRandomData(faultRangeMin, faultRangeMax);// -
-																				// (int)
-																				// (0.1
-																				// *
-																				// faultRangeMax)
+					data[j][i] = makeRandomData(faultRangeMin, faultRangeMax);
 				} else {
 					data[j][i] = makeRandomData(rangeMin, rangeMax);
 				}
-				// System.out.print(data[j][i] + "\t");
-				// if (j == data.length - 1) {
-				// System.out.println("");
-				// }
 			}
 		}
 	}
@@ -175,22 +169,18 @@ public class HVFuseFault extends FaultData {
 
 	}
 
-	@Override
-	protected int[] getFaultLabel() {
-		return hvFaultLabel;
-	}
-
 	private void makeFaultArray() {
-		// this.faultLocation = (this.xRnd - 1) / 16;
-		this.faultLocation = findFaultLocation();
-
-		for (int i = 0; i < hvFaultLabel.length; i++) {
+		for (int i = 0; i < label.length; i++) {
 			if (i == faultLocation) {
-				hvFaultLabel[i] = 1;
+				label[i] = 1;
 			} else {
-				hvFaultLabel[i] = 0;
+				label[i] = 0;
 			}
-		}
+		} /**
+			 * For makeReducedLabel(), the logic is tied with the fault
+			 * location, so lets use findFaultLocation to fill in the
+			 * reducedLabel
+			 */
 	}
 
 	private int findFaultLocation() {
@@ -209,22 +199,28 @@ public class HVFuseFault extends FaultData {
 		case 3:
 		case 4:
 		case 5:
+			this.reducedLabel = IntStream.of(1, 0, 0).toArray();
 			return 0 + 3 * test;
 		case 6:
 			if (this.yRnd == 2 || this.yRnd == 4) {
+				this.reducedLabel = IntStream.of(1, 0, 0).toArray();
 				return 0 + 3 * test;
 			} else {
+				this.reducedLabel = IntStream.of(0, 1, 0).toArray();
 				return 1 + 3 * test;
 			}
 		case 7:
 		case 8:
 		case 9:
 		case 10:
+			this.reducedLabel = IntStream.of(0, 1, 0).toArray();
 			return 1 + 3 * test;
 		case 11:
 			if (this.yRnd == 3 || this.yRnd == 5) {
+				this.reducedLabel = IntStream.of(0, 0, 1).toArray();
 				return 2 + 3 * test;
 			} else {
+				this.reducedLabel = IntStream.of(0, 1, 0).toArray();
 				return 1 + 3 * test;
 			}
 		case 12:
@@ -232,6 +228,7 @@ public class HVFuseFault extends FaultData {
 		case 14:
 		case 15:
 		case 16:
+			this.reducedLabel = IntStream.of(0, 0, 1).toArray();
 			return 2 + 3 * test;
 		default:
 			return 0;
@@ -244,24 +241,9 @@ public class HVFuseFault extends FaultData {
 	}
 
 	public static void main(String[] args) {
-		H1F aH1f = new H1F("name", 61, 0, 22);
-		for (int i = 0; i < 10000; i++) {
-			HVFuseFault hvConnectorFault = new HVFuseFault();
+		FaultData faultData = new HVFuseFault();
 
-			// System.out.println(hvConnectorFault.getFaultLocation() + " iInc
-			// ");
-			aH1f.fill(hvConnectorFault.getFaultLocation());
-			// hvConnectorFault.plotData();
-			// int[] fArray = hvConnectorFault.getFaultLabel();
-			// System.out.println("faultlocation = " +
-			// hvConnectorFault.getFaultLocation());
-			// for (int j = 0; j < fArray.length; j++) {
-			// System.out.print(fArray[j] + " ");
-			// }
-			// System.out.println("");
-		}
-		TCanvas canvas = new TCanvas("canvas", 800, 1200);
-		canvas.draw(aH1f);
-
+		System.out.println(faultData.getFaultLocation() + "  " + Arrays.toString(faultData.getReducedLabel()));
 	}
+
 }

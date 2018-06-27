@@ -3,21 +3,26 @@ package faulttypes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.jlab.groot.data.H1F;
+import org.jlab.groot.ui.TCanvas;
 
 import utils.ArrayUtilities;
 
 public class HVChannelFault extends FaultData {
 
 	private List<Pair<Integer, Integer>> hvChannelSegmentation = new ArrayList<Pair<Integer, Integer>>();;
-	private int[] hvFaultLabel;
-	private int faultLocation;
 
 	public HVChannelFault() {
 		setuphvChannelSegmentation();
-		this.hvFaultLabel = ArrayUtilities.hvChannelFault;
 		this.xRnd = ThreadLocalRandom.current().nextInt(0, hvChannelSegmentation.size());
+		this.faultLocation = this.xRnd;
+		this.label = ArrayUtilities.hvChannelFault;
+		/**
+		 * reducedLabel is initialized as a IntStream in makeReducedLabel()
+		 */
 		makeDataSet();
 		makeFaultArray();
 	}
@@ -31,26 +36,6 @@ public class HVChannelFault extends FaultData {
 				} else {
 					data[j][i] = makeRandomData(rangeMin, rangeMax);
 				}
-				// System.out.print(data[j][i] + "\t");
-				// if (j == data.length - 1) {
-				// System.out.println("");
-				// }
-			}
-		}
-	}
-
-	@Override
-	protected int[] getFaultLabel() {
-		return hvFaultLabel;
-	}
-
-	private void makeFaultArray() {
-		this.faultLocation = this.xRnd;
-		for (int i = 0; i < hvFaultLabel.length; i++) {
-			if (i == this.xRnd) {
-				hvFaultLabel[i] = 1;
-			} else {
-				hvFaultLabel[i] = 0;
 			}
 		}
 	}
@@ -74,15 +59,45 @@ public class HVChannelFault extends FaultData {
 		hvChannelSegmentation.add(Pair.of(81, 112));
 	}
 
-	public int getFaultLocation() {
-		return this.faultLocation;
+	private void makeFaultArray() {
+		for (int i = 0; i < this.label.length; i++) {
+			if (i == this.xRnd) {
+				this.label[i] = 1;
+			} else {
+				this.label[i] = 0;
+			}
+		}
+		makeReducedLabel();
+	}
+
+	/**
+	 * The hvChannelSegmentation separation is 8,for List elements 0 - 3
+	 * (inclusive) and 16, for List elements 4 - 6 (inclusive) and 32 for List
+	 * element 7<br>
+	 * Therefore we can try to only use 3 labels and figure out how to get their
+	 * positions later
+	 */
+	private void makeReducedLabel() {
+		if (this.faultLocation < 4) {
+			this.reducedLabel = IntStream.of(1, 0, 0).toArray();
+		} else if (this.faultLocation >= 4 && this.faultLocation < 7) {
+			this.reducedLabel = IntStream.of(0, 1, 0).toArray();
+		} else {
+			this.reducedLabel = IntStream.of(0, 0, 1).toArray();
+
+		}
 	}
 
 	public static void main(String[] args) {
-		HVChannelFault hvChannelFault = new HVChannelFault();
-		int[] test = hvChannelFault.getFaultLabel();
-		for (int i = 0; i < test.length; i++) {
-			System.out.println(hvChannelFault.getXRand() + "    " + test[i]);
+		H1F aH1f = new H1F("name", 16, 0, 8);
+		for (int i = 0; i < 10000; i++) {
+			FaultData faultData = new HVChannelFault();
+			aH1f.fill(faultData.getFaultLocation());
+			// System.out.println(faultData.getFaultLocation() + " " +
+			// Arrays.toString(faultData.getReducedLabel()));
 		}
+		TCanvas canvas = new TCanvas("name", 800, 800);
+		canvas.draw(aH1f);
+
 	}
 }

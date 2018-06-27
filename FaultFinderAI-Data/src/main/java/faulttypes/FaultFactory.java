@@ -8,13 +8,23 @@ import utils.ArrayUtilities;
 
 public class FaultFactory {
 	private int[] faultLabel = null;
-	int[][] featureData = null;
+	private int[][] featureData = null;
+	private String type = null;
 
 	public FaultFactory() {
+		// this("full");
 		this.faultLabel = new int[ArrayUtilities.faultLableSize];
 	}
 
-	// use getPlan method to get object of type Plan
+	// public FaultFactory(String type) {
+	// this.type = type;
+	// this.faultLabel = new int[type.equals("full") ?
+	// ArrayUtilities.faultLableSize : ArrayUtilities.faultLableSize];
+	//
+	// this.faultLabel = new int[ArrayUtilities.faultLableSize];
+	// }
+
+	// use getFault method to get object of type Plan
 	public FaultData getFault(int type) {
 		FaultData retFault = null;
 		if (type == 0) {
@@ -26,8 +36,10 @@ public class FaultFactory {
 		} else if (type == 3) {
 			retFault = new HVFuseFault();
 		} else if (type == 4) {
-			retFault = new HVDeadWire();
+			retFault = new HVNoFault();
 		} else if (type == 5) {
+			retFault = new HVDeadWire();
+		} else if (type == 6) {
 			retFault = new HVHotWire();
 		}
 		makeLabel(retFault);
@@ -43,13 +55,15 @@ public class FaultFactory {
 	// HVPinFault->HVChannelFault->HVConnectorFault->HVFuseFault->HVDeadWire->HVHotWire
 
 	private void makeLabel(FaultData fault) {
-		int[] faultArray = fault.getFaultLabel();
+		int[] faultArray = fault.getLabel();
 		int[] hvPinDeFault = makeFuseDefaultLabel(ArrayUtilities.hvPinFault.length);
 		int[] hvChannelDeFault = makeFuseDefaultLabel(ArrayUtilities.hvChannelFault.length);
 		int[] hvConnectorDeFault = makeFuseDefaultLabel(ArrayUtilities.hvConnectorFault.length);
 		int[] hvFuseDeFault = makeFuseDefaultLabel(ArrayUtilities.hvFuseFault.length);
-		int[] hvDeadDeFault = makeFuseDefaultLabel(ArrayUtilities.hvWireFault.length);
-		int[] hvHotDeFault = makeFuseDefaultLabel(ArrayUtilities.hvWireFault.length);
+		int[] hvDeadDeFault = makeFuseDefaultLabel(ArrayUtilities.hvDeadWireFault.length);
+		int[] hvHotDeFault = makeFuseDefaultLabel(ArrayUtilities.hvHotWireFault.length);
+		int[] hvNoDeFault = makeFuseDefaultLabel(ArrayUtilities.hvNoWireFault.length);
+
 		if (fault instanceof HVPinFault) {
 			hvPinDeFault = faultArray;
 			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
@@ -70,7 +84,6 @@ public class FaultFactory {
 					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
 							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
 					hvHotDeFault.length);
-
 		} else if (fault instanceof HVChannelFault) {
 			hvChannelDeFault = faultArray;
 			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
@@ -176,7 +189,29 @@ public class FaultFactory {
 							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
 					hvHotDeFault.length);
 
+		} else if (fault instanceof HVNoFault) {
+			hvNoDeFault = faultArray;
+			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+
+			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
+
+			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
+					hvConnectorDeFault.length);
+
+			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
+					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
+
+			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
+					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
+					hvDeadDeFault.length);
+
+			System.arraycopy(
+					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
+							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
+					hvHotDeFault.length);
+
 		}
+
 	}
 
 	private int[] makeFuseDefaultLabel(int length) {

@@ -8,14 +8,15 @@ import org.jlab.groot.ui.TCanvas;
 import utils.ArrayUtilities;
 
 public class HVHotWire extends FaultData {
-	private int[] hvFaultLabel;
-	private int faultLocation;
 
 	public HVHotWire() {
 		this.xRnd = ThreadLocalRandom.current().nextInt(1, 113);
 		this.yRnd = ThreadLocalRandom.current().nextInt(1, 7);
-		makeDataSet();
-		this.hvFaultLabel = ArrayUtilities.hvWireFault;
+		this.faultLocation = this.xRnd + ((this.yRnd - 1) * 112) - 1;
+
+		this.label = ArrayUtilities.hvHotWireFault;
+		this.reducedLabel = ArrayUtilities.hvReducedHotWireFault;
+
 		makeDataSet();
 		makeFaultArray();
 	}
@@ -29,10 +30,6 @@ public class HVHotWire extends FaultData {
 				} else {
 					data[j][i] = makeRandomData(faultRangeMin + 1, faultRangeMax);
 				}
-				// System.out.print(data[j][i] + "\t");
-				// if (j == data.length - 1) {
-				// System.out.println("");
-				// }
 			}
 		}
 	}
@@ -41,36 +38,30 @@ public class HVHotWire extends FaultData {
 		return ThreadLocalRandom.current().nextInt(rangeMin, rangeMax + 1);
 	}
 
-	@Override
-	protected int[] getFaultLabel() {
-		return hvFaultLabel;
-	}
-
 	private void makeFaultArray() {
-		this.faultLocation = this.xRnd + ((this.yRnd - 1) * 112) - 1;
-		for (int i = 0; i < hvFaultLabel.length; i++) {
+		for (int i = 0; i < label.length; i++) {
 			if (i == (faultLocation)) {
-				hvFaultLabel[i] = 1;
+				label[i] = 1;
 			} else {
-				hvFaultLabel[i] = 0;
+				label[i] = 0;
 			}
 		}
+		makeReducedLabel();
 	}
 
-	@Override
-	public int getFaultLocation() {
-		return this.faultLocation;
+	private void makeReducedLabel() {
+		reducedLabel[0] = 1;
 	}
 
 	public static void main(String[] args) {
 		H1F aH1f = new H1F("name", 112 * 12, 0, 112 * 6);
 		for (int i = 0; i < 10; i++) {
-			HVHotWire hvConnectorFault = new HVHotWire();
+			FaultData hvConnectorFault = new HVHotWire();
 			// System.out.println(hvConnectorFault.getFaultLocation() + " iInc
 			// ");
 			aH1f.fill(hvConnectorFault.getFaultLocation());
 			// hvConnectorFault.plotData();
-			int[] fArray = hvConnectorFault.getFaultLabel();
+			int[] fArray = hvConnectorFault.getLabel();
 			System.out.println("Fault Location = " + hvConnectorFault.getFaultLocation());
 			int count = -1;
 			for (int j = 0; j < fArray.length; j++) {

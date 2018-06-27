@@ -1,25 +1,30 @@
 package faulttypes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.jlab.groot.data.H1F;
+import org.jlab.groot.ui.TCanvas;
 
 import utils.ArrayUtilities;
 
 public class HVPinFault extends FaultData {
 
 	private List<Pair<Integer, Integer>> hvPinSegmentation = new ArrayList<Pair<Integer, Integer>>();
-	private int[] hvFaultLabel;
-	private int faultLocation;
 
 	public HVPinFault() {
 		setuphvPinSegmentation();
 		this.xRnd = ThreadLocalRandom.current().nextInt(0, hvPinSegmentation.size());
 		this.yRnd = ThreadLocalRandom.current().nextInt(0, this.nLayers);
-		this.hvFaultLabel = ArrayUtilities.hvPinFault;
-
+		this.faultLocation = this.xRnd + ((this.yRnd) * 12);
+		this.label = ArrayUtilities.hvPinFault;
+		/**
+		 * reducedLabel is initialized as a IntStream in makeReducedLabel()
+		 */
 		makeDataSet();
 		makeFaultArray();
 	}
@@ -33,10 +38,6 @@ public class HVPinFault extends FaultData {
 				} else {
 					data[j][i] = makeRandomData(rangeMin, rangeMax);
 				}
-				// System.out.print(data[j][i] + "\t");
-				// if (j == data.length - 1) {
-				// System.out.println("");
-				// }
 			}
 		}
 	}
@@ -64,46 +65,41 @@ public class HVPinFault extends FaultData {
 		hvPinSegmentation.add(Pair.of(97, 112));
 	}
 
-	@Override
-	protected int[] getFaultLabel() {
-		return hvFaultLabel;
+	private void makeFaultArray() {
+		for (int i = 0; i < label.length; i++) {
+			if (i == faultLocation) {
+				label[i] = 1;
+			} else {
+				label[i] = 0;
+			}
+		}
+		makeReducedLabel();
 	}
 
-	private void makeFaultArray() {
-		this.faultLocation = this.xRnd + ((this.yRnd) * 12);
-		for (int i = 0; i < hvFaultLabel.length; i++) {
-			if (i == faultLocation) {
-				hvFaultLabel[i] = 1;
-			} else {
-				hvFaultLabel[i] = 0;
-			}
+	/**
+	 * The hvPinSegmentation separation is 8,for List elements 0 - 9 (inclusive)
+	 * and 16, for List elements 9 - 11 (inclusive)<br>
+	 * Therefore we can try to only use 2 labels and figure out how to get their
+	 * positions later
+	 */
+
+	private void makeReducedLabel() {
+		if (this.faultLocation < this.hvPinSegmentation.size() - 2) {
+			this.reducedLabel = IntStream.of(1, 0).toArray();
+		} else {
+			this.reducedLabel = IntStream.of(0, 1).toArray();
 		}
 	}
 
-	@Override
-	public int getFaultLocation() {
-		return this.faultLocation;
+	public static void main(String[] args) {
+		H1F aH1f = new H1F("name", 16, 0, 8);
+		for (int i = 0; i < 100; i++) {
+			FaultData faultData = new HVPinFault();
+			aH1f.fill(faultData.getFaultLocation());
+			System.out.println(faultData.getFaultLocation() + " " + Arrays.toString(faultData.getReducedLabel()));
+		}
+		TCanvas canvas = new TCanvas("name", 800, 800);
+		canvas.draw(aH1f);
+
 	}
-
-	// public static void main(String[] args) {
-	// H1F aH1f = new H1F("name", 72 * 2, 0, 72);
-	// for (int i = 0; i < 100000; i++) {
-	// HVPinFault hvConnectorFault = new HVPinFault();
-	// // System.out.println(hvConnectorFault.getFaultLocation() + " iInc
-	// // ");
-	// aH1f.fill(hvConnectorFault.getFaultLocation());
-	// // hvConnectorFault.plotData();
-	// // int[] fArray = hvConnectorFault.getFaultLabel();
-	// // System.out.println("Fault Location = " +
-	// // hvConnectorFault.getFaultLocation());
-	// // for (int j = 0; j < fArray.length; j++) {
-	// // System.out.print(fArray[j] + " ");
-	// // }
-	// // System.out.println("");
-	// }
-	// TCanvas canvas = new TCanvas("canvas", 800, 1200);
-	// canvas.draw(aH1f);
-	//
-	// }
-
 }

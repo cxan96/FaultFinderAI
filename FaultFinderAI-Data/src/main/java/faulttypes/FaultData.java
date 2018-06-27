@@ -11,21 +11,30 @@ import utils.FaultUtils;
 
 public abstract class FaultData {
 
-	protected int xRnd;
-	protected int yRnd;
-
 	protected int nLayers = ArrayUtilities.nLayers;
 	protected int rangeMax = FaultUtils.RANGE_MAX;
 	protected int rangeMin = FaultUtils.RANGE_MIN;
 
 	protected int faultRangeMax = FaultUtils.FAULT_RANGE_MAX;
 	protected int faultRangeMin = FaultUtils.FAULT_RANGE_MIN;
-	// Here I want to see which datasets are needed by DL4J, but for now lets
-	// just make it a 2D array.
+
+	protected int xRnd;
+	protected int yRnd;
+	protected int faultLocation;
 	protected int[][] data = new int[112][6];
+	protected int[] label;
+	protected int[] reducedLabel;
 
 	protected int[][] getData() {
 		return data;
+	}
+
+	protected int[] getLabel() {
+		return label;
+	}
+
+	protected int[] getReducedLabel() {
+		return reducedLabel;
 	}
 
 	public int getXRand() {
@@ -36,11 +45,11 @@ public abstract class FaultData {
 		return yRnd;
 	}
 
+	public int getFaultLocation() {
+		return faultLocation;
+	};
+
 	protected abstract void makeDataSet();
-
-	protected abstract int[] getFaultLabel();
-
-	public abstract int getFaultLocation();
 
 	public void plotData() {
 		TCanvas canvas = new TCanvas("Training Data", 800, 1200);
