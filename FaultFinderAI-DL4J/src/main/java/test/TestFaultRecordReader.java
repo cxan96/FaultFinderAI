@@ -69,7 +69,7 @@ public class TestFaultRecordReader {
 	private static final Logger log = LoggerFactory.getLogger(TestFaultRecordReader.class);
 	private static int batchSize = 200;
 	private static int testSize = 20;
-	private static int MAX_BATCHES = 100000;
+	private static int MAX_BATCHES = 1000000;
 
 	private static long seed = 42;
 	private static int epochs = 50;
