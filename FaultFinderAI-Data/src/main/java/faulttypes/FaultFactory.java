@@ -7,13 +7,16 @@ import org.nd4j.linalg.util.NDArrayUtil;
 import utils.ArrayUtilities;
 
 public class FaultFactory {
-	private int[] faultLabel = null;
+	private int[] label = null;
+	private int[] reducedLabel = null;
 	private int[][] featureData = null;
 	private String type = null;
 
+	private FaultData retFault = null;
+
 	public FaultFactory() {
 		// this("full");
-		this.faultLabel = new int[ArrayUtilities.faultLableSize];
+		this.label = new int[ArrayUtilities.faultLableSize];
 	}
 
 	// public FaultFactory(String type) {
@@ -26,36 +29,31 @@ public class FaultFactory {
 
 	// use getFault method to get object of type Plan
 	public FaultData getFault(int type) {
-		FaultData retFault = null;
 		if (type == 0) {
-			retFault = new HVPinFault();
+			this.retFault = new HVPinFault();
 		} else if (type == 1) {
-			retFault = new HVChannelFault();
+			this.retFault = new HVChannelFault();
 		} else if (type == 2) {
-			retFault = new HVConnectorFault();
+			this.retFault = new HVConnectorFault();
 		} else if (type == 3) {
-			retFault = new HVFuseFault();
+			this.retFault = new HVFuseFault();
 		} else if (type == 4) {
-			retFault = new HVNoFault();
+			this.retFault = new HVNoFault();
 		} else if (type == 5) {
-			retFault = new HVDeadWire();
+			this.retFault = new HVDeadWire();
 		} else if (type == 6) {
-			retFault = new HVHotWire();
+			this.retFault = new HVHotWire();
 		}
-		makeLabel(retFault);
-		this.featureData = retFault.getData();
-		return retFault;
-	}
-
-	public int[] getLabel() {
-		return this.faultLabel;
+		makeLabel();
+		this.featureData = this.retFault.getData();
+		return this.retFault;
 	}
 
 	// The array is always made in the following order
 	// HVPinFault->HVChannelFault->HVConnectorFault->HVFuseFault->HVDeadWire->HVHotWire
 
-	private void makeLabel(FaultData fault) {
-		int[] faultArray = fault.getLabel();
+	private void makeLabel() {
+		int[] faultArray = this.retFault.getLabel();
 		int[] hvPinDeFault = makeFuseDefaultLabel(ArrayUtilities.hvPinFault.length);
 		int[] hvChannelDeFault = makeFuseDefaultLabel(ArrayUtilities.hvChannelFault.length);
 		int[] hvConnectorDeFault = makeFuseDefaultLabel(ArrayUtilities.hvConnectorFault.length);
@@ -64,154 +62,97 @@ public class FaultFactory {
 		int[] hvHotDeFault = makeFuseDefaultLabel(ArrayUtilities.hvHotWireFault.length);
 		int[] hvNoDeFault = makeFuseDefaultLabel(ArrayUtilities.hvNoWireFault.length);
 
-		if (fault instanceof HVPinFault) {
+		int[] reducedFaultArray = this.retFault.getReducedLabel();
+		int[] hvRePinDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedPinFault.length);
+		int[] hvReChannelDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedChannelFault.length);
+		int[] hvReConnectorDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedConnectorFault.length);
+		int[] hvReFuseDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedFuseFault.length);
+		int[] hvReDeadDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedDeadWireFault.length);
+		int[] hvReHotDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedHotWireFault.length);
+		int[] hvReNoDeFault = makeFuseDefaultLabel(ArrayUtilities.hvReducedNoFault.length);
+
+		if (this.retFault instanceof HVPinFault) {
 			hvPinDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+			hvRePinDeFault = reducedFaultArray;
 
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-		} else if (fault instanceof HVChannelFault) {
+		} else if (this.retFault instanceof HVChannelFault) {
 			hvChannelDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
 
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
-
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-
-		} else if (fault instanceof HVConnectorFault) {
+		} else if (this.retFault instanceof HVConnectorFault) {
 			hvConnectorDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
 
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
-
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-
-		} else if (fault instanceof HVFuseFault) {
+		} else if (this.retFault instanceof HVFuseFault) {
 			hvFuseDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
 
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
-
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-
-		} else if (fault instanceof HVDeadWire) {
+		} else if (this.retFault instanceof HVDeadWire) {
 			hvDeadDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
 
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
-
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-
-		} else if (fault instanceof HVHotWire) {
+		} else if (this.retFault instanceof HVHotWire) {
 			hvHotDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
 
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
-
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-
-		} else if (fault instanceof HVNoFault) {
+		} else if (this.retFault instanceof HVNoFault) {
 			hvNoDeFault = faultArray;
-			System.arraycopy(hvPinDeFault, 0, this.faultLabel, 0, hvPinDeFault.length);
-
-			System.arraycopy(hvChannelDeFault, 0, this.faultLabel, hvPinDeFault.length, hvChannelDeFault.length);
-
-			System.arraycopy(hvConnectorDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length,
-					hvConnectorDeFault.length);
-
-			System.arraycopy(hvFuseDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
-
-			System.arraycopy(hvDeadDeFault, 0, this.faultLabel,
-					hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
-					hvDeadDeFault.length);
-
-			System.arraycopy(
-					hvHotDeFault, 0, this.faultLabel, hvPinDeFault.length + hvChannelDeFault.length
-							+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length,
-					hvHotDeFault.length);
-
+			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+					hvHotDeFault);
 		}
 
+	}
+
+	private void makeReducedLabelArray(int[] hvRePinDeFault, int[] hvReChannelDeFault, int[] hvReConnectorDeFault,
+			int[] hvReFuseDeFault, int[] hvReDeadDeFault, int[] hvReHotDeFault) {
+		System.arraycopy(hvRePinDeFault, 0, this.reducedLabel, 0, hvRePinDeFault.length);
+
+		System.arraycopy(hvReChannelDeFault, 0, this.reducedLabel, hvRePinDeFault.length, hvReChannelDeFault.length);
+
+		System.arraycopy(hvReConnectorDeFault, 0, this.reducedLabel, hvRePinDeFault.length + hvReChannelDeFault.length,
+				hvReConnectorDeFault.length);
+
+		System.arraycopy(hvReFuseDeFault, 0, this.reducedLabel,
+				hvRePinDeFault.length + hvReChannelDeFault.length + hvReConnectorDeFault.length,
+				hvReFuseDeFault.length);
+
+		System.arraycopy(hvReDeadDeFault, 0, this.reducedLabel, hvRePinDeFault.length + hvReChannelDeFault.length
+				+ hvReConnectorDeFault.length + hvReFuseDeFault.length, hvReDeadDeFault.length);
+
+		System.arraycopy(
+				hvReHotDeFault, 0, this.reducedLabel, hvRePinDeFault.length + hvReChannelDeFault.length
+						+ hvReConnectorDeFault.length + hvReFuseDeFault.length + hvReDeadDeFault.length,
+				hvReHotDeFault.length);
+	}
+
+	private void makeLabelArray(int[] hvPinDeFault, int[] hvChannelDeFault, int[] hvConnectorDeFault,
+			int[] hvFuseDeFault, int[] hvDeadDeFault, int[] hvHotDeFault) {
+		System.arraycopy(hvPinDeFault, 0, this.label, 0, hvPinDeFault.length);
+
+		System.arraycopy(hvChannelDeFault, 0, this.label, hvPinDeFault.length, hvChannelDeFault.length);
+
+		System.arraycopy(hvConnectorDeFault, 0, this.label, hvPinDeFault.length + hvChannelDeFault.length,
+				hvConnectorDeFault.length);
+
+		System.arraycopy(hvFuseDeFault, 0, this.label,
+				hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
+
+		System.arraycopy(hvDeadDeFault, 0, this.label,
+				hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
+				hvDeadDeFault.length);
+
+		System.arraycopy(hvHotDeFault, 0, this.label, hvPinDeFault.length + hvChannelDeFault.length
+				+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length, hvHotDeFault.length);
 	}
 
 	private int[] makeFuseDefaultLabel(int length) {
@@ -223,18 +164,30 @@ public class FaultFactory {
 	}
 
 	public INDArray getLabelVector() {
-		return NDArrayUtil.toNDArray(this.faultLabel);
+		return NDArrayUtil.toNDArray(this.label);
 	}
 
 	public INDArray getFeatureVector() {
 		return NDArrayUtil.toNDArray(ArrayUtil.flatten(this.featureData));
 	}
 
-	public int[] getLabelArray() {
-		return this.faultLabel;
-	}
-
 	public int[] getFeatureArray() {
 		return ArrayUtil.flatten(this.featureData);
+	}
+
+	public int[] getLabel() {
+		return label;
+	}
+
+	public int[] getReducedLabel() {
+		return reducedLabel;
+	}
+
+	public int[][] getFeatureData() {
+		return featureData;
+	}
+
+	public String getType() {
+		return type;
 	}
 }// end of FaultFactory class.

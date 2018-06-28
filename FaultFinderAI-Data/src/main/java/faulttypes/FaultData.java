@@ -6,6 +6,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
+import lombok.Getter;
 import utils.ArrayUtilities;
 import utils.FaultUtils;
 
@@ -18,36 +19,18 @@ public abstract class FaultData {
 	protected int faultRangeMax = FaultUtils.FAULT_RANGE_MAX;
 	protected int faultRangeMin = FaultUtils.FAULT_RANGE_MIN;
 
+	@Getter
 	protected int xRnd;
+	@Getter
 	protected int yRnd;
+	@Getter
 	protected int faultLocation;
+	@Getter
 	protected int[][] data = new int[112][6];
+	@Getter
 	protected int[] label;
+	@Getter
 	protected int[] reducedLabel;
-
-	protected int[][] getData() {
-		return data;
-	}
-
-	protected int[] getLabel() {
-		return label;
-	}
-
-	protected int[] getReducedLabel() {
-		return reducedLabel;
-	}
-
-	public int getXRand() {
-		return xRnd;
-	}
-
-	public int getYRand() {
-		return yRnd;
-	}
-
-	public int getFaultLocation() {
-		return faultLocation;
-	};
 
 	protected abstract void makeDataSet();
 

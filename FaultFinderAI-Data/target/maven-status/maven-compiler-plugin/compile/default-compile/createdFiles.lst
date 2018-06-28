@@ -1,10 +1,10 @@
-faulttypes/HVNoFault.class
-faulttypes/HVPinFault.class
-faulttypes/FaultFactory.class
-faulttypes/HVHotWire.class
-faulttypes/FaultData.class
 client/App.class
+faulttypes/HVNoFault.class
 faulttypes/HVChannelFault.class
 faulttypes/HVFuseFault.class
+faulttypes/HVPinFault.class
+faulttypes/FaultFactory.class
 faulttypes/HVDeadWire.class
+faulttypes/HVHotWire.class
+faulttypes/FaultData.class
 faulttypes/HVConnectorFault.class

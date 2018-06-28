@@ -45,7 +45,7 @@ public class HVNoFault extends FaultData {
 	public static void main(String[] args) {
 		FaultData faultData = new HVNoFault();
 		faultData.plotData();
-		System.out.println(faultData.getXRand());
+		System.out.println(faultData.getXRnd());
 		int[] array = faultData.getLabel();
 		System.out.println(array.length);
 		for (int i = 0; i < array.length; i++) {

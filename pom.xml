@@ -10,14 +10,22 @@
 	<properties>
 		<datavec.version>0.9.1</datavec.version>
 	</properties>
-	
+
 	<repositories>
 		<repository>
 			<id>clas12maven</id>
 			<url>https://clasweb.jlab.org/clas12maven</url>
 		</repository>
 	</repositories>
-	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<build>
 		<plugins>
 			<plugin>
