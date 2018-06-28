@@ -241,9 +241,12 @@ public class HVFuseFault extends FaultData {
 	}
 
 	public static void main(String[] args) {
-		FaultData faultData = new HVFuseFault();
+		for (int i = 0; i < 5; i++) {
+			FaultData faultData = new HVFuseFault();
+			faultData.plotData();
+			System.out.println(faultData.getFaultLocation() + "  " + Arrays.toString(faultData.getReducedLabel()));
 
-		System.out.println(faultData.getFaultLocation() + "  " + Arrays.toString(faultData.getReducedLabel()));
+		}
 	}
 
 }
