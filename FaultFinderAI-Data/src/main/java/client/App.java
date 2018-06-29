@@ -1,10 +1,14 @@
 package client;
 
+import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.jlab.groot.data.H1F;
 import org.jlab.groot.data.H2F;
 
 import faulttypes.FaultData;
 import faulttypes.FaultFactory;
+import faulttypes.HVDeadWire;
 
 public class App {
 
@@ -19,7 +23,7 @@ public class App {
 		FaultFactory factory = new FaultFactory();
 		// FaultData fault = new HVPinFault();
 		// FaultData fault = new HVChannelFault();
-		int rndFault = 4;// ThreadLocalRandom.current().nextInt(0, 6);
+		int rndFault = ThreadLocalRandom.current().nextInt(0, 6);
 		FaultData fault = factory.getFault(rndFault);
 		int[] faultLabel = factory.getLabel();
 		int count = -1;
@@ -29,7 +33,7 @@ public class App {
 				count = i;
 			}
 		}
-
+		System.out.println("\n" + Arrays.toString(factory.getReducedLabel()));
 		if (rndFault == 0) {
 			System.out.println(
 					" \n" + fault.getClass().toString() + "  " + (fault.getFaultLocation() + 0) + "  " + count);
@@ -42,11 +46,11 @@ public class App {
 		} else if (rndFault == 3) {
 			System.out.println(
 					" \n" + fault.getClass().toString() + "  " + (fault.getFaultLocation() + 122) + "  " + count);
-		} else if (rndFault == 4) {
+		} else if (rndFault == 5) {
 			System.out.println(
 					" \n" + fault.getClass().toString() + "  " + (fault.getFaultLocation() + 143) + "  " + count);
 
-		} else {
+		} else if (rndFault == 6) {
 			System.out.println(" \n" + fault.getClass().toString() + "  " + (fault.getFaultLocation() + 143 + (112 * 6))
 					+ "  " + count);
 
@@ -60,6 +64,8 @@ public class App {
 		// hData.fill(fault.getXRand() + 1, fault.getYRand() + 1);
 		// }
 		// canvas.draw(hFaults);
+		FaultData fData = new HVDeadWire();
+		System.out.println("\n" + Arrays.toString(fData.getReducedLabel()));
 
 	}
 

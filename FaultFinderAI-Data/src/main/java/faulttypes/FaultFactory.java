@@ -17,15 +17,9 @@ public class FaultFactory {
 	public FaultFactory() {
 		// this("full");
 		this.label = new int[ArrayUtilities.faultLableSize];
-	}
+		this.reducedLabel = new int[ArrayUtilities.reducedfaultLableSize];
 
-	// public FaultFactory(String type) {
-	// this.type = type;
-	// this.faultLabel = new int[type.equals("full") ?
-	// ArrayUtilities.faultLableSize : ArrayUtilities.faultLableSize];
-	//
-	// this.faultLabel = new int[ArrayUtilities.faultLableSize];
-	// }
+	}
 
 	// use getFault method to get object of type Plan
 	public FaultData getFault(int type) {
@@ -82,33 +76,57 @@ public class FaultFactory {
 
 		} else if (this.retFault instanceof HVChannelFault) {
 			hvChannelDeFault = faultArray;
+			hvReChannelDeFault = reducedFaultArray;
+
 			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 
 		} else if (this.retFault instanceof HVConnectorFault) {
 			hvConnectorDeFault = faultArray;
+			hvReConnectorDeFault = reducedFaultArray;
+
 			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 
 		} else if (this.retFault instanceof HVFuseFault) {
 			hvFuseDeFault = faultArray;
+			hvReFuseDeFault = reducedFaultArray;
+
 			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 
 		} else if (this.retFault instanceof HVDeadWire) {
 			hvDeadDeFault = faultArray;
+			hvReDeadDeFault = reducedFaultArray;
+
 			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 
 		} else if (this.retFault instanceof HVHotWire) {
 			hvHotDeFault = faultArray;
+			hvReHotDeFault = reducedFaultArray;
+
 			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 
 		} else if (this.retFault instanceof HVNoFault) {
 			hvNoDeFault = faultArray;
+			hvReNoDeFault = reducedFaultArray;
+
 			makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault);
+			makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+					hvReDeadDeFault, hvReHotDeFault);
 		}
 
 	}
