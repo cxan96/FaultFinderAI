@@ -162,7 +162,7 @@ public class FaultRecordReader implements RecordReader {
 
 	}
 
-	private int getLabelInt(int[] labels) {
+	protected int getLabelInt(int[] labels) {
 		for (int i = 0; i < labels.length; i++) {
 			if (labels[i] == 1) {
 				this.label = i;

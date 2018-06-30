@@ -46,8 +46,7 @@ public class FaultClassifier {
     public void train (int batchSize, int batchNum, FaultRecordReader recordReader) {
         // set up the DatasetIterator
         DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
-            // currently there are 13 kinds of faults in the dataset
-            // it would be nice if one could query them like this: recordReader.getNumberOfClasses()
+	    // currently there are 13 labels in the dataset
             .classification(1, 13)
             .maxNumBatches(batchNum)
             .preProcessor(new FaultRecorderScaler())
@@ -79,8 +78,7 @@ public class FaultClassifier {
     public String evaluate(int batchSize, int batchNum, FaultRecordReader recordReader) {
         // set up the DatasetIterator
         DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
-            // currently there are 13 kinds of faults in the dataset
-            // it would be nice if one could query them like this: recordReader.getNumberOfClasses()
+	    // currently there are 13 labels in the dataset
             .classification(1, 13)
             .maxNumBatches(batchNum)
             .preProcessor(new FaultRecorderScaler())
