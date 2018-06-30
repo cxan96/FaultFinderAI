@@ -5,12 +5,13 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.nd4j.linalg.learning.config.Nesterovs;
+import org.nd4j.linalg.learning.config.AdaDelta;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.nd4j.linalg.activations.impl.ActivationReLU;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
-import org.nd4j.linalg.lossfunctions.impl.LossL2;
+import org.nd4j.linalg.lossfunctions.impl.LossNegativeLogLikelihood;
 import org.nd4j.linalg.activations.impl.ActivationSoftmax;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -27,22 +28,20 @@ public class ModelFactory {
         MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
             // user xavier initialization
             .weightInit(WeightInit.XAVIER)
-            // use stochastic gradient descent
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-            // also use momentum (first parameter)
-            .updater(new Nesterovs(0.1, 0.01))
+            .updater(new AdaDelta())
             .list()
             // the first layer is a convolution layer with a kernel size of 2x2 pixels
-            .layer(0, new ConvolutionLayer.Builder(2, 2)
+            .layer(0, new ConvolutionLayer.Builder(3, 2)
                    // use one input channel
                    .nIn(1)
                    .stride(1, 1)
-                   .nOut(10)
+                   .nOut(20)
                    .activation(new ActivationReLU())
                    .build())
             // next use a pooling (subsampling) layer utilizing MAX-pooling
             .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-                   .kernelSize(2, 2)
+                   .kernelSize(2, 1)
                    .stride(1, 1)
                    .build())
             // hidden layer in the densely connected network
@@ -51,8 +50,8 @@ public class ModelFactory {
 		   // number of hidden neurons
                    .nOut(100)
                    .build())
-            // output layer of the network using L2 as loss function
-            .layer(3, new OutputLayer.Builder(new LossL2())
+            // output layer of the network using negativeloglikelihood as loss function
+            .layer(3, new OutputLayer.Builder(new LossNegativeLogLikelihood())
                    // use as many output neurons as there are labels
                    .nOut(numLabels)
                    .activation(new ActivationSoftmax())

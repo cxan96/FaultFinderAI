@@ -12,15 +12,26 @@ import client.ModelFactory;
 import faultrecordreader.ReducedFaultRecordReader;
 
 import java.util.Scanner;
+import java.io.IOException;
+import java.io.File;
 
 public class FaultClassifierTest {
-    public static void main (String args[]) {
-        // get the desired model
-        MultiLayerNetwork model = ModelFactory.simpleCNN(13);
+    public static void main (String args[]) throws IOException{
+	// the model is stored here
+	String fileName = "models/cnn_simple.zip";
+	
+	FaultClassifier classifier;
+	// check if a saved model exists
+	if ((new File(fileName)).exists()) {
+	    // initialize the classifier with the saved model
+	    classifier = new FaultClassifier(fileName);
+	} else {
+	    // initialize the classifier with a fresh model
+	    MultiLayerNetwork model = ModelFactory.simpleCNN(13);
 
-        // initialize the fault classifier
-        FaultClassifier classifier = new FaultClassifier(model);
-
+	    classifier = new FaultClassifier(model);
+	}
+	
         // set up a local web-UI to monitor the training available at localhost:9000
         UIServer uiServer = UIServer.getInstance();
         StatsStorage statsStorage = new InMemoryStatsStorage();
@@ -29,10 +40,13 @@ public class FaultClassifierTest {
         uiServer.attach(statsStorage);
 
         // train the classifier
-        classifier.train(20, 5000, new ReducedFaultRecordReader());
+        classifier.train(20, 10000, new ReducedFaultRecordReader());
+
+	// save the trained model
+	classifier.save(fileName);
 
         // evaluate the classifier
-        String stats = classifier.evaluate(1, 5000, new ReducedFaultRecordReader());
+        String stats = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
         System.out.println(stats);
 
         // press enter to exit the program
