@@ -31,8 +31,8 @@ public class ModelFactory {
             .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
             .updater(new AdaDelta())
             .list()
-            // the first layer is a convolution layer with a kernel size of 2x2 pixels
-            .layer(0, new ConvolutionLayer.Builder(3, 2)
+            // the first layer is a convolution layer with a kernel 2px high and 3px wide
+            .layer(0, new ConvolutionLayer.Builder(2, 3)
                    // use one input channel
                    .nIn(1)
                    .stride(1, 1)
@@ -41,7 +41,7 @@ public class ModelFactory {
                    .build())
             // next use a pooling (subsampling) layer utilizing MAX-pooling
             .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-                   .kernelSize(2, 1)
+                   .kernelSize(1, 2)
                    .stride(1, 1)
                    .build())
             // hidden layer in the densely connected network
@@ -57,7 +57,7 @@ public class ModelFactory {
                    .activation(new ActivationSoftmax())
                    .build())
             // the images are represented as vectors, thus the input type is convolutionalFlat
-            .setInputType(InputType.convolutionalFlat(112,6, 1))
+            .setInputType(InputType.convolutionalFlat(6,112, 1))
             .backprop(true)
             .pretrain(false)
             .build();

@@ -58,12 +58,12 @@ public class FaultClassifier {
 
     /**
      * Saves the underlying model to a file.
-     * The current state of the updater is also saved.
+     * The current state of the updater is not saved.
      *
      * @param fileName The file that the model is saved to.
      */
     public void save(String fileName) throws IOException{
-        ModelSerializer.writeModel(this.network, new File(fileName), true);
+        ModelSerializer.writeModel(this.network, new File(fileName), false);
     }
 
     /**
