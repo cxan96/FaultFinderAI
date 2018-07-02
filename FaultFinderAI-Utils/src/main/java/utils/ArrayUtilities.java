@@ -14,7 +14,7 @@ public class ArrayUtilities {
 	public static int[] hvFuseFault = new int[21];
 	public static int[] hvHotWireFault = new int[112 * 6];
 	public static int[] hvDeadWireFault = new int[112 * 6];
-	public static int[] hvNoWireFault = new int[112 * 6];
+	public static int[] hvNoWireFault = new int[1];
 
 	public static int faultLableSize = hvPinFault.length + hvChannelFault.length + hvConnectorFault.length
 			+ hvFuseFault.length + 2 * hvDeadWireFault.length;

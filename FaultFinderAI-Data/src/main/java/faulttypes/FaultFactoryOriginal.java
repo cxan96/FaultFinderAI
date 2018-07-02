@@ -6,7 +6,7 @@ import org.nd4j.linalg.util.NDArrayUtil;
 
 import utils.ArrayUtilities;
 
-public class FaultFactory {
+public class FaultFactoryOriginal {
 	private int[] label = null;
 	private int[] reducedLabel = null;
 	private int[][] featureData = null;
@@ -15,11 +15,11 @@ public class FaultFactory {
 	private FaultData retFault = null;
 	private boolean withNoFault;
 
-	public FaultFactory() {
+	public FaultFactoryOriginal() {
 		this(true);
 	}
 
-	public FaultFactory(boolean withNoFault) {
+	public FaultFactoryOriginal(boolean withNoFault) {
 		this.withNoFault = withNoFault;
 	}
 
@@ -96,17 +96,23 @@ public class FaultFactory {
 			hvReNoDeFault = reducedFaultArray;
 
 		}
-		if (withNoFault) {
-			this.label = makeLabel(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
-					hvHotDeFault, hvNoDeFault);
-			this.reducedLabel = makeLabel(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
-					hvReDeadDeFault, hvReHotDeFault, hvReNoDeFault);
-		} else {
-			this.label = makeLabel(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
-					hvHotDeFault);
-			this.reducedLabel = makeLabel(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
-					hvReDeadDeFault, hvReHotDeFault);
-		}
+		makeLabelArray(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault, hvHotDeFault);
+		makeReducedLabelArray(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+				hvReDeadDeFault, hvReHotDeFault);
+		this.label = makeLabel(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
+				hvHotDeFault);
+		this.reducedLabel = makeLabel(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
+				hvReDeadDeFault, hvReHotDeFault);
+
+	}
+
+	private void makeReducedLabelArray(int[]... coord) {
+		this.reducedLabel = new int[getArraySize(coord)];
+
+	}
+
+	private void makeLabelArray(int[]... coord) {
+		this.label = new int[getArraySize(coord)];
 
 	}
 
@@ -126,6 +132,48 @@ public class FaultFactory {
 			size += ints.length;
 		}
 		return size;
+	}
+
+	private void makeReducedLabelArray(int[] hvRePinDeFault, int[] hvReChannelDeFault, int[] hvReConnectorDeFault,
+			int[] hvReFuseDeFault, int[] hvReDeadDeFault, int[] hvReHotDeFault) {
+		System.arraycopy(hvRePinDeFault, 0, this.reducedLabel, 0, hvRePinDeFault.length);
+
+		System.arraycopy(hvReChannelDeFault, 0, this.reducedLabel, hvRePinDeFault.length, hvReChannelDeFault.length);
+
+		System.arraycopy(hvReConnectorDeFault, 0, this.reducedLabel, hvRePinDeFault.length + hvReChannelDeFault.length,
+				hvReConnectorDeFault.length);
+
+		System.arraycopy(hvReFuseDeFault, 0, this.reducedLabel,
+				hvRePinDeFault.length + hvReChannelDeFault.length + hvReConnectorDeFault.length,
+				hvReFuseDeFault.length);
+
+		System.arraycopy(hvReDeadDeFault, 0, this.reducedLabel, hvRePinDeFault.length + hvReChannelDeFault.length
+				+ hvReConnectorDeFault.length + hvReFuseDeFault.length, hvReDeadDeFault.length);
+
+		System.arraycopy(
+				hvReHotDeFault, 0, this.reducedLabel, hvRePinDeFault.length + hvReChannelDeFault.length
+						+ hvReConnectorDeFault.length + hvReFuseDeFault.length + hvReDeadDeFault.length,
+				hvReHotDeFault.length);
+	}
+
+	private void makeLabelArray(int[] hvPinDeFault, int[] hvChannelDeFault, int[] hvConnectorDeFault,
+			int[] hvFuseDeFault, int[] hvDeadDeFault, int[] hvHotDeFault) {
+		System.arraycopy(hvPinDeFault, 0, this.label, 0, hvPinDeFault.length);
+
+		System.arraycopy(hvChannelDeFault, 0, this.label, hvPinDeFault.length, hvChannelDeFault.length);
+
+		System.arraycopy(hvConnectorDeFault, 0, this.label, hvPinDeFault.length + hvChannelDeFault.length,
+				hvConnectorDeFault.length);
+
+		System.arraycopy(hvFuseDeFault, 0, this.label,
+				hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length, hvFuseDeFault.length);
+
+		System.arraycopy(hvDeadDeFault, 0, this.label,
+				hvPinDeFault.length + hvChannelDeFault.length + hvConnectorDeFault.length + hvFuseDeFault.length,
+				hvDeadDeFault.length);
+
+		System.arraycopy(hvHotDeFault, 0, this.label, hvPinDeFault.length + hvChannelDeFault.length
+				+ hvConnectorDeFault.length + hvFuseDeFault.length + hvDeadDeFault.length, hvHotDeFault.length);
 	}
 
 	private int[] makeFuseDefaultLabel(int length) {

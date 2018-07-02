@@ -24,7 +24,7 @@ public class App {
 		// FaultData fault = new HVPinFault();
 		// FaultData fault = new HVChannelFault();
 		int rndFault = ThreadLocalRandom.current().nextInt(0, 6);
-		FaultData fault = factory.getFault(rndFault);
+		FaultData fault = factory.getFault(4);
 		int[] faultLabel = factory.getLabel();
 		int count = -1;
 		for (int i = 0; i < faultLabel.length; i++) {

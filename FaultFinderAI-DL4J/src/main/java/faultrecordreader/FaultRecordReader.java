@@ -27,8 +27,12 @@ public class FaultRecordReader implements RecordReader {
 	FaultRandomizer faultRandomizer = null;
 
 	public FaultRecordReader() {
-		this.factory = new FaultFactory();
-		this.faultRandomizer = new FaultRandomizer();
+		this(true);
+	}
+
+	public FaultRecordReader(boolean withNoFault) {
+		this.factory = new FaultFactory(withNoFault);
+		this.faultRandomizer = new FaultRandomizer(withNoFault);
 		// TODO Auto-generated constructor stub
 	}
 
