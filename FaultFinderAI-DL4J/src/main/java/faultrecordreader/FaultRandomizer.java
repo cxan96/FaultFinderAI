@@ -12,8 +12,14 @@ public class FaultRandomizer {
 	private double primaryRnd;
 	@Getter
 	private int faultNumber;
+	private boolean withNoFault;
 
 	public FaultRandomizer() {
+		this(true);
+	}
+
+	public FaultRandomizer(boolean withNoFault) {
+		this.withNoFault = withNoFault;
 		this.primaryRnd = ThreadLocalRandom.current().nextDouble();
 		makeFaultNumber();
 	}
@@ -27,7 +33,8 @@ public class FaultRandomizer {
 				this.faultNumber = 6;
 			}
 		} else {
-			this.faultNumber = ThreadLocalRandom.current().nextInt(5);
+			this.faultNumber = this.withNoFault ? ThreadLocalRandom.current().nextInt(5)
+					: ThreadLocalRandom.current().nextInt(4);
 		}
 	}
 

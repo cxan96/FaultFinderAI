@@ -39,7 +39,8 @@ public class HVNoFault extends FaultData {
 	 */
 
 	private void makeReducedLabel() {
-		reducedLabel[0] = 1;
+		this.reducedLabel[0] = 1;
+		this.label[0] = 1;
 	}
 
 	public static void main(String[] args) {
