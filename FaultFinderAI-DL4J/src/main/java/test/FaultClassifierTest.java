@@ -6,6 +6,7 @@ import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.eval.Evaluation;
 
 import client.FaultClassifier;
 import client.ModelFactory;
@@ -27,7 +28,7 @@ public class FaultClassifierTest {
 	    classifier = new FaultClassifier(fileName);
 	} else {
 	    // initialize the classifier with a fresh model
-	    MultiLayerNetwork model = ModelFactory.simpleCNN(13);
+	    MultiLayerNetwork model = ModelFactory.simpleCNN(14);
 
 	    classifier = new FaultClassifier(model);
 	}
@@ -39,15 +40,19 @@ public class FaultClassifierTest {
         classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(1));
         uiServer.attach(statsStorage);
 
-        // train the classifier
-        classifier.train(20, 10000, new ReducedFaultRecordReader());
+	// train the classifier for a number of checkpoints and save the model after each checkpoint
+	int checkPoints = 1;
+	for (int i=0; i<checkPoints; i++) {
+	    // train the classifier
+	    classifier.train(20, 10000, 1, new ReducedFaultRecordReader());
 
-	// save the trained model
-	classifier.save(fileName);
+	    // save the trained model
+	    classifier.save(fileName);
+	}
 
         // evaluate the classifier
-        String stats = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
-        System.out.println(stats);
+        Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
+        System.out.println(evaluation.stats());
 
         // press enter to exit the program
         // this will tear down the web ui

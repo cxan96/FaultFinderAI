@@ -41,19 +41,22 @@ public class FaultClassifier {
      *
      * @param batchSize The size of each batch.
      * @param batchNum The amount of batches to pass through during training.
+     * @param epochs The number of epochs to train
      * @param recordReader The FaultRecordReader to be used.
      */
-    public void train (int batchSize, int batchNum, FaultRecordReader recordReader) {
+    public void train (int batchSize, int batchNum, int epochs, FaultRecordReader recordReader) {
         // set up the DatasetIterator
         DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
-	    // currently there are 13 labels in the dataset
-            .classification(1, 13)
+	    // currently there are 14 labels in the dataset
+            .classification(1, 14)
             .maxNumBatches(batchNum)
             .preProcessor(new FaultRecorderScaler())
             .build();
 
-        // this trains the model on batchNum batches
-        this.network.fit(iterator);
+	// this trains the model on batchNum batches for the desired number of epochs
+	for (int i=0; i<epochs; i++) {
+	    this.network.fit(iterator);
+	}
     }
 
     /**
@@ -75,11 +78,11 @@ public class FaultClassifier {
      *
      * @return The results of the Evaluation.
      */
-    public String evaluate(int batchSize, int batchNum, FaultRecordReader recordReader) {
+    public Evaluation evaluate(int batchSize, int batchNum, FaultRecordReader recordReader) {
         // set up the DatasetIterator
         DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
-	    // currently there are 13 labels in the dataset
-            .classification(1, 13)
+	    // currently there are 14 labels in the dataset
+            .classification(1, 14)
             .maxNumBatches(batchNum)
             .preProcessor(new FaultRecorderScaler())
             .build();
@@ -88,7 +91,7 @@ public class FaultClassifier {
         Evaluation evaluation = this.network.evaluate(iterator);
 
         // return the results
-        return evaluation.stats();
+        return evaluation;
     }
 
     /**
