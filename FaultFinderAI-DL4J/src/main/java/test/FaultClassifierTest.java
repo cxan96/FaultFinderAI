@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.File;
 
 public class FaultClassifierTest {
-    public static void main (String args[]) throws IOException{
+    public static void main (String args[]) throws Exception{
 	// the model is stored here
 	String fileName = "models/cnn_simple.zip";
 	
@@ -41,13 +41,16 @@ public class FaultClassifierTest {
         uiServer.attach(statsStorage);
 
 	// train the classifier for a number of checkpoints and save the model after each checkpoint
-	int checkPoints = 1;
+	int checkPoints = 100;
 	for (int i=0; i<checkPoints; i++) {
 	    // train the classifier
 	    classifier.train(20, 10000, 1, new ReducedFaultRecordReader());
 
 	    // save the trained model
 	    classifier.save(fileName);
+
+	    // add some cool down of 15 seconds
+	    Thread.sleep(15000);
 	}
 
         // evaluate the classifier
