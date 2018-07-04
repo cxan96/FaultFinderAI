@@ -62,16 +62,34 @@ public class FaultClassifierTest {
 		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
 		System.out.println(evaluation.stats());
 		// lets compare recall here
-		for (int i = 0; i < 100; i++) {
+		int tPositive = 0;
+		int fNegative = 0;
+		for (int i = 0; i < 10000; i++) {
 			FaultFactory factory = new FaultFactory();
 			factory.getFault(1);
 			System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
 
 			INDArray predictionsAtXYPoints = classifier.output(factory.getFeatureVector());
-			System.out.println("Predicted label: " + Arrays.toString(predictionsAtXYPoints.toIntVector()));
+			int[] predictionArray = predictionsAtXYPoints.toIntVector();
+			System.out.println("Predicted label: " + Arrays.toString(predictionArray));
+
+			int predictionIndex = 0;
+			int trueIndex = factory.getReducedFaultIndex();
+			for (int j = 0; j < predictionArray.length; j++) {
+				if (predictionArray[j] == 1) {
+					predictionIndex = j;
+				}
+			}
+			if ((predictionIndex - trueIndex) != 0) {
+				fNegative++;
+			} else {
+				tPositive++;
+			}
 			System.out.println("##############################");
 
 		}
+		System.out.println(tPositive + "  " + fNegative);
+		System.out.println("Recall is = " + ((double) tPositive / ((double) (tPositive + fNegative))));
 
 		// press enter to exit the program
 		// this will tear down the web ui

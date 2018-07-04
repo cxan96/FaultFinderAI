@@ -14,9 +14,20 @@ public class TestPredictions {
 		FaultClassifier fClassifier = new FaultClassifier(fileName);
 		int tPositive = 0;
 		int fNegative = 0;
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10000; i++) {
 			FaultFactory factory = new FaultFactory();
 			factory.getFault(1);
+			int[][] newData = new int[6][112];
+			int[][] oldData = factory.getFeatureData();
+
+			for (int ii = 0; ii < oldData[0].length; ii++) { // ii are the rows
+																// (layers)
+				for (int jj = 0; jj < oldData.length; jj++) { // jj are the
+																// columns
+																// (wires)
+					newData[ii][jj] = oldData[jj][ii];
+				}
+			}
 			System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
 
 			INDArray predictionsAtXYPoints = fClassifier.output(factory.getFeatureVector());
@@ -35,8 +46,10 @@ public class TestPredictions {
 			} else {
 				tPositive++;
 			}
+			System.out.println("##############################");
+
 		}
 		System.out.println(tPositive + "  " + fNegative);
-		System.out.println("Recall is = " + (double) (tPositive / (tPositive + fNegative)));
+		System.out.println("Recall is = " + ((double) tPositive / ((double) (tPositive + fNegative))));
 	}
 }
