@@ -8,6 +8,7 @@ import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import faultrecordreader.FaultRecordReader;
@@ -105,5 +106,13 @@ public class FaultClassifier {
 	 */
 	public void setListeners(TrainingListener... listeners) {
 		this.network.setListeners(listeners);
+	}
+
+	public int[] predict(INDArray d) {
+		return this.network.predict(d);
+	}
+
+	public INDArray output(INDArray d) {
+		return this.network.output(d);
 	}
 }

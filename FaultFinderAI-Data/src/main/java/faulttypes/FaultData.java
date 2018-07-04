@@ -3,7 +3,6 @@ package faulttypes;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 
-import lombok.Getter;
 import utils.ArrayUtilities;
 import utils.FaultUtils;
 
@@ -16,20 +15,38 @@ public abstract class FaultData {
 	protected int faultRangeMax = FaultUtils.FAULT_RANGE_MAX;
 	protected int faultRangeMin = FaultUtils.FAULT_RANGE_MIN;
 
-	@Getter
 	protected int xRnd;
-	@Getter
 	protected int yRnd;
-	@Getter
 	protected int faultLocation;
-	@Getter
 	protected int[][] data = new int[112][6];
-	@Getter
 	protected int[] label;
-	@Getter
 	protected int[] reducedLabel;
 
 	protected abstract void makeDataSet();
+
+	public int getXRnd() {
+		return xRnd;
+	}
+
+	public int getYRnd() {
+		return yRnd;
+	}
+
+	public int getFaultLocation() {
+		return faultLocation;
+	}
+
+	public int[][] getData() {
+		return data;
+	}
+
+	public int[] getLabel() {
+		return label;
+	}
+
+	public int[] getReducedLabel() {
+		return reducedLabel;
+	}
 
 	public void plotData() {
 		TCanvas canvas = new TCanvas("Training Data", 800, 1200);

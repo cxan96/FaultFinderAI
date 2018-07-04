@@ -6,6 +6,9 @@ import java.util.List;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
 import org.jlab.io.hipo.HipoDataSource;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.util.ArrayUtil;
+import org.nd4j.linalg.util.NDArrayUtil;
 
 public class DataProcess {
 	private HipoDataSource reader = null;
@@ -55,6 +58,10 @@ public class DataProcess {
 		this.fContainer.plotData();
 	}
 
+	public void plotData(int sector, int superLayer) {
+		this.fContainer.plotData(sector, superLayer);
+	}
+
 	private void fillData() {
 		int counter = 0;
 
@@ -83,6 +90,13 @@ public class DataProcess {
 
 	public int[][] getData(int sector, int superLayer) {
 		return fContainer.getData(sector, superLayer);
+	}
+
+	public INDArray getFeatureVector(int sector, int superLayer) {
+		INDArray array = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.getData(sector, superLayer)));
+		double maxRange = (double) array.maxNumber();
+		array.divi((maxRange));
+		return array;
 	}
 
 }
