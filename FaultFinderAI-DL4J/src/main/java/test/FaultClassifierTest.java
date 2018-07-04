@@ -49,7 +49,7 @@ public class FaultClassifierTest {
 		int checkPoints = 1;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 100, 1, new ReducedFaultRecordReader());
+			classifier.train(50, 100000, 20, new ReducedFaultRecordReader());
 
 			// save the trained model
 			classifier.save(fileName);
