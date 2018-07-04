@@ -62,6 +62,7 @@ public class FaultClassifier {
 		// epochs
 		for (int i = 0; i < epochs; i++) {
 			this.network.fit(iterator);
+			iterator.reset();
 		}
 	}
 

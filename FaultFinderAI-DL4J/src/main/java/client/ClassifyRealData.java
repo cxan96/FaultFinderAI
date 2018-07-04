@@ -1,44 +1,48 @@
 package client;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.nd4j.linalg.api.ndarray.INDArray;
-
-import faulttypes.FaultFactory;
+import processHipo.DataProcess;
+import utils.DomainUtils;
 
 public class ClassifyRealData {
 
 	public static void main(String[] args) throws IOException {
 
-		// String dir = DomainUtils.getDataLocation();
-		// List<String> aList = new ArrayList<>();
-		// aList.add(dir + "out_clas_003923.evio.80.hipo");
-		// aList.add(dir + "out_clas_003923.evio.8.hipo");
+		String dir = DomainUtils.getDataLocation();
+		List<String> aList = new ArrayList<>();
+		aList.add(dir + "out_clas_003923.evio.80.hipo");
+		aList.add(dir + "out_clas_003923.evio.8.hipo");
 
 		// aList.add(dir + "out_clas_003923.evio.8.hipo");
-		// DataProcess dataProcess = new DataProcess(aList);
-		// dataProcess.processFile();
+		DataProcess dataProcess = new DataProcess(aList);
+		dataProcess.processFile();
 		// dataProcess.plotData();
 		String fileName = "models/cnn_simpleMKfix.zip";
 		FaultClassifier fClassifier = new FaultClassifier(fileName);
-		for (int i = 0; i < 100; i++) {
-			FaultFactory factory = new FaultFactory();
-			factory.getFault(1);
 
-			// factory.plotData();
-			// int[] predictedClasses =
-			// fClassifier.predict(factory.getFeatureVector());
-			// System.out.println(Arrays.toString(predictedClasses) + " actual
-			// label " + factory.getReducedFaultIndex());
-
-			System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
-
-			INDArray predictionsAtXYPoints = fClassifier.output(factory.getFeatureVector());
-			System.out.println("Predicted label: " + Arrays.toString(predictionsAtXYPoints.toIntVector()));
-			System.out.println("##############################");
-
-		}
+		// for (int i = 0; i < 100; i++) {
+		// FaultFactory factory = new FaultFactory();
+		// factory.getFault(1);
+		//
+		// // factory.plotData();
+		// // int[] predictedClasses =
+		// // fClassifier.predict(factory.getFeatureVector());
+		// // System.out.println(Arrays.toString(predictedClasses) + " actual
+		// // label " + factory.getReducedFaultIndex());
+		//
+		// System.out.println("Actual label: " +
+		// Arrays.toString(factory.getReducedLabel()));
+		//
+		// INDArray predictionsAtXYPoints =
+		// fClassifier.output(factory.getFeatureVector());
+		// System.out.println("Predicted label: " +
+		// Arrays.toString(predictionsAtXYPoints.toIntVector()));
+		// System.out.println("##############################");
+		//
+		// }
 
 		// for (int i = 1; i < 7; i++) {
 		// for (int j = 1; j < 7; j++) {

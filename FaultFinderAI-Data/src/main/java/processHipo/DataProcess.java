@@ -96,6 +96,7 @@ public class DataProcess {
 		INDArray array = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.getData(sector, superLayer)));
 		double maxRange = (double) array.maxNumber();
 		array.divi((maxRange));
+
 		return array;
 	}
 

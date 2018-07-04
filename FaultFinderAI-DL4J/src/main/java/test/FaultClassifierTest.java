@@ -2,6 +2,8 @@ package test;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -22,9 +24,9 @@ import faulttypes.FaultFactory;
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 100;
+		int scoreIterations = 10000;
 
-		String fileName = "models/testing.zip";
+		String fileName = "models/uberTest.zip";
 		boolean reTrain = true;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -49,13 +51,21 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		int checkPoints = 1;
+		int checkPoints = 10;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 10000, 20, new ReducedFaultRecordReader());
+			classifier.train(50, 100000, 20, new ReducedFaultRecordReader());
 
 			// save the trained model
 			classifier.save(fileName);
+
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+			LocalDateTime now = LocalDateTime.now();
+
+			System.out.println("#############################################");
+			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
+			System.out.println("#############################################");
+
 		}
 
 		// evaluate the classifier
@@ -64,7 +74,7 @@ public class FaultClassifierTest {
 		// lets compare recall here
 		int tPositive = 0;
 		int fNegative = 0;
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 10; i++) {
 			FaultFactory factory = new FaultFactory();
 			factory.getFault(1);
 			System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
