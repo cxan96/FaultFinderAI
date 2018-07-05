@@ -20,13 +20,15 @@ import client.FaultClassifier;
 import client.ModelFactory;
 import faultrecordreader.ReducedFaultRecordReader;
 import faulttypes.FaultFactory;
+import utils.DomainUtils;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 10000;
+		int scoreIterations = 1000;
 
 		String fileName = "models/uberTest.zip";
+		// String altFileName = DomainUtils.getDropboxLocal() + "/uberTest.zip";
 		boolean reTrain = true;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -51,16 +53,19 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		int checkPoints = 10;
+		int checkPoints = 200;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 100000, 20, new ReducedFaultRecordReader());
+			classifier.train(50, 5000, 20, new ReducedFaultRecordReader());
+
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy:MM:dd:HH:mm:ss");
+			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
 			classifier.save(fileName);
+			String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "-uberTest.zip";
 
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
+			classifier.save(altFileName);
 
 			System.out.println("#############################################");
 			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));

@@ -24,6 +24,18 @@ public class DomainUtils {
 		return retString;
 	}
 
+	public static String getDropboxLocal() {
+		String hostname = getHostName();
+		if (hostname.contains("ikp")) {
+			return "/Users/michaelkunkel/Dropbox/Work/IKP/CNN/";
+		} else {
+			JOptionPane.showMessageDialog(null, "Need to set this in DomainUtils", "Your Fault",
+					JOptionPane.ERROR_MESSAGE);
+			return "";
+		}
+
+	}
+
 	public static String getDataLocation() {
 		String hostname = getHostName();
 		if (hostname.contains("ikp")) {
