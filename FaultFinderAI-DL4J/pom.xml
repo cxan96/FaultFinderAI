@@ -49,5 +49,11 @@
 				</exclusion> <exclusion> <groupId>log4j</groupId> <artifactId>log4j</artifactId> 
 				</exclusion> </exclusions> -->
 		</dependency>
+		<!-- this is used for the git trainer -->
+		<dependency>
+		  <groupId>org.eclipse.jgit</groupId>
+		  <artifactId>org.eclipse.jgit</artifactId>
+		  <version>5.0.1.201806211838-r</version>
+		</dependency>
 	</dependencies>
 </project>
