@@ -60,15 +60,20 @@ public class GitTrainer {
 	// after each checkpoint
 	int checkPoints = 2000;
 	for (int i = 0; i < checkPoints; i++) {
-	    // train the classifier
-	    classifier.train(20, 45000, 1, new ReducedFaultRecordReader());
+	    // do the saving and committing first to see that everything works
 	    
 	    // save the trained model
 	    classifier.save(fileName);
 
 	    // commit and push the changes
 	    commitAndPush(fileName);
-	    System.out.println("Pushed model on checkpoint "+(i+1));
+	    System.out.println("Pushed model on checkpoint "+i);
+	    
+	    // train the classifier
+	    classifier.train(20, 45000, 1, new ReducedFaultRecordReader());
+	    
+	    // cool down a minute
+	    Thread.sleep(60000);
 	}
     }
 
