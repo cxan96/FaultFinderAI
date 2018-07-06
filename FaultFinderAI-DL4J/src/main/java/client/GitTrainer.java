@@ -70,7 +70,7 @@ public class GitTrainer {
 	    System.out.println("Pushed model on checkpoint "+i);
 	    
 	    // train the classifier
-	    classifier.train(20, 45000, 1, new ReducedFaultRecordReader());
+	    classifier.train(20, 100000, 1, new ReducedFaultRecordReader());
 	    
 	    // cool down a minute
 	    Thread.sleep(60000);
