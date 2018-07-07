@@ -27,8 +27,8 @@ public class ModelFactory {
 				// user xavier initialization
 				.weightInit(WeightInit.XAVIER).optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
 				.updater(new AdaDelta()).list()
-				// the first layer is a convolution layer with a kernel 2px high
-				// and 3px wide
+				// the first layer is a convolution layer with a kernel 3px high
+				// and 2px wide
 				.layer(0,
 						new ConvolutionLayer.Builder(3, 2)
 								// use one input channel

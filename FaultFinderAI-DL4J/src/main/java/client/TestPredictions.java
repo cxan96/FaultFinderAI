@@ -2,25 +2,28 @@ package client;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import faultrecordreader.FaultRecorderScaler;
 import faulttypes.FaultFactory;
+import utils.DomainUtils;
 
 public class TestPredictions {
 
 	public static void main(String[] args) throws IOException {
-		String fileName = "models/testing.zip";// cnn_simpleMKfix.zip"
-												// testing.zip;
+		String fileName = DomainUtils.getDropboxLocal() + "2018-07-06-10-38-16anotherTest.zip";// cnn_simpleMKfix.zip"
+		// testing.zip;
 		FaultClassifier fClassifier = new FaultClassifier(fileName);
 		int tPositive = 0;
 		int fNegative = 0;
 		for (int i = 0; i < 1000; i++) {
 			FaultFactory factory = new FaultFactory();
-			factory.getFault(5);
+			int faultType = ThreadLocalRandom.current().nextInt(7);
+			factory.getFault(faultType);
 			// factory.plotData();
-			System.out.println("Actual label: " + Arrays.toString(factory.getReducedLabel()));
+			System.out.println(faultType + "  Actual label: " + Arrays.toString(factory.getReducedLabel()));
 
 			INDArray features = factory.getFeatureVector();
 			// double maxRange = (double) features.maxNumber();
