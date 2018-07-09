@@ -2,6 +2,7 @@ package client;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
@@ -107,6 +108,11 @@ public class FaultClassifier {
 	 */
 	public void setListeners(TrainingListener... listeners) {
 		this.network.setListeners(listeners);
+	}
+
+	public Collection<TrainingListener> geTrainingListeners() {
+		// return this.network.getTrainingListeners();
+		return this.network.getListeners();
 	}
 
 	public int[] predict(INDArray d) {

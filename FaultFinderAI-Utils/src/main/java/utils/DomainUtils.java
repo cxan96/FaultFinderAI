@@ -28,6 +28,9 @@ public class DomainUtils {
 		String hostname = getHostName();
 		if (hostname.contains("ikp")) {
 			return "/Users/michaelkunkel/Dropbox/Work/IKP/CNN/";
+		} else if (hostname.contains("MichaelKunkel")) {
+			return "/Users/Mike/Dropbox/Work/IKP/CNN/";
+
 		} else {
 			JOptionPane.showMessageDialog(null, "Need to set this in DomainUtils", "Your Fault",
 					JOptionPane.ERROR_MESSAGE);

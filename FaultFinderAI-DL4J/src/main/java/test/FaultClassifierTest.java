@@ -56,14 +56,14 @@ public class FaultClassifierTest {
 		int checkPoints = 200;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 5000, 20, new ReducedFaultRecordReader());
+			classifier.train(50, 500, 10, new ReducedFaultRecordReader());
 
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy:MM:dd:HH:mm:ss");
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			classifier.save(fileName);
-			String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "-uberTest.zip";
+			// classifier.save(fileName);
+			String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "smallTests.zip";
 
 			classifier.save(altFileName);
 
