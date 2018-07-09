@@ -26,8 +26,8 @@ public class ArrayUtilities {
 	public static int[] hvReducedChannelFault = new int[3];
 	public static int[] hvReducedConnectorFault = new int[3];
 	public static int[] hvReducedFuseFault = new int[3];
-	public static int[] hvReducedHotWireFault = new int[1];
 	public static int[] hvReducedDeadWireFault = new int[1];
+	public static int[] hvReducedHotWireFault = new int[1];
 	public static int[] hvReducedNoFault = new int[1];
 
 	public static int reducedfaultLableSize = hvReducedPinFault.length + hvReducedChannelFault.length

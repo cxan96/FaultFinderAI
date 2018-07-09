@@ -47,6 +47,9 @@ public class FaultFactory {
 
 	// The array is always made in the following order
 	// HVPinFault->HVChannelFault->HVConnectorFault->HVFuseFault->HVDeadWire->HVHotWire
+	public void plotData() {
+		this.retFault.plotData();
+	}
 
 	private void makeLabel() {
 		int[] faultArray = this.retFault.getLabel();
@@ -162,5 +165,15 @@ public class FaultFactory {
 
 	public String getType() {
 		return type;
+	}
+
+	public int getReducedFaultIndex() {
+		int retVal = 0;
+		for (int i = 0; i < this.reducedLabel.length; i++) {
+			if (this.reducedLabel[i] == 1) {
+				retVal = i;
+			}
+		}
+		return retVal;
 	}
 }// end of FaultFactory class.

@@ -5,13 +5,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.jlab.groot.data.H1F;
 import org.jlab.groot.ui.TCanvas;
 
-import lombok.Getter;
-
 public class FaultRandomizer {
-	@Getter
 	private double primaryRnd;
-	@Getter
 	private int faultNumber;
+
 	private boolean withNoFault;
 
 	public FaultRandomizer() {
@@ -36,6 +33,14 @@ public class FaultRandomizer {
 			this.faultNumber = this.withNoFault ? ThreadLocalRandom.current().nextInt(5)
 					: ThreadLocalRandom.current().nextInt(4);
 		}
+	}
+
+	public double getPrimaryRnd() {
+		return primaryRnd;
+	}
+
+	public int getFaultNumber() {
+		return faultNumber;
 	}
 
 	public static void main(String[] args) {

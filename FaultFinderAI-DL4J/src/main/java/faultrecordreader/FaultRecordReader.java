@@ -73,7 +73,7 @@ public class FaultRecordReader implements RecordReader {
 	@Override
 	public boolean resetSupported() {
 		// Why would we need to reset in this type of training?
-		return false;
+		return true;
 	}
 
 	@Override

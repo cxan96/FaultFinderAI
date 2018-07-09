@@ -90,9 +90,10 @@ public class HVChannelFault extends FaultData {
 
 	public static void main(String[] args) {
 		H1F aH1f = new H1F("name", 16, 0, 8);
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 1000; i++) {
 			FaultData faultData = new HVChannelFault();
 			aH1f.fill(faultData.getFaultLocation());
+			// faultData.plotData();
 			// System.out.println(faultData.getFaultLocation() + " " +
 			// Arrays.toString(faultData.getReducedLabel()));
 		}

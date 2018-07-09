@@ -84,7 +84,7 @@ public class HVPinFault extends FaultData {
 	 */
 
 	private void makeReducedLabel() {
-		if (this.faultLocation < this.hvPinSegmentation.size() - 2) {
+		if (this.xRnd < this.hvPinSegmentation.size() - 2) {
 			this.reducedLabel = IntStream.of(1, 0).toArray();
 		} else {
 			this.reducedLabel = IntStream.of(0, 1).toArray();
@@ -92,11 +92,15 @@ public class HVPinFault extends FaultData {
 	}
 
 	public static void main(String[] args) {
-		H1F aH1f = new H1F("name", 16, 0, 8);
-		for (int i = 0; i < 100; i++) {
+		H1F aH1f = new H1F("name", 24, 0, 12);
+		for (int i = 0; i < 1000; i++) {
 			FaultData faultData = new HVPinFault();
-			aH1f.fill(faultData.getFaultLocation());
-			System.out.println(faultData.getFaultLocation() + " " + Arrays.toString(faultData.getReducedLabel()));
+			aH1f.fill(faultData.getXRnd());
+			// if (faultData.getXRnd()) {
+			//
+			// }
+			System.out.println(faultData.getXRnd() + "  " + faultData.getFaultLocation() + " "
+					+ Arrays.toString(faultData.getReducedLabel()));
 		}
 		TCanvas canvas = new TCanvas("name", 800, 800);
 		canvas.draw(aH1f);
