@@ -8,17 +8,23 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
+import faulttypes.FaultFactory;
 import strategies.FaultRecordScalerStrategy;
 import strategies.SigmoidStrategy;
 
 public class TestScalerStategy {
 
-	int[][] data = new int[6][3];
-	int height = data[0].length;
-	int width = data.length;
+	int[][] data;
+	int height;
+	int width;
+	FaultFactory factory = null;
 
 	public TestScalerStategy() {
-		makeData();
+		factory = new FaultFactory();
+		data = factory.getFault(6).getData();
+		height = data[0].length;
+		width = data.length;
+		// makeData();
 		System.out.println(width + "  " + height);
 	}
 
