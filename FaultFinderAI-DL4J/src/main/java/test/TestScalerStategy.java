@@ -21,7 +21,7 @@ public class TestScalerStategy {
 
 	public TestScalerStategy() {
 		factory = new FaultFactory();
-		data = factory.getFault(6).getData();
+		data = factory.getFault(1).getData();
 		height = data[0].length;
 		width = data.length;
 		// makeData();
@@ -62,7 +62,7 @@ public class TestScalerStategy {
 	public void plotData(FaultRecordScalerStrategy strategy) {
 
 		INDArray features = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.data));
-		// strategy.normalize(features);
+		strategy.normalize(features);
 		String canvasTitle = strategy.getClass().getName();
 		double[][] data = new double[width][height];
 
