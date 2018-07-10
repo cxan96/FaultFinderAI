@@ -69,9 +69,20 @@ public abstract class FaultData {
 		INDArray features = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.data));
 		strategy.normalize(features);
 		double[][] data = new double[112][6];
+		int height = data[0].length;
 
-		for (int i = 0; i < data[0].length; i++) { // i are the rows (layers)
-			for (int j = 0; j < data.length; j++) { // j are the columns (wires)
+		int rowPlacer = 0;
+		int columnPlacer = 0;
+		for (int i = 0; i < features.length(); i++) {
+			double aDub = features.getDouble(i);
+			if ((i + 1) % height == 0) {
+				data[columnPlacer][rowPlacer] = aDub;
+				rowPlacer = 0;
+				columnPlacer++;
+			} else {
+				data[columnPlacer][rowPlacer] = aDub;
+				rowPlacer++;
+
 			}
 		}
 
