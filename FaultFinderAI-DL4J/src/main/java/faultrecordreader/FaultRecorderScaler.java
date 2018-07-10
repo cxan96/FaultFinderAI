@@ -7,14 +7,22 @@ import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.serializer.NormalizerType;
 
 import lombok.extern.slf4j.Slf4j;
+import strategies.FaultRecordScalerStrategy;
+import strategies.MaxStrategy;
+import utils.FaultUtils;
 
 @Slf4j
 public class FaultRecorderScaler implements DataNormalization {
-	private double minRange;// = FaultUtils.FAULT_RANGE_MIN;
-	private double maxRange;// = FaultUtils.RANGE_MAX;
+	private double minRange = FaultUtils.FAULT_RANGE_MIN;
+	private double maxRange = FaultUtils.RANGE_MAX;
+	private FaultRecordScalerStrategy strategy;
+
+	public FaultRecorderScaler(FaultRecordScalerStrategy strategy) {
+		this.strategy = strategy;
+	}
 
 	public FaultRecorderScaler() {
-		// TODO Auto-generated constructor stub
+		this.strategy = new MaxStrategy();
 	}
 
 	@Override
@@ -36,15 +44,7 @@ public class FaultRecorderScaler implements DataNormalization {
 	}
 
 	public void preProcess(INDArray features) {
-		this.minRange = (double) features.minNumber();
-		this.maxRange = (double) features.maxNumber();
-		if (minRange != 0)
-			features.subi(minRange); // Offset by minRange
-		features.divi((this.maxRange - this.minRange)); // Scaled to 0->1
-		// if (this.maxRange - this.minRange != 1)
-		// features.muli(this.maxRange - this.minRange); // Scaled to minRange
-		// // -> maxRange
-
+		strategy.normalize(features);
 	}
 
 	@Override

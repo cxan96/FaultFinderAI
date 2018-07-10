@@ -14,6 +14,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import faultrecordreader.FaultRecordReader;
 import faultrecordreader.FaultRecorderScaler;
+import strategies.FaultRecordScalerStrategy;
 
 public class FaultClassifier {
 
@@ -53,18 +54,19 @@ public class FaultClassifier {
 	 * @param recordReader
 	 *            The FaultRecordReader to be used.
 	 */
-	public void train(int batchSize, int batchNum, int epochs, FaultRecordReader recordReader) {
+	public void train(int batchSize, int batchNum, int epochs, FaultRecordReader recordReader,
+			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
 				// currently there are 14 labels in the dataset
-				.classification(1, 14).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler()).build();
+				.classification(1, 14).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
 
 		// this trains the model on batchNum batches for the desired number of
 		// epochs
-		for (int i = 0; i < epochs; i++) {
-			this.network.fit(iterator);
-			iterator.reset();
-		}
+		// for (int i = 0; i < epochs; i++) {
+		this.network.fit(iterator, epochs);
+		iterator.reset();
+		// }
 	}
 
 	/**

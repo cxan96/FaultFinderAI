@@ -20,6 +20,7 @@ import client.FaultClassifier;
 import client.ModelFactory;
 import faultrecordreader.ReducedFaultRecordReader;
 import faulttypes.FaultFactory;
+import strategies.OldMaxStrategy;
 import utils.DomainUtils;
 
 public class FaultClassifierTest {
@@ -56,7 +57,7 @@ public class FaultClassifierTest {
 		int checkPoints = 200;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 500, 10, new ReducedFaultRecordReader());
+			classifier.train(50, 500, 10, new ReducedFaultRecordReader(), new OldMaxStrategy());
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();

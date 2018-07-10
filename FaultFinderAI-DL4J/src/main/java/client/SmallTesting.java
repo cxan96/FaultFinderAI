@@ -13,6 +13,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import faultrecordreader.ReducedFaultRecordReader;
+import strategies.StandardizeMinMax;
 import utils.DomainUtils;
 
 public class SmallTesting {
@@ -37,7 +38,7 @@ public class SmallTesting {
 		int checkPoints = 1;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 500, 10, new ReducedFaultRecordReader());
+			classifier.train(20, 10000, 1, new ReducedFaultRecordReader(), new StandardizeMinMax(0.05));
 			// classifier.train(5, 50, 10, new ReducedFaultRecordReader());
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
@@ -45,7 +46,7 @@ public class SmallTesting {
 
 			// save the trained model
 			// classifier.save(fileName);
-			String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "30Klittle.zip";
+			String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "OldNormalization.zip";
 
 			classifier.save(altFileName);
 

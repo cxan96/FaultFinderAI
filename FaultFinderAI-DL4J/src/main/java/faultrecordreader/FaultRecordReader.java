@@ -79,7 +79,7 @@ public class FaultRecordReader implements RecordReader {
 	@Override
 	public List<List<Writable>> next(int batch) {
 		List<List<Writable>> ret = new ArrayList<>();
-		for (int i = 0; i < batch; i++) {
+		for (int i = 0; i < batch && hasNext(); i++) {
 			ret.add(next());
 		}
 		return ret;
