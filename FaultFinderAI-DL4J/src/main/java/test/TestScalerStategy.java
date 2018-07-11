@@ -10,20 +10,35 @@ import org.nd4j.linalg.util.NDArrayUtil;
 
 import faulttypes.FaultFactory;
 import strategies.FaultRecordScalerStrategy;
+import strategies.MaxStrategy;
+import strategies.MinMaxStrategy;
 import strategies.SigmoidStrategy;
+import strategies.StandardScore;
+import strategies.StandardizeMinMax;
 
 public class TestScalerStategy {
 
-	int[][] data;
-	int height;
-	int width;
-	FaultFactory factory = null;
+	private int[][] data;
+	private int height;
+	private int width;
+	private FaultFactory factory = null;
+	private int faultNum;
 
 	public TestScalerStategy() {
-		factory = new FaultFactory();
-		data = factory.getFault(1).getData();
-		height = data[0].length;
-		width = data.length;
+		this.faultNum = 1;
+		init();
+	}
+
+	public TestScalerStategy(int faultNum) {
+		this.faultNum = faultNum;
+		init();
+	}
+
+	private void init() {
+		this.factory = new FaultFactory();
+		this.data = factory.getFault(faultNum).getData();
+		this.height = data[0].length;
+		this.width = data.length;
 		// makeData();
 		System.out.println(width + "  " + height);
 	}
@@ -93,19 +108,22 @@ public class TestScalerStategy {
 	}
 
 	public static void main(String[] args) {
-		TestScalerStategy test = new TestScalerStategy();
+		TestScalerStategy test = new TestScalerStategy(3);
 		test.plotData();
-		// System.out.println("############# MaxStrategy ###############");
-		// test.plotData(new MaxStrategy());
-		//
-		// System.out.println("############# MinMaxStrategy ###############");
-		// test.plotData(new MinMaxStrategy());
-		//
-		// System.out.println("############# StandardScore ###############");
-		// test.plotData(new StandardScore());
+		System.out.println("############# MaxStrategy ###############");
+		test.plotData(new MaxStrategy());
+
+		System.out.println("############# MinMaxStrategy ###############");
+		test.plotData(new MinMaxStrategy());
+
+		System.out.println("############# StandardScore ###############");
+		test.plotData(new StandardScore());
 
 		System.out.println("############# Sigmoid ###############");
 		test.plotData(new SigmoidStrategy());
+
+		System.out.println("############# StandardizeMinMax ###############");
+		test.plotData(new StandardizeMinMax(0.05));
 
 	}
 }

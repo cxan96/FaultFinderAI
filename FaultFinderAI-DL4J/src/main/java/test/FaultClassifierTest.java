@@ -20,7 +20,8 @@ import client.FaultClassifier;
 import client.ModelFactory;
 import faultrecordreader.ReducedFaultRecordReader;
 import faulttypes.FaultFactory;
-import strategies.OldMaxStrategy;
+import strategies.FaultRecordScalerStrategy;
+import strategies.StandardizeMinMax;
 import utils.DomainUtils;
 
 public class FaultClassifierTest {
@@ -43,6 +44,7 @@ public class FaultClassifierTest {
 
 			classifier = new FaultClassifier(model);
 		}
+		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
 
 		// set up a local web-UI to monitor the training available at
 		// localhost:9000
@@ -57,7 +59,7 @@ public class FaultClassifierTest {
 		int checkPoints = 200;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 500, 10, new ReducedFaultRecordReader(), new OldMaxStrategy());
+			classifier.train(50, 500, 10, new ReducedFaultRecordReader(), strategy);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();
@@ -75,7 +77,7 @@ public class FaultClassifierTest {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
+		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader(), strategy);
 		System.out.println(evaluation.stats());
 		// lets compare recall here
 		int tPositive = 0;

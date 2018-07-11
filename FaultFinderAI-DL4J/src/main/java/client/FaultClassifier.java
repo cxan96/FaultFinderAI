@@ -92,11 +92,12 @@ public class FaultClassifier {
 	 *
 	 * @return The results of the Evaluation.
 	 */
-	public Evaluation evaluate(int batchSize, int batchNum, FaultRecordReader recordReader) {
+	public Evaluation evaluate(int batchSize, int batchNum, FaultRecordReader recordReader,
+			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
 				// currently there are 14 labels in the dataset
-				.classification(1, 14).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler()).build();
+				.classification(1, 14).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
 
 		// perform the testing
 		Evaluation evaluation = this.network.evaluate(iterator);

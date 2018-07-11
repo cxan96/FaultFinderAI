@@ -5,12 +5,15 @@ import java.io.IOException;
 import org.deeplearning4j.eval.Evaluation;
 
 import faultrecordreader.ReducedFaultRecordReader;
+import strategies.FaultRecordScalerStrategy;
+import strategies.StandardizeMinMax;
 import utils.DomainUtils;
 
 public class TestTrain {
 
 	public static void test(String fileName) throws IOException {
 		FaultClassifier classifier = new FaultClassifier(fileName);
+		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
 
 		// classifier.train(1, 1, 1, new ReducedFaultRecordReader());
 
@@ -20,7 +23,7 @@ public class TestTrain {
 		// System.out.println(tr.getClass().getName());
 		// }
 
-		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
+		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader(), strategy);
 		System.out.println(evaluation.stats());
 		System.out.println("\n \n  " + evaluation.accuracy());
 	}

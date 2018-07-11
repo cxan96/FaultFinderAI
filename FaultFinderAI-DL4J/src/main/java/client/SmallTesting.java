@@ -13,6 +13,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import faultrecordreader.ReducedFaultRecordReader;
+import strategies.FaultRecordScalerStrategy;
 import strategies.StandardizeMinMax;
 import utils.DomainUtils;
 
@@ -23,6 +24,7 @@ public class SmallTesting {
 		FaultClassifier classifier;
 		// initialize the classifier with a fresh model
 		MultiLayerNetwork model = ModelFactory.simpleCNN(14);
+		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
 
 		classifier = new FaultClassifier(model);
 		// set up a local web-UI to monitor the training available at
@@ -38,7 +40,7 @@ public class SmallTesting {
 		int checkPoints = 1;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(20, 10000, 1, new ReducedFaultRecordReader(), new StandardizeMinMax(0.05));
+			classifier.train(20, 10000, 5, new ReducedFaultRecordReader(), strategy);
 			// classifier.train(5, 50, 10, new ReducedFaultRecordReader());
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
@@ -57,7 +59,7 @@ public class SmallTesting {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader());
+		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader(), strategy);
 		System.out.println(evaluation.stats());
 		System.exit(0);
 	}
