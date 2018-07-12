@@ -20,18 +20,17 @@ import client.FaultClassifier;
 import client.ModelFactory;
 import faultrecordreader.ReducedFaultRecordReader;
 import faulttypes.FaultFactory;
-import strategies.FaultRecordScalerStrategy;
-import strategies.StandardizeMinMax;
+import strategies.*;
 import utils.DomainUtils;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 1000;
+		int scoreIterations = 100;
 
-		String fileName = "models/uberTest.zip";
+		String fileName = "models/finally.zip";
 		// String altFileName = DomainUtils.getDropboxLocal() + "/uberTest.zip";
-		boolean reTrain = true;
+		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
 		if ((new File(fileName)).exists() && !reTrain) {
@@ -44,7 +43,7 @@ public class FaultClassifierTest {
 
 			classifier = new FaultClassifier(model);
 		}
-		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
+		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 
 		// set up a local web-UI to monitor the training available at
 		// localhost:9000
@@ -56,19 +55,19 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		int checkPoints = 200;
+		int checkPoints = 0;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(50, 500, 10, new ReducedFaultRecordReader(), strategy);
+			classifier.train(1, 10000, 1, new ReducedFaultRecordReader(), strategy);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			// classifier.save(fileName);
-			String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "smallTests.zip";
+			classifier.save(fileName);
+			//String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "smallTests.zip";
 
-			classifier.save(altFileName);
+			//classifier.save(altFileName);
 
 			System.out.println("#############################################");
 			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
@@ -77,37 +76,37 @@ public class FaultClassifierTest {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader(), strategy);
+		Evaluation evaluation = classifier.evaluate(1, 100000, new ReducedFaultRecordReader(), strategy);
 		System.out.println(evaluation.stats());
-		// lets compare recall here
-		int tPositive = 0;
-		int fNegative = 0;
-		for (int i = 0; i < 10; i++) {
-			FaultFactory factory = new FaultFactory();
-			factory.getFault(1);
-			System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
+		// // lets compare recall here
+		// int tPositive = 0;
+		// int fNegative = 0;
+		// for (int i = 0; i < 10; i++) {
+		// 	FaultFactory factory = new FaultFactory();
+		// 	factory.getFault(1);
+		// 	System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
 
-			INDArray predictionsAtXYPoints = classifier.output(factory.getFeatureVector());
-			int[] predictionArray = predictionsAtXYPoints.toIntVector();
-			System.out.println("Predicted label: " + Arrays.toString(predictionArray));
+		// 	INDArray predictionsAtXYPoints = classifier.output(factory.getFeatureVector());
+		// 	int[] predictionArray = predictionsAtXYPoints.toIntVector();
+		// 	System.out.println("Predicted label: " + Arrays.toString(predictionArray));
 
-			int predictionIndex = 0;
-			int trueIndex = factory.getReducedFaultIndex();
-			for (int j = 0; j < predictionArray.length; j++) {
-				if (predictionArray[j] == 1) {
-					predictionIndex = j;
-				}
-			}
-			if ((predictionIndex - trueIndex) != 0) {
-				fNegative++;
-			} else {
-				tPositive++;
-			}
-			System.out.println("##############################");
+		// 	int predictionIndex = 0;
+		// 	int trueIndex = factory.getReducedFaultIndex();
+		// 	for (int j = 0; j < predictionArray.length; j++) {
+		// 		if (predictionArray[j] == 1) {
+		// 			predictionIndex = j;
+		// 		}
+		// 	}
+		// 	if ((predictionIndex - trueIndex) != 0) {
+		// 		fNegative++;
+		// 	} else {
+		// 		tPositive++;
+		// 	}
+		// 	System.out.println("##############################");
 
-		}
-		System.out.println(tPositive + "  " + fNegative);
-		System.out.println("Recall is = " + ((double) tPositive / ((double) (tPositive + fNegative))));
+		// }
+		// System.out.println(tPositive + "  " + fNegative);
+		// System.out.println("Recall is = " + ((double) tPositive / ((double) (tPositive + fNegative))));
 
 		// press enter to exit the program
 		// this will tear down the web ui

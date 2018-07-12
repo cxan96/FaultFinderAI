@@ -35,7 +35,7 @@ public class ModelFactory {
 								.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
 				// next use a pooling (subsampling) layer utilizing MAX-pooling
 				.layer(1,
-						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(1, 2).stride(1, 1)
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(1, 1)
 								.build())
 				// hidden layer in the densely connected network
 				.layer(2,
