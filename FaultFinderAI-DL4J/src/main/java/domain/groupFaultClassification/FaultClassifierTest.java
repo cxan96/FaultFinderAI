@@ -1,10 +1,9 @@
-package test;
+package domain.groupFaultClassification;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Scanner;
 
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -14,14 +13,12 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
-import org.nd4j.linalg.api.ndarray.INDArray;
 
 import client.FaultClassifier;
 import client.ModelFactory;
 import faultrecordreader.ReducedFaultRecordReader;
-import faulttypes.FaultFactory;
-import strategies.*;
-import utils.DomainUtils;
+import strategies.FaultRecordScalerStrategy;
+import strategies.MinMaxStrategy;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
@@ -29,7 +26,6 @@ public class FaultClassifierTest {
 		int scoreIterations = 100;
 
 		String fileName = "models/finally.zip";
-		// String altFileName = DomainUtils.getDropboxLocal() + "/uberTest.zip";
 		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -65,9 +61,10 @@ public class FaultClassifierTest {
 
 			// save the trained model
 			classifier.save(fileName);
-			//String altFileName = DomainUtils.getDropboxLocal() + dtf.format(now) + "smallTests.zip";
+			// String altFileName = DomainUtils.getDropboxLocal() +
+			// dtf.format(now) + "smallTests.zip";
 
-			//classifier.save(altFileName);
+			// classifier.save(altFileName);
 
 			System.out.println("#############################################");
 			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
@@ -82,31 +79,35 @@ public class FaultClassifierTest {
 		// int tPositive = 0;
 		// int fNegative = 0;
 		// for (int i = 0; i < 10; i++) {
-		// 	FaultFactory factory = new FaultFactory();
-		// 	factory.getFault(1);
-		// 	System.out.println("Actual label:    " + Arrays.toString(factory.getReducedLabel()));
+		// FaultFactory factory = new FaultFactory();
+		// factory.getFault(1);
+		// System.out.println("Actual label: " +
+		// Arrays.toString(factory.getReducedLabel()));
 
-		// 	INDArray predictionsAtXYPoints = classifier.output(factory.getFeatureVector());
-		// 	int[] predictionArray = predictionsAtXYPoints.toIntVector();
-		// 	System.out.println("Predicted label: " + Arrays.toString(predictionArray));
+		// INDArray predictionsAtXYPoints =
+		// classifier.output(factory.getFeatureVector());
+		// int[] predictionArray = predictionsAtXYPoints.toIntVector();
+		// System.out.println("Predicted label: " +
+		// Arrays.toString(predictionArray));
 
-		// 	int predictionIndex = 0;
-		// 	int trueIndex = factory.getReducedFaultIndex();
-		// 	for (int j = 0; j < predictionArray.length; j++) {
-		// 		if (predictionArray[j] == 1) {
-		// 			predictionIndex = j;
-		// 		}
-		// 	}
-		// 	if ((predictionIndex - trueIndex) != 0) {
-		// 		fNegative++;
-		// 	} else {
-		// 		tPositive++;
-		// 	}
-		// 	System.out.println("##############################");
+		// int predictionIndex = 0;
+		// int trueIndex = factory.getReducedFaultIndex();
+		// for (int j = 0; j < predictionArray.length; j++) {
+		// if (predictionArray[j] == 1) {
+		// predictionIndex = j;
+		// }
+		// }
+		// if ((predictionIndex - trueIndex) != 0) {
+		// fNegative++;
+		// } else {
+		// tPositive++;
+		// }
+		// System.out.println("##############################");
 
 		// }
-		// System.out.println(tPositive + "  " + fNegative);
-		// System.out.println("Recall is = " + ((double) tPositive / ((double) (tPositive + fNegative))));
+		// System.out.println(tPositive + " " + fNegative);
+		// System.out.println("Recall is = " + ((double) tPositive / ((double)
+		// (tPositive + fNegative))));
 
 		// press enter to exit the program
 		// this will tear down the web ui

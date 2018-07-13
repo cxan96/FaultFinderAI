@@ -10,6 +10,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
+import strategies.FaultRecordScalerStrategy;
+
 public class DataProcess {
 	private HipoDataSource reader = null;
 	private List<String> fileList = null;
@@ -62,6 +64,10 @@ public class DataProcess {
 		this.fContainer.plotData(sector, superLayer);
 	}
 
+	public void plotData(int sector, int superLayer, boolean userChoice) {
+		this.fContainer.plotData(sector, superLayer, userChoice);
+	}
+
 	private void fillData() {
 		int counter = 0;
 
@@ -97,6 +103,12 @@ public class DataProcess {
 		double maxRange = (double) array.maxNumber();
 		array.divi((maxRange));
 
+		return array;
+	}
+
+	public INDArray getFeatureVector(int sector, int superLayer, FaultRecordScalerStrategy strategy) {
+		INDArray array = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.getData(sector, superLayer)));
+		strategy.normalize(array);
 		return array;
 	}
 

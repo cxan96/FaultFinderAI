@@ -2,25 +2,31 @@ package client;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+
 import processHipo.DataProcess;
-import utils.DomainUtils;
+import strategies.FaultRecordScalerStrategy;
+import strategies.StandardizeMinMax;
 
 public class ClassifyRealData {
 
 	public static void main(String[] args) throws IOException {
 
-		String dir = DomainUtils.getDataLocation();
+		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
+
+		String dir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";// DomainUtils.getDataLocation();
 		List<String> aList = new ArrayList<>();
 		aList.add(dir + "out_clas_003923.evio.80.hipo");
-		aList.add(dir + "out_clas_003923.evio.8.hipo");
+		// aList.add(dir + "out_clas_003923.evio.8.hipo");
 
 		// aList.add(dir + "out_clas_003923.evio.8.hipo");
 		DataProcess dataProcess = new DataProcess(aList);
 		dataProcess.processFile();
 		// dataProcess.plotData();
-		String fileName = "models/cnn_simpleMKfix.zip";
+		String fileName = "models/finally.zip";
 		FaultClassifier fClassifier = new FaultClassifier(fileName);
 
 		// for (int i = 0; i < 100; i++) {
@@ -44,14 +50,23 @@ public class ClassifyRealData {
 		//
 		// }
 
-		// for (int i = 1; i < 7; i++) {
-		// for (int j = 1; j < 7; j++) {
-		// int[] predictedClasses =
-		// fClassifier.predict(dataProcess.getFeatureVector(i, j));
-		// System.out.println(Arrays.toString(predictedClasses));
-		// dataProcess.plotData(i, j);
-		// }
-		// }
+		for (int i = 1; i < 7; i++) {
+			for (int j = 1; j < 7; j++) {
+				INDArray predictionsAtXYPoints = fClassifier.output(dataProcess.getFeatureVector(i, j, strategy));
+
+				double[] predictedClasses = predictionsAtXYPoints.toDoubleVector();
+				// int[] predictedClasses =
+				// fClassifier.output(dataProcess.getFeatureVector(i, j,
+				// strategy));
+
+				predictedClasses = Arrays.stream(predictedClasses).map(x -> (x < 1E-04) ? 0.0 : x)
+						.map(x -> Math.round(x * 10000.0) / 10000.0).toArray();
+				System.out.println(Arrays.toString(predictedClasses));
+				System.out.println("################################################");
+
+				dataProcess.plotData(i, j);
+			}
+		}
 
 		// int[] predictedClasses =
 		// fClassifier.predict(dataProcess.getFeatureVector(1, 2));

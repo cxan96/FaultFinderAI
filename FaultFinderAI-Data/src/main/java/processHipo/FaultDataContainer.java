@@ -67,6 +67,20 @@ public class FaultDataContainer {
 		canvas.draw(hData);
 	}
 
+	public void plotData(int sector, int superLayer, boolean withGrid) {
+		int[][] data = getData(sector, superLayer);
+		TCanvas canvas = new TCanvas("Training Data", 800, 1200);
+		H2F hData = new H2F("Training Data", 112, 1, 112, 6, 1, 6);
+		for (int k = 0; k < data[0].length; k++) { // k are the rows
+													// (layers)
+			for (int l = 0; l < data.length; l++) { // l are the columns
+													// (wires)
+				hData.setBinContent(l, k, data[l][k]);
+			}
+		}
+		canvas.draw(hData);
+	}
+
 	class Container {
 
 		private int sector;
