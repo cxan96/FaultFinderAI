@@ -22,7 +22,7 @@ import faulttypes.FaultFactory;
 
 public class FaultRecordReader implements RecordReader {
 
-	FaultFactory factory = null;
+	protected FaultFactory factory = null;
 	int label;
 	FaultRandomizer faultRandomizer = null;
 

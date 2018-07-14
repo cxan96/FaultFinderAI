@@ -69,6 +69,22 @@ public class FaultClassifier {
 		// }
 	}
 
+	public void train(int numLabels, int batchSize, int batchNum, int epochs, FaultRecordReader recordReader,
+			FaultRecordScalerStrategy strategy) {
+		// set up the DatasetIterator
+		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
+				// currently there are 14 labels in the dataset
+				.classification(1, numLabels).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy))
+				.build();
+
+		// this trains the model on batchNum batches for the desired number of
+		// epochs
+		// for (int i = 0; i < epochs; i++) {
+		this.network.fit(iterator, epochs);
+		iterator.reset();
+		// }
+	}
+
 	/**
 	 * Saves the underlying model to a file. The current state of the updater is
 	 * not saved.
@@ -98,6 +114,21 @@ public class FaultClassifier {
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
 				// currently there are 14 labels in the dataset
 				.classification(1, 14).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+
+		// perform the testing
+		Evaluation evaluation = this.network.evaluate(iterator);
+
+		// return the results
+		return evaluation;
+	}
+
+	public Evaluation evaluate(int numLabels, int batchSize, int batchNum, FaultRecordReader recordReader,
+			FaultRecordScalerStrategy strategy) {
+		// set up the DatasetIterator
+		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
+				// currently there are 14 labels in the dataset
+				.classification(1, numLabels).maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy))
+				.build();
 
 		// perform the testing
 		Evaluation evaluation = this.network.evaluate(iterator);

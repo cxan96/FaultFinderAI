@@ -152,7 +152,18 @@ public class FaultFactory {
 	}
 
 	public int[] getLabel() {
-		return label;
+		return this.label;
+	}
+
+	/**
+	 * 
+	 * getFaultLabel(): The label for an individual fault i.e. HVChannel will
+	 * have int[8]
+	 * 
+	 */
+
+	public int[] getFaultLabel() {
+		return this.retFault.getLabel();
 	}
 
 	public int[] getReducedLabel() {
@@ -176,4 +187,11 @@ public class FaultFactory {
 		}
 		return retVal;
 	}
-}// end of FaultFactory class.
+
+	public String getFaultName() {
+		return this.retFault.getClass().getSimpleName();
+	}
+}// end
+	// of
+	// FaultFactory
+	// class.
