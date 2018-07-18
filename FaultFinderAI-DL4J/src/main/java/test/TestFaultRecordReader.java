@@ -81,7 +81,7 @@ public class TestFaultRecordReader {
 	private int scoreIterations = 500;
 	private static int numInputs = ArrayUtilities.nLayers * ArrayUtilities.nWires;
 	private static int numHiddenNodes = ArrayUtilities.nWires;
-	private static int numLabels = ArrayUtilities.faultLableSize;
+	private static int numLabels = 672;// ArrayUtilities.faultLableSize;
 
 	private DataNormalization scaler = null;
 	private FaultRecordReader recordReader = null;

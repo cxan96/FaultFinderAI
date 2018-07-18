@@ -16,17 +16,18 @@ public class ClassifyRealData {
 	public static void main(String[] args) throws IOException {
 
 		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
+		String mkDir = "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
 
 		String dir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";// DomainUtils.getDataLocation();
 		List<String> aList = new ArrayList<>();
-		aList.add(dir + "out_clas_003923.evio.80.hipo");
-		// aList.add(dir + "out_clas_003923.evio.8.hipo");
+		aList.add(mkDir + "out_clas_003923.evio.80.hipo");
+		aList.add(mkDir + "out_clas_003923.evio.8.hipo");
 
 		// aList.add(dir + "out_clas_003923.evio.8.hipo");
 		DataProcess dataProcess = new DataProcess(aList);
 		dataProcess.processFile();
 		// dataProcess.plotData();
-		String fileName = "models/finally.zip";
+		String fileName = "models/finallyNewSigmoid.zip";
 		FaultClassifier fClassifier = new FaultClassifier(fileName);
 
 		// for (int i = 0; i < 100; i++) {
@@ -51,7 +52,9 @@ public class ClassifyRealData {
 		// }
 
 		for (int i = 1; i < 7; i++) {
+			System.out.println("IN LOOP");
 			for (int j = 1; j < 7; j++) {
+				// int j = 6;
 				INDArray predictionsAtXYPoints = fClassifier.output(dataProcess.getFeatureVector(i, j, strategy));
 
 				double[] predictedClasses = predictionsAtXYPoints.toDoubleVector();

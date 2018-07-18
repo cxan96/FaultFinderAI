@@ -93,8 +93,9 @@ public class HVPinFault extends FaultData {
 
 	public static void main(String[] args) {
 		H1F aH1f = new H1F("name", 24, 0, 12);
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 10; i++) {
 			FaultData faultData = new HVPinFault();
+			faultData.plotData();
 			aH1f.fill(faultData.getXRnd());
 			// if (faultData.getXRnd()) {
 			//

@@ -13,14 +13,14 @@ public class FaultFactory {
 	private String type = null;
 
 	private FaultData retFault = null;
-	private boolean withNoFault;
+	private boolean withHotwireFault;
 
 	public FaultFactory() {
 		this(true);
 	}
 
-	public FaultFactory(boolean withNoFault) {
-		this.withNoFault = withNoFault;
+	public FaultFactory(boolean withHotwireFault) {
+		this.withHotwireFault = withHotwireFault;
 	}
 
 	// use getFault method to get object of type Plan
@@ -99,16 +99,16 @@ public class FaultFactory {
 			hvReNoDeFault = reducedFaultArray;
 
 		}
-		if (withNoFault) {
+		if (withHotwireFault) {
 			this.label = makeLabel(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
 					hvHotDeFault, hvNoDeFault);
 			this.reducedLabel = makeLabel(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
 					hvReDeadDeFault, hvReHotDeFault, hvReNoDeFault);
 		} else {
 			this.label = makeLabel(hvPinDeFault, hvChannelDeFault, hvConnectorDeFault, hvFuseDeFault, hvDeadDeFault,
-					hvHotDeFault);
+					hvNoDeFault);
 			this.reducedLabel = makeLabel(hvRePinDeFault, hvReChannelDeFault, hvReConnectorDeFault, hvReFuseDeFault,
-					hvReDeadDeFault, hvReHotDeFault);
+					hvReDeadDeFault, hvReNoDeFault);
 		}
 
 	}

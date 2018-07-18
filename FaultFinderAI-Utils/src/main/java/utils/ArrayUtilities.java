@@ -16,8 +16,9 @@ public class ArrayUtilities {
 	public static int[] hvDeadWireFault = new int[112 * 6];
 	public static int[] hvNoWireFault = new int[1];
 
-	public static int faultLableSize = hvPinFault.length + hvChannelFault.length + hvConnectorFault.length
-			+ hvFuseFault.length + 2 * hvDeadWireFault.length;
+	// public static int faultLableSize = hvPinFault.length +
+	// hvChannelFault.length + hvConnectorFault.length
+	// + hvFuseFault.length + 2 * hvDeadWireFault.length;
 
 	// reduced labels
 	// might be interesting for CNN's
@@ -30,7 +31,9 @@ public class ArrayUtilities {
 	public static int[] hvReducedHotWireFault = new int[1];
 	public static int[] hvReducedNoFault = new int[1];
 
-	public static int reducedfaultLableSize = hvReducedPinFault.length + hvReducedChannelFault.length
-			+ hvReducedConnectorFault.length + hvReducedFuseFault.length + 2 * hvReducedDeadWireFault.length;
+	// public static int reducedfaultLableSize = hvReducedPinFault.length +
+	// hvReducedChannelFault.length
+	// + hvReducedConnectorFault.length + hvReducedFuseFault.length + 2 *
+	// hvReducedDeadWireFault.length;
 
 }

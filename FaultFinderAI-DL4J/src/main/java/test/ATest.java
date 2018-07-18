@@ -1,6 +1,7 @@
 package test;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ATest {
 	public static void main(String[] args) {
@@ -13,6 +14,10 @@ public class ATest {
 		System.out.println(Arrays.toString(d));
 
 		System.out.println(Arrays.toString(blah));
+		for (int i = 0; i < 15; i++) {
+			int rndm = ThreadLocalRandom.current().nextInt(3);
+			System.out.println(rndm);
 
+		}
 	}
 }

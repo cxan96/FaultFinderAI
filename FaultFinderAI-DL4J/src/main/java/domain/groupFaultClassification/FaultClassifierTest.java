@@ -25,11 +25,11 @@ public class FaultClassifierTest {
 		// the model is stored here
 		int scoreIterations = 100;
 
-		String fileName = "models/finally.zip";
+		String fileName = "models/finallyNewSigmoid.zip";
 		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
-		if ((new File(fileName)).exists() && !reTrain) {
+		if ((new File(fileName)).exists()) {
 			System.out.println("remodel");
 			// initialize the classifier with the saved model
 			classifier = new FaultClassifier(fileName);
@@ -73,7 +73,7 @@ public class FaultClassifierTest {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(1, 100000, new ReducedFaultRecordReader(), strategy);
+		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader(), strategy);
 		System.out.println(evaluation.stats());
 		// // lets compare recall here
 		// int tPositive = 0;
