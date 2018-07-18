@@ -1,5 +1,6 @@
 package domain.singleFaultClassification;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -26,6 +27,13 @@ public class SingleFaultClassifier {
 	private String fileName;
 	private int nInputs;
 	private int nLabels;
+	/**
+	 * since the labels are very asymmetric i.e. <br>
+	 * wire position is 112*6 possible locations I <br>
+	 * think the trainingSamples should be dependent <br>
+	 * on the size of the faultLabel
+	 */
+	private int trainingSamples;
 	private int faultType;
 	private MultiLayerNetwork model;
 	private FaultRecordScalerStrategy strategy;
@@ -42,8 +50,10 @@ public class SingleFaultClassifier {
 		initFault();
 		initVars();
 
-		this.model = ModelFactory.mnistSetUp(this.nInputs, this.nLabels);
-		this.classifier = new FaultClassifier(model);
+		// this.model = ModelFactory.simpleDNNII(this.nInputs, this.nLabels);
+		// this.model = ModelFactory.simpleNN(this.nInputs, this.nLabels);
+		// this.classifier = new FaultClassifier(model);
+		loadModel();
 
 	}
 
@@ -56,6 +66,25 @@ public class SingleFaultClassifier {
 		this.fileName = factory.getFaultName();
 		this.nInputs = factory.getFeatureArray().length;
 		this.nLabels = factory.getFaultLabel().length;
+		this.trainingSamples = this.nLabels * 1000;
+	}
+
+	public void loadModel() {
+		String fileName = "models/" + this.fileName + ".zip";
+
+		if ((new File(fileName)).exists()) {
+			// initialize the classifier with the saved model
+			try {
+				this.classifier = new FaultClassifier(fileName);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			// initialize the classifier with a fresh model
+			this.model = ModelFactory.simpleNN(this.nInputs, this.nLabels);
+			this.classifier = new FaultClassifier(model);
+		}
 	}
 
 	public void train() throws IOException {
@@ -67,14 +96,14 @@ public class SingleFaultClassifier {
 		classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(scoreIterations));
 		uiServer.attach(statsStorage);
 
-		classifier.train(this.nLabels, 10, 10000, 1, new SingleFaultRecorder(this.faultType), strategy);
+		classifier.train(this.nLabels, 1, trainingSamples, 1, new SingleFaultRecorder(this.faultType), strategy);
 		// save the trained model
-		classifier.save("models/" + fileName + ".zip");
+		classifier.save("models/" + fileName + "II.zip");
 	}
 
 	public void evaluate() {
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(this.nLabels, 1, 10000, new SingleFaultRecorder(this.faultType),
+		Evaluation evaluation = classifier.evaluate(this.nLabels, 1, 50000, new SingleFaultRecorder(this.faultType),
 				strategy);
 		System.out.println(evaluation.stats(false, true));
 	}
@@ -109,10 +138,10 @@ public class SingleFaultClassifier {
 	}
 
 	public static void main(String args[]) throws IOException {
+		// faultType should never = 4, this is noFault
+		int faultType = 6;
 
-		int faultType = 2;
-
-		SingleFaultClassifier sClassifier = new SingleFaultClassifier(2, 500, new MinMaxStrategy());
+		SingleFaultClassifier sClassifier = new SingleFaultClassifier(faultType, 10000, new MinMaxStrategy());
 		System.out.println("################## " + sClassifier.getFaultName() + " ##################");
 		sClassifier.train();
 		sClassifier.evaluate();

@@ -68,13 +68,32 @@ public class ModelFactory {
 		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new AdaDelta()).list()
 				.layer(0,
-						new DenseLayer.Builder().nIn(numInputs).nOut(numHiddenNodes).weightInit(WeightInit.XAVIER)
+						new OutputLayer.Builder(new LossNegativeLogLikelihood())
+								// use as many output neurons as there are
+								// labels
+								.nIn(numInputs).nOut(numLabels).weightInit(WeightInit.XAVIER)
+								.activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	public static MultiLayerNetwork simpleDNNOne(int numInputs, int numLabels) {
+		int numHiddenNodes = numInputs / 2;
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new AdaDelta()).list()
+				.layer(0,
+						new DenseLayer.Builder().nIn(numInputs).nOut(numLabels).weightInit(WeightInit.XAVIER)
 								.activation(Activation.RELU).build())
 				.layer(1,
 						new OutputLayer.Builder(new LossNegativeLogLikelihood())
 								// use as many output neurons as there are
 								// labels
-								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+								.nIn(numLabels).nOut(numLabels).activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
 		// now create the neural network from the configuration
 		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
@@ -100,6 +119,61 @@ public class ModelFactory {
 								// labels
 								.nOut(numLabels).activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.feedForward(numInputs)).pretrain(false).backprop(true).build();
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	public static MultiLayerNetwork simpleDNNII(int numInputs, int numLabels) {
+		int numHiddenNodes = numInputs / 2;
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new AdaDelta()).list()
+				.layer(0,
+						new DenseLayer.Builder().nIn(numInputs).nOut(numHiddenNodes).weightInit(WeightInit.XAVIER)
+								.activation(Activation.RELU).build())
+				.layer(1,
+						new DenseLayer.Builder().nIn(numHiddenNodes).nOut(numHiddenNodes / 2)
+								.weightInit(WeightInit.XAVIER).activation(Activation.RELU).build())
+				.layer(2,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood())
+								// use as many output neurons as there are
+								// labels
+								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	public static MultiLayerNetwork anomolyDetection(int numInputs, int numLabels) {
+
+		// Set up network. 672 in/out (as DC data is arranged as 112x6).
+		// 672 -> 225 -> 10 -> 225 -> 672
+
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new AdaDelta()).list()
+				.layer(0,
+						new DenseLayer.Builder().nIn(numInputs).nOut(225).weightInit(WeightInit.XAVIER)
+								.activation(Activation.RELU).build())
+				.layer(1,
+						new DenseLayer.Builder().nIn(225).nOut(10).weightInit(WeightInit.XAVIER)
+								.activation(Activation.RELU).build())
+				.layer(2,
+						new DenseLayer.Builder().nIn(10).nOut(225).weightInit(WeightInit.XAVIER)
+								.activation(Activation.RELU).build())
+				.layer(3,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood())
+								// use as many output neurons as there are
+								// labels
+								.nIn(225).nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
+
 		// now create the neural network from the configuration
 		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
 		// initialize the network

@@ -18,7 +18,7 @@ public class ReducedFaultRecordReader extends FaultRecordReader {
 	 */
 	@Override
 	public List<Writable> next() {
-	    int faults [] = {0, 1, 2, 3, 4, 5, 6};
+		int faults[] = { 0, 1, 2, 3, 4, 5, 6 };
 		factory.getFault(faults[ThreadLocalRandom.current().nextInt(faults.length)]);
 		// if (faultNum == 4) {
 		// System.out.println("We did a Nofault label 13");

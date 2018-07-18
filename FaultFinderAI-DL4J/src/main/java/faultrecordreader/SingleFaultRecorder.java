@@ -21,9 +21,6 @@ public class SingleFaultRecorder extends FaultRecordReader {
 		List<Writable> ret = new ArrayList<>();
 		ret.add(new NDArrayWritable(factory.getFeatureVector()));
 		ret.add(new IntWritable(getLabelInt(factory.getFaultLabel())));
-		// System.out.println(Arrays.toString(factory.getFeatureArray()));
-		// System.out.println(Arrays.toString(factory.getFaultLabel()));
-		// factory.plotData();
 
 		return ret;
 	}
