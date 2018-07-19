@@ -15,7 +15,8 @@ import strategies.FaultRecordScalerStrategy;
 public class DataProcess {
 	private HipoDataSource reader = null;
 	private List<String> fileList = null;
-
+	private int processN;
+	private int counter = 0;
 	private FaultDataContainer fContainer = null;
 
 	public DataProcess() {
@@ -29,6 +30,11 @@ public class DataProcess {
 	}
 
 	public DataProcess(List<String> fileList) {
+		this(fileList, Integer.MAX_VALUE);
+	}
+
+	public DataProcess(List<String> fileList, int processN) {
+		this.processN = processN;
 		this.fileList = fileList;
 		init();
 	}
@@ -69,10 +75,10 @@ public class DataProcess {
 	}
 
 	private void fillData() {
-		int counter = 0;
 
-		while (this.reader.hasEvent()) {// && counter < 400 &&
-										// counter < nEvents
+		while (this.reader.hasEvent() && counter < this.processN) {// && counter
+																	// < 400 &&
+			// counter < nEvents
 			if (counter % 10000 == 0) {
 				System.out.println("done " + counter + " events");
 			}
@@ -100,8 +106,8 @@ public class DataProcess {
 
 	public INDArray getFeatureVector(int sector, int superLayer) {
 		INDArray array = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.getData(sector, superLayer)));
-		double maxRange = (double) array.maxNumber();
-		array.divi((maxRange));
+		// double maxRange = (double) array.maxNumber();
+		// array.divi((maxRange));
 
 		return array;
 	}

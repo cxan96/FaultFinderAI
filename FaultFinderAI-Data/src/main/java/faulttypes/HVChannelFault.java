@@ -101,4 +101,15 @@ public class HVChannelFault extends FaultData {
 		canvas.draw(aH1f);
 
 	}
+
+	// @Override
+	// public FaultNames getNeighborhood() {
+	// if (this.faultLocation < 5) {
+	// return FaultNames.CHANNEL_ONE;
+	// } else if (this.faultLocation >= 5 && this.faultLocation < 7) {
+	// return FaultNames.CHANNEL_TWO;
+	// } else {
+	// return FaultNames.CHANNEL_THREE;
+	// }
+	// }
 }

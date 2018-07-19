@@ -28,6 +28,8 @@ public abstract class FaultData {
 
 	protected abstract void makeDataSet();
 
+	protected FaultNames neighborhood;
+
 	public int getXRnd() {
 		return xRnd;
 	}
@@ -96,4 +98,6 @@ public abstract class FaultData {
 		canvas.draw(hData);
 
 	}
+
+	// public abstract FaultNames getNeighborhood();
 }

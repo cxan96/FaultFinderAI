@@ -57,12 +57,12 @@ public class SingleFaultFactory extends FaultFactory {
 		return this.retFault;
 	}
 
-    /**
-     * @return The precise fault type we are dealing with.
-     */
-    public FaultNames getNeighborhood() {
-	return FaultNames.PIN_SMALL;
-    }
+	/**
+	 * @return The precise fault type we are dealing with.
+	 */
+	// public FaultNames getNeighborhood() {
+	// return this.retFault.getNeighborhood();
+	// }
 
 	private FaultData getAnythingElse(int type) {
 		int rndm = getRandomNumber(type);
