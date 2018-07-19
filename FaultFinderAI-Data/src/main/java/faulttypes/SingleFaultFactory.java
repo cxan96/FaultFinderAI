@@ -15,6 +15,7 @@ public class SingleFaultFactory extends FaultFactory {
 	private String type = null;
 	private FaultData retFault = null;
 	private boolean withHotwireFault;
+	private String faultName;
 
 	public SingleFaultFactory() {
 		this(true);
@@ -29,22 +30,29 @@ public class SingleFaultFactory extends FaultFactory {
 	@Override
 	public FaultData getFault(int type) {
 		int startValue = super.getFault(type).getReducedLabel().length;
-		int rndm = ThreadLocalRandom.current().nextInt(startValue + 3);
-		if (rndm <= startValue) {
-			this.retFault = super.getFault(type);
-			this.reducedLabel = makeLabel(this.retFault.getReducedLabel(),
-					new int[super.getFault(4).getReducedLabel().length], new int[] { 0 });
-		} else if (rndm == startValue + 1) {
+		int maxValue = startValue + 5;
+		int rndm = ThreadLocalRandom.current().nextInt(maxValue);
+		// System.out.println(rndm);
+
+		if (rndm >= maxValue - 1) {
+			this.retFault = getAnythingElse(type);
+			this.reducedLabel = makeLabel(new int[super.getFault(type).getReducedLabel().length],
+					new int[super.getFault(4).getReducedLabel().length], new int[] { 1 });
+		} else if (rndm == maxValue - 2) {
 			this.retFault = super.getFault(4);
 			this.reducedLabel = makeLabel(new int[super.getFault(type).getReducedLabel().length],
 					this.retFault.getReducedLabel(), new int[] { 0 });
 		} else {
-			this.retFault = getAnythingElse(type);
-			this.reducedLabel = makeLabel(new int[super.getFault(type).getReducedLabel().length],
-					new int[super.getFault(4).getReducedLabel().length], new int[] { 1 });
+
+			this.retFault = super.getFault(type);
+			this.reducedLabel = makeLabel(this.retFault.getReducedLabel(),
+					new int[super.getFault(4).getReducedLabel().length], new int[] { 0 });
+
 		}
 
 		this.featureData = this.retFault.getData();
+		setFaultName(super.getFault(type).getClass().getSimpleName());
+
 		// System.out.println(this.retFault.getClass().getSimpleName());
 		return this.retFault;
 	}
@@ -136,20 +144,29 @@ public class SingleFaultFactory extends FaultFactory {
 	}
 
 	public String getFaultName() {
+		return this.faultName;
+	}
+
+	public String getFaultNameII() {
 		return this.retFault.getClass().getSimpleName();
+	}
+
+	private void setFaultName(String faultName) {
+		this.faultName = faultName;
 	}
 
 	public static void main(String[] args) {
 		for (int j = 0; j < 10; j++) {
 
 			H1F aH1f = new H1F("name", "title", 6, 1, 6);
-			int faultType = 3;
+			int faultType = 0;
 			for (int i = 0; i < 3000; i++) {
 				SingleFaultFactory sFactory = new SingleFaultFactory();
 				sFactory.getFault(faultType);
-				if (sFactory.getFaultName().equals(new FaultFactory().getFault(faultType).getClass().getSimpleName())) {
+				if (sFactory.getFaultNameII()
+						.equals(new FaultFactory().getFault(faultType).getClass().getSimpleName())) {
 					aH1f.fill(1);
-				} else if (sFactory.getFaultName().equals("HVNoFault")) {
+				} else if (sFactory.getFaultNameII().equals("HVNoFault")) {
 					aH1f.fill(2);
 				} else {
 					aH1f.fill(3);

@@ -27,7 +27,7 @@ public class ClassifyRealData {
 		DataProcess dataProcess = new DataProcess(aList);
 		dataProcess.processFile();
 		// dataProcess.plotData();
-		String fileName = "models/finallyNewSigmoid.zip";
+		String fileName = "models/SingleFaultClassifyingHVPinFault.zip";
 		FaultClassifier fClassifier = new FaultClassifier(fileName);
 
 		// for (int i = 0; i < 100; i++) {
@@ -64,7 +64,7 @@ public class ClassifyRealData {
 
 				predictedClasses = Arrays.stream(predictedClasses).map(x -> (x < 1E-04) ? 0.0 : x)
 						.map(x -> Math.round(x * 10000.0) / 10000.0).toArray();
-				System.out.println(Arrays.toString(predictedClasses));
+				System.out.println(Arrays.toString(predictedClasses) + "  S: " + i + " SL: " + j);
 				System.out.println("################################################");
 
 				dataProcess.plotData(i, j);

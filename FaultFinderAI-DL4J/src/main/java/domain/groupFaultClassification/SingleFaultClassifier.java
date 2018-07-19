@@ -1,6 +1,5 @@
 package domain.groupFaultClassification;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -65,25 +64,26 @@ public class SingleFaultClassifier {
 		this.fileName = factory.getFaultName();
 		this.nInputs = factory.getFeatureArray().length;
 		this.nLabels = factory.getReducedLabel().length;
-		this.trainingSamples = this.nLabels * 5000;
+		this.trainingSamples = this.nLabels * 1000;
 	}
 
 	public void loadModel() {
 		String fileName = "models/SingleFaultClassifying" + this.fileName + ".zip";
 
-		if ((new File(fileName)).exists()) {
-			// initialize the classifier with the saved model
-			try {
-				this.classifier = new FaultClassifier(fileName);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			// initialize the classifier with a fresh model
-			this.model = ModelFactory.simpleOriginalCNN(this.nLabels);
-			this.classifier = new FaultClassifier(model);
-		}
+		// if ((new File(fileName)).exists()) {
+		// // initialize the classifier with the saved model
+		// try {
+		// this.classifier = new FaultClassifier(fileName);
+		// } catch (IOException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// } else {
+		// initialize the classifier with a fresh model
+		this.model = ModelFactory.simpleOriginalCNN(this.nLabels);
+		this.classifier = new FaultClassifier(model);
+		// }
+
 	}
 
 	public void train() throws IOException {
@@ -98,12 +98,12 @@ public class SingleFaultClassifier {
 				strategy);
 
 		// save the trained model
-		classifier.save("models/" + fileName + ".zip");
+		classifier.save("models/SingleFaultClassifying" + fileName + ".zip");
 	}
 
 	public void evaluate() {
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(this.nLabels, 1, 50000,
+		Evaluation evaluation = classifier.evaluate(this.nLabels, 1, 10000,
 				new SingleClassifierRecordReader(this.faultType), strategy);
 		System.out.println(evaluation.stats(false, true));
 	}
@@ -125,10 +125,11 @@ public class SingleFaultClassifier {
 				// is not there
 				continue;
 			}
-			SingleFaultClassifier sClassifier = new SingleFaultClassifier(i, 500, new MinMaxStrategy());
+			SingleFaultClassifier sClassifier = new SingleFaultClassifier(i, 5000, new MinMaxStrategy());
+			System.out.println("################## " + sClassifier.getFaultName() + " ##################");
 			sClassifier.train();
 			sClassifier.evaluate();
-			sClassifier.exit();
+			// sClassifier.exit();
 
 		}
 	}
@@ -139,13 +140,16 @@ public class SingleFaultClassifier {
 
 	public static void main(String args[]) throws IOException {
 		// faultType should never = 4, this is noFault
-		int faultType = 0;
-
-		SingleFaultClassifier sClassifier = new SingleFaultClassifier(faultType, 1000, new MinMaxStrategy());
-		System.out.println("################## " + sClassifier.getFaultName() + " ##################");
-		sClassifier.train();
-		sClassifier.evaluate();
-		sClassifier.exit();
+		// int faultType = 0;
+		//
+		// SingleFaultClassifier sClassifier = new
+		// SingleFaultClassifier(faultType, 1000, new MinMaxStrategy());
+		// System.out.println("################## " + sClassifier.getFaultName()
+		// + " ##################");
+		// sClassifier.train();
+		// sClassifier.evaluate();
+		// sClassifier.exit();
+		runLoop();
 
 	}
 }

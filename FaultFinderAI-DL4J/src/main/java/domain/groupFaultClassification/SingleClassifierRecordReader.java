@@ -21,7 +21,7 @@ public class SingleClassifierRecordReader extends FaultRecordReader {
 	protected FaultFactory factory = null;
 
 	public SingleClassifierRecordReader(int faultType) {
-		this.factory = new SingleFaultFactory();
+		this.factory = new SingleFaultFactory(false);
 		this.faultType = faultType;
 	}
 
