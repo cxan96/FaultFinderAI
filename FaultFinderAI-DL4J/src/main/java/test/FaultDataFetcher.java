@@ -3,8 +3,8 @@ package test;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.fetcher.BaseDataFetcher;
 
-import faulttypes.FaultData;
-import faulttypes.FaultFactory;
+import faultTypes.FaultData;
+import faultTypes.FaultFactory;
 
 public class FaultDataFetcher extends BaseDataFetcher {
 	public static final int NUM_EXAMPLES = Integer.MAX_VALUE;

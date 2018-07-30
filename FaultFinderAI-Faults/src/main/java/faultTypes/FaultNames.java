@@ -1,4 +1,4 @@
-package faulttypes;
+package faultTypes;
 
 /**
  * This enum is used to deal with fault names in a readable manner.

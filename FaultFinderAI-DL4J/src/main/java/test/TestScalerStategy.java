@@ -8,7 +8,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
-import faulttypes.FaultFactory;
+import faultTypes.FaultFactory;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MaxStrategy;
 import strategies.MinMaxStrategy;

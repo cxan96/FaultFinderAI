@@ -7,7 +7,7 @@ import org.datavec.api.writable.IntWritable;
 import org.datavec.api.writable.NDArrayWritable;
 import org.datavec.api.writable.Writable;
 
-import faulttypes.FaultNames;
+import faultTypes.FaultNames;
 import faulttypes.SingleFaultFactory;
 
 public class SmallPinFaultRecordReader extends FaultRecordReader {

@@ -14,12 +14,14 @@ import utils.ArrayUtilities;
 public class HVChannelFault extends FaultData {
 
 	private List<Pair<Integer, Integer>> hvChannelSegmentation = new ArrayList<Pair<Integer, Integer>>();;
+	private Pair<Integer, Integer> randomPair;
 
 	public HVChannelFault() {
 		setuphvChannelSegmentation();
 		this.xRnd = ThreadLocalRandom.current().nextInt(0, hvChannelSegmentation.size());
 		this.faultLocation = this.xRnd;
 		this.label = ArrayUtilities.hvChannelFault;
+		this.randomPair = getRandomPair();
 		/**
 		 * reducedLabel is initialized as a IntStream in makeReducedLabel()
 		 */
@@ -31,7 +33,7 @@ public class HVChannelFault extends FaultData {
 	public void makeDataSet() {
 		for (int i = 0; i < data[0].length; i++) { // i are the rows (layers)
 			for (int j = 0; j < data.length; j++) { // j are the columns (wires)
-				if (j <= getRandomPair().getRight() - 1 && j >= getRandomPair().getLeft() - 1) {
+				if (j <= this.randomPair.getRight() - 1 && j >= this.randomPair.getLeft() - 1) {
 					data[j][i] = makeRandomData(faultRangeMin, faultRangeMax);
 				} else {
 					data[j][i] = makeRandomData(rangeMin, rangeMax);

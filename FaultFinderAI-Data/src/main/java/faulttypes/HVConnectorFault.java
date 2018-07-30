@@ -15,6 +15,7 @@ public class HVConnectorFault extends FaultData {
 	private Map<Integer, Pair<Integer, Integer>> eMap = new HashMap<>();
 	private Map<Integer, Pair<Integer, Integer>> treeMap = new HashMap<>();
 	private Map<Integer, Pair<Integer, Integer>> threeMap = new HashMap<>();
+	private Map<Integer, Pair<Integer, Integer>> rndPair;
 
 	public HVConnectorFault() {
 		setupBundles();
@@ -23,6 +24,7 @@ public class HVConnectorFault extends FaultData {
 		this.faultLocation = findFaultLocation();
 
 		this.label = ArrayUtilities.hvConnectorFault;
+		this.rndPair = getRandomPair();
 		/**
 		 * reducedLabel is initialized as a IntStream in findFaultLocation
 		 */
@@ -111,10 +113,10 @@ public class HVConnectorFault extends FaultData {
 
 	@Override
 	protected void makeDataSet() {
-		Map<Integer, Pair<Integer, Integer>> rndPair = getRandomPair();
+		// Map<Integer, Pair<Integer, Integer>> rndPair = getRandomPair();
 		for (int i = 0; i < data[0].length; i++) { // i are the rows (layers)
 			for (int j = 0; j < data.length; j++) { // j are the columns (wires)
-				if (j <= rndPair.get(i + 1).getRight() - 1 && j >= rndPair.get(i + 1).getLeft() - 1) {
+				if (j <= this.rndPair.get(i + 1).getRight() - 1 && j >= this.rndPair.get(i + 1).getLeft() - 1) {
 					data[j][i] = makeRandomData(faultRangeMin, faultRangeMax);
 				} else {
 					data[j][i] = makeRandomData(rangeMin, rangeMax);
@@ -162,31 +164,38 @@ public class HVConnectorFault extends FaultData {
 		case 1:
 		case 2:
 			this.reducedLabel = IntStream.of(1, 0, 0).toArray();
+			this.faultName = FaultNames.CONNECTOR_E;
 			return 0 + 3 * test;
 		case 3:
 			if (this.yRnd == 3 || this.yRnd == 5) {
 				this.reducedLabel = IntStream.of(0, 1, 0).toArray();
+				this.faultName = FaultNames.CONNECTOR_TREE;
 				return 1 + 3 * test;
 			} else {
 				this.reducedLabel = IntStream.of(1, 0, 0).toArray();
+				this.faultName = FaultNames.CONNECTOR_E;
 				return 0 + 3 * test;
 			}
 		case 4:
 		case 5:
 			this.reducedLabel = IntStream.of(0, 1, 0).toArray();
+			this.faultName = FaultNames.CONNECTOR_TREE;
 			return 1 + 3 * test;
 		case 6:
 			if (this.yRnd == 2 || this.yRnd == 4) {
 				this.reducedLabel = IntStream.of(0, 1, 0).toArray();
+				this.faultName = FaultNames.CONNECTOR_TREE;
 				return 1 + 3 * test;
 			} else {
 				this.reducedLabel = IntStream.of(0, 0, 1).toArray();
+				this.faultName = FaultNames.CONNECTOR_THREE;
 				return 2 + 3 * test;
 
 			}
 		case 7:
 		case 8:
 			this.reducedLabel = IntStream.of(0, 0, 1).toArray();
+			this.faultName = FaultNames.CONNECTOR_THREE;
 			return 2 + 3 * test;
 		default:
 			return -1;
@@ -203,9 +212,4 @@ public class HVConnectorFault extends FaultData {
 
 	}
 
-	// @Override
-	// public FaultNames getNeighborhood() {
-	// // TODO Auto-generated method stub
-	// return null;
-	// }
 }

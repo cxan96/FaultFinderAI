@@ -44,5 +44,6 @@
 		<module>FaultFinderAI-DL4J</module>
 		<module>FaultFinderAI-Utils</module>
 		<module>FaultFinderAI-TestingArea</module>
+		<module>FaultFinderAI-Faults</module>
 	</modules>
 </project>

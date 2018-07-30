@@ -28,7 +28,7 @@ public abstract class FaultData {
 
 	protected abstract void makeDataSet();
 
-	protected FaultNames neighborhood;
+	protected FaultNames faultName;
 
 	public int getXRnd() {
 		return xRnd;
