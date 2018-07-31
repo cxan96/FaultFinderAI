@@ -84,8 +84,8 @@ public class Fault {
 
 		int min;
 		int max;
-		if (this.faultName.equals(FaultNames.HOTWIRE)) {
-			min = lMinMax.get(1) * 5;
+		if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
+			min = lMinMax.get(1) * 2;
 			max = 10 * min;
 		} else {
 			min = 0;

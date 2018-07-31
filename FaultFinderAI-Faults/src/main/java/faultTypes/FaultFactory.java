@@ -7,6 +7,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 import java.util.zip.DataFormatException;
 
+import org.jlab.groot.data.H2F;
+import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
@@ -69,7 +71,13 @@ public class FaultFactory {
 
 	private void loadData() {
 		try {
-			this.data = FaultUtils.getData(sector);
+			this.data = new int[112][6];
+			int[][] newData = FaultUtils.getData(sector);
+			for (int row = 0; row < 112; row++) {
+				for (int col = 0; col < 6; col++) {
+					this.data[row][col] = newData[row][col];
+				}
+			}
 			this.lMinMax = getMinMax(data);
 		} catch (DataFormatException e) {
 			// TODO Auto-generated catch block
@@ -146,6 +154,10 @@ public class FaultFactory {
 		FaultUtils.draw(this.data);
 	}
 
+	public H2F getHist() {
+		return FaultUtils.getHist(this.data);
+	}
+
 	public void printFaultList() {
 		faultList.forEach(k -> {
 			k.printWireInformation();
@@ -185,14 +197,21 @@ public class FaultFactory {
 	}
 
 	public static void main(String[] args) {
-		FaultFactory factory = new FaultFactory(4, 32, FaultNames.PIN_BIG, true);
+		TCanvas canvas = new TCanvas("aName", 800, 1200);
+		canvas.divide(3, 3);
+		for (int i = 1; i < 10; i++) {
+			FaultFactory factory = new FaultFactory(4, 10, FaultNames.PIN_BIG, true);
 
-		System.out.println("####################################");
-		System.out.println("####################################");
-		System.out.println("####################################");
-		System.out.println("####################################");
-		factory.printFaultList();
-		factory.draw();
+			System.out.println("####################################");
+			System.out.println("####################################");
+			System.out.println("####################################");
+			System.out.println("####################################");
+			factory.printFaultList();
+			canvas.cd(i - 1);
+			canvas.draw(factory.getHist());
+			// System.out.println(factory.getFeatureVector());
+		}
+
 	}
 }// end
 	// of

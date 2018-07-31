@@ -47,6 +47,18 @@ public class FaultUtils {
 		canvas.draw(hData);
 	}
 
+	public static H2F getHist(int[][] data) {
+		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
+		for (int i = 0; i < data[0].length; i++) { // i are the rows
+													// (layers)
+			for (int j = 0; j < data.length; j++) { // j are the columns
+													// (wires)
+				hData.setBinContent(j, i, data[j][i]);
+			}
+		}
+		return hData;
+	}
+
 	public static int[][] dataSector1 = { { 49, 49, 49, 29, 181, 135 }, { 100, 74, 334, 241, 611, 537 },
 			{ 514, 433, 681, 675, 575, 584 }, { 637, 655, 610, 597, 715, 693 }, { 735, 656, 737, 705, 699, 673 },
 			{ 767, 737, 724, 696, 693, 697 }, { 710, 716, 666, 698, 628, 637 }, { 658, 662, 628, 651, 595, 582 },
