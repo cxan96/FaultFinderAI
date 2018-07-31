@@ -178,7 +178,7 @@ public class FaultFactory {
 		// if there is no fault the label is
 		// [0,0]
 		if (faultList.size() == 0) {
-			label = IntStream.of(0, 0).toArray();
+			label = IntStream.of(0, 1).toArray();
 		} else {
 			boolean wantedFound = false;
 			for (Fault fault : faultList) {
