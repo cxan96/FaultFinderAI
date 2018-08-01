@@ -60,7 +60,7 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 		List<Writable> ret = new ArrayList<>();
 		ret.add(new NDArrayWritable(factory.getFeatureVector()));
 		ret.add(new IntWritable(getLabelInt(factory.getFaultLabel())));
-
+		this.reset();
 		return ret;
 	}
 
