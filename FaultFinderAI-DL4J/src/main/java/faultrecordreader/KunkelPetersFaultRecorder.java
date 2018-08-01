@@ -143,7 +143,8 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 		List<Writable> list = next();
 		URI uri = URI.create("FaultFinder");
 		// return new org.datavec.api.records.impl.Record(list, metaData)
-		return new org.datavec.api.records.impl.Record(list, new RecordMetaDataURI(null, FaultRecordReader.class));
+		return new org.datavec.api.records.impl.Record(list,
+				new RecordMetaDataURI(null, KunkelPetersFaultRecorder.class));
 
 	}
 

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import processHipo.DataProcess;
@@ -16,9 +17,10 @@ public class ClassifyRealData {
 	public static void main(String[] args) throws IOException {
 
 		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
-		String mkDir = "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
+		// String mkDir =
+		// "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
 
-		String dir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";// DomainUtils.getDataLocation();
+		String mkDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";// DomainUtils.getDataLocation();
 		List<String> aList = new ArrayList<>();
 		aList.add(mkDir + "out_clas_003923.evio.80.hipo");
 		aList.add(mkDir + "out_clas_003923.evio.8.hipo");
@@ -50,7 +52,7 @@ public class ClassifyRealData {
 		// System.out.println("##############################");
 		//
 		// }
-
+		List<TCanvas> aTCanvas = new ArrayList<>();
 		for (int i = 1; i < 7; i++) {
 			System.out.println("IN LOOP");
 			for (int j = 1; j < 7; j++) {
