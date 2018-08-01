@@ -21,7 +21,7 @@ import org.datavec.api.writable.Writable;
 import faultTypes.FaultFactory;
 import faultTypes.FaultNames;
 
-public class KunkelPetersonFaultRecorder implements RecordReader {
+public class KunkelPetersFaultRecorder implements RecordReader {
 
 	protected FaultFactory factory = null;
 	private int label;
@@ -31,7 +31,7 @@ public class KunkelPetersonFaultRecorder implements RecordReader {
 	private FaultNames desiredFault;
 	private boolean singleFaultGeneration;
 
-	public KunkelPetersonFaultRecorder(int sector, int maxFaults, FaultNames desiredFault,
+	public KunkelPetersFaultRecorder(int sector, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration) {
 		this.sector = sector;
 		this.maxFaults = maxFaults;
