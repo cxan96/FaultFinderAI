@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -54,7 +55,7 @@ public class FaultClassifier {
 	 * @param recordReader
 	 *            The FaultRecordReader to be used.
 	 */
-	public void train(int batchSize, int batchNum, int epochs, FaultRecordReader recordReader,
+	public void train(int batchSize, int batchNum, int epochs, RecordReader recordReader,
 			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
@@ -69,7 +70,7 @@ public class FaultClassifier {
 		// }
 	}
 
-	public void train(int numLabels, int batchSize, int batchNum, int epochs, FaultRecordReader recordReader,
+	public void train(int numLabels, int batchSize, int batchNum, int epochs, RecordReader recordReader,
 			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)
@@ -122,7 +123,7 @@ public class FaultClassifier {
 		return evaluation;
 	}
 
-	public Evaluation evaluate(int numLabels, int batchSize, int batchNum, FaultRecordReader recordReader,
+	public Evaluation evaluate(int numLabels, int batchSize, int batchNum, RecordReader recordReader,
 			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)

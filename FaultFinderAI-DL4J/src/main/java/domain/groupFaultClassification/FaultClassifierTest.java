@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
+import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -13,16 +14,13 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
-import org.datavec.api.records.reader.RecordReader;
-import org.nd4j.linalg.factory.Nd4j;
 
 import client.FaultClassifier;
 import client.ModelFactory;
-import faultrecordreader.*;
+import faultTypes.FaultNames;
+import faultrecordreader.KunkelPetersFaultRecorder;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
-import strategies.*;
-import faultTypes.FaultNames;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
@@ -39,7 +37,7 @@ public class FaultClassifierTest {
 			classifier = new FaultClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-		    MultiLayerNetwork model = ModelFactory.simpleOriginalCNN(2);
+			MultiLayerNetwork model = ModelFactory.simpleOriginalCNN(2);
 
 			classifier = new FaultClassifier(model);
 		}
@@ -55,11 +53,11 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		RecordReader recordReader = new KunkelPetersonFaultRecorder(1, 10, FaultNames.PIN_SMALL, false);
+		RecordReader recordReader = new KunkelPetersFaultRecorder(1, 10, FaultNames.PIN_SMALL, false);
 		int checkPoints = 0;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-		    classifier.train(2, 1, 50000, 1, recordReader, strategy);
+			classifier.train(2, 1, 50000, 1, recordReader, strategy);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();

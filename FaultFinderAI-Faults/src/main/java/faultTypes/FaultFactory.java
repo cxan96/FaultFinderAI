@@ -123,13 +123,36 @@ public class FaultFactory {
 				}
 			}
 			if (!addFault) {
+
 				newFault = this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
-				checkNeighborhood(newFault);
+				checkNeighborhood(newFault, 0);
 			}
 			if (addFault) {
 				faultList.add(newFault);
 			}
 		}
+	}
+
+	private void checkNeighborhood(Fault newFault, int runs) {
+		runs++;
+
+		boolean addFault = true;
+		for (Fault fault : faultList) {// get each fault in the list already
+			if (!fault.compareFault(newFault)) {
+				addFault = false;
+				break;
+			}
+		}
+		if (!addFault) {
+			if (runs < 30) {
+				newFault = this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
+				checkNeighborhood(newFault, runs);
+			}
+		}
+		if (addFault) {
+			faultList.add(newFault);
+		}
+
 	}
 
 	private void makeDataSet() {
