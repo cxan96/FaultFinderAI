@@ -13,19 +13,23 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.datavec.api.records.reader.RecordReader;
+import org.nd4j.linalg.factory.Nd4j;
 
 import client.FaultClassifier;
 import client.ModelFactory;
-import faultrecordreader.ReducedFaultRecordReader;
+import faultrecordreader.*;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
+import strategies.*;
+import faultTypes.FaultNames;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
 		int scoreIterations = 100;
 
-		String fileName = "models/finallyNewSigmoid.zip";
+		String fileName = "models/binary_classifiers/sector1/pin_small.zip";
 		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -35,7 +39,7 @@ public class FaultClassifierTest {
 			classifier = new FaultClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			MultiLayerNetwork model = ModelFactory.simpleCNN(14);
+		    MultiLayerNetwork model = ModelFactory.simpleOriginalCNN(2);
 
 			classifier = new FaultClassifier(model);
 		}
@@ -51,10 +55,11 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
+		RecordReader recordReader = new KunkelPetersonFaultRecorder(1, 10, FaultNames.PIN_SMALL, false);
 		int checkPoints = 0;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(1, 10000, 1, new ReducedFaultRecordReader(), strategy);
+		    classifier.train(2, 1, 50000, 1, recordReader, strategy);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();
@@ -73,7 +78,7 @@ public class FaultClassifierTest {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(1, 10000, new ReducedFaultRecordReader(), strategy);
+		Evaluation evaluation = classifier.evaluate(2, 1, 10000, recordReader, strategy);
 		System.out.println(evaluation.stats());
 		// // lets compare recall here
 		// int tPositive = 0;
