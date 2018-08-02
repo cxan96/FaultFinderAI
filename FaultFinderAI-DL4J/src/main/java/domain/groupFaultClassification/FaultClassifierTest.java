@@ -17,16 +17,17 @@ import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import client.FaultClassifier;
 import client.ModelFactory;
-import faultTypes.FaultNames;
 import faultrecordreader.KunkelPetersFaultRecorder;
-import strategies.*;
+import faults.FaultNames;
+import strategies.FaultRecordScalerStrategy;
+import strategies.MinMaxStrategy;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
 		int scoreIterations = 100;
 
-		String fileName = "models/binary_classifiers/sector1/deadwire.zip";
+		String fileName = "models/binary_classifiers/SL3/HVChannelOne.zip";
 		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -52,7 +53,7 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		RecordReader recordReader = new KunkelPetersFaultRecorder(1, 10, FaultNames.DEADWIRE, false);
+		RecordReader recordReader = new KunkelPetersFaultRecorder(3, 10, FaultNames.CHANNEL_ONE, false);
 		int checkPoints = 1000;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier

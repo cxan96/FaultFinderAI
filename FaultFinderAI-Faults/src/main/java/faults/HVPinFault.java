@@ -1,4 +1,4 @@
-package faulttypes;
+package faults;
 
 import java.util.ArrayList;
 import java.util.HashMap;

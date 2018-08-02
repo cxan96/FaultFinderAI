@@ -8,10 +8,9 @@ import java.util.Scanner;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
+import faults.FaultNames;
 import processHipo.DataProcess;
 import strategies.*;
-
-import faultTypes.FaultNames;
 
 public class ValidateRealData {
 

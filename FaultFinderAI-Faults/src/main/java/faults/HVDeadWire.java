@@ -1,4 +1,4 @@
-package faulttypes;
+package faults;
 
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
