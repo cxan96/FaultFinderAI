@@ -19,15 +19,14 @@ import client.FaultClassifier;
 import client.ModelFactory;
 import faultTypes.FaultNames;
 import faultrecordreader.KunkelPetersFaultRecorder;
-import strategies.FaultRecordScalerStrategy;
-import strategies.MinMaxStrategy;
+import strategies.*;
 
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
 		int scoreIterations = 100;
 
-		String fileName = "models/binary_classifiers/sector1/pin_small.zip";
+		String fileName = "models/binary_classifiers/sector1/deadwire.zip";
 		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -37,7 +36,7 @@ public class FaultClassifierTest {
 			classifier = new FaultClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			MultiLayerNetwork model = ModelFactory.simpleOriginalCNN(2);
+			MultiLayerNetwork model = ModelFactory.deeperCNN(2);
 
 			classifier = new FaultClassifier(model);
 		}
@@ -53,11 +52,11 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		RecordReader recordReader = new KunkelPetersFaultRecorder(1, 10, FaultNames.PIN_SMALL, false);
-		int checkPoints = 0;
+		RecordReader recordReader = new KunkelPetersFaultRecorder(1, 10, FaultNames.DEADWIRE, false);
+		int checkPoints = 1000;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(2, 1, 50000, 1, recordReader, strategy);
+			classifier.train(2, 1, 5000, 1, recordReader, strategy);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();

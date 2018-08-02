@@ -15,15 +15,110 @@ import org.nd4j.linalg.activations.impl.ActivationReLU;
 import org.nd4j.linalg.activations.impl.ActivationSigmoid;
 import org.nd4j.linalg.activations.impl.ActivationSoftmax;
 import org.nd4j.linalg.learning.config.AdaDelta;
+import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.config.AdaGrad;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.impl.LossL2;
 import org.nd4j.linalg.lossfunctions.impl.LossNegativeLogLikelihood;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
 /**
  * This class is used to retrieve all the different models that are available.
  */
 public class ModelFactory {
 	public static MultiLayerNetwork simpleOriginalCNN(int numLabels) {
+
+		// create the network configuration
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
+				// user xavier initialization
+				.weightInit(WeightInit.XAVIER).optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.updater(new Adam()).list()
+				// the first layer is a convolution layer with a kernel 2px high
+				// and 3px wide
+				.layer(0,
+						new ConvolutionLayer.Builder(3, 2)
+								// use one input channel
+								.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
+				// next use a pooling (subsampling) layer utilizing MAX-pooling
+				.layer(1,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
+								.build())
+				// hidden layer in the densely connected network
+				.layer(2,
+						new DenseLayer.Builder().activation(new ActivationReLU())
+								// number of hidden neurons
+								.nOut(100).build())
+				// output layer of the network using negativeloglikelihood as
+				// loss function
+				.layer(3,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood())
+								// use as many output neurons as there are
+								// labels
+								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+				// the images are represented as vectors, thus the input type is
+				// convolutionalFlat
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
+
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+    public static MultiLayerNetwork deeperCNN(int numLabels) {
+	MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
+	    .weightInit(WeightInit.XAVIER)
+	    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+	    .updater(new Adam()).list()
+	    .layer(0,
+		   new ConvolutionLayer.Builder(3, 2)
+		   .nIn(1)
+		   .stride(1, 1)
+		   .nOut(40)
+		   .activation(new ActivationReLU()).build())
+	    .layer(1,
+		   new ConvolutionLayer.Builder(2, 2)
+		   .nIn(40)
+		   .stride(1, 1)
+		   .nOut(30)
+		   .activation(new ActivationReLU()).build())
+	    .layer(2,
+		   new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+		   .kernelSize(2, 2)
+		   .stride(2, 2)
+		   .build())
+	    .layer(3,
+		   new ConvolutionLayer.Builder(2, 2)
+		   .nIn(30)
+		   .stride(1, 1)
+		   .nOut(20)
+		   .activation(new ActivationReLU())
+		   .build())
+	    .layer(4,
+		   new DenseLayer.Builder()
+		   .activation(new ActivationReLU())
+		   .nOut(100).build())
+	    .layer(5,
+		   new OutputLayer.Builder(new LossNegativeLogLikelihood())
+		   .nOut(numLabels)
+		   .activation(new ActivationSoftmax())
+		   .build())
+	    .setInputType(InputType.convolutionalFlat(112, 6, 1))
+	    .backprop(true)
+	    .pretrain(false)
+	    .build();
+
+	// now create the neural network from the configuration
+	MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+	// initialize the network
+	neuralNetwork.init();
+
+	return neuralNetwork;
+    }
+
+    public static MultiLayerNetwork simpleWeightedCNN(int numLabels, INDArray weights) {
 
 		// create the network configuration
 		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
@@ -48,7 +143,7 @@ public class ModelFactory {
 				// output layer of the network using negativeloglikelihood as
 				// loss function
 				.layer(3,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						new OutputLayer.Builder(new LossNegativeLogLikelihood(weights))
 								// use as many output neurons as there are
 								// labels
 								.nOut(numLabels).activation(new ActivationSoftmax()).build())
