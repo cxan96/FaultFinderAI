@@ -135,7 +135,6 @@ public class FaultFactory {
 
 	private void checkNeighborhood(Fault newFault, int runs) {
 		runs++;
-
 		boolean addFault = true;
 		for (Fault fault : faultList) {// get each fault in the list already
 			if (!fault.compareFault(newFault)) {
