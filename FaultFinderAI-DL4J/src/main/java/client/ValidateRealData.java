@@ -27,12 +27,12 @@ public class ValidateRealData {
 
 	FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 
-	for (int sector = 1; sector < 2; sector++) {
-	    for (int superlayer = 1; superlayer < 7; superlayer++) {
-		double smallPinCertainty = getCertainty(FaultNames.PIN_SMALL, sector, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double bigPinCertainty = getCertainty(FaultNames.PIN_BIG, sector, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double deadWireCertainty = getCertainty(FaultNames.DEADWIRE, sector, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double hotWireCertainty = getCertainty(FaultNames.HOTWIRE, sector, dataProcess.getFeatureVector(sector, superlayer, strategy));
+	for (int sector = 1; sector < 7; sector++) {
+	    for (int superlayer = 3; superlayer < 4; superlayer++) {
+		double smallPinCertainty = getCertainty(FaultNames.PIN_SMALL, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
+		double bigPinCertainty = getCertainty(FaultNames.PIN_BIG, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
+		double deadWireCertainty = getCertainty(FaultNames.DEADWIRE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
+		double hotWireCertainty = getCertainty(FaultNames.HOTWIRE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
 
 		dataProcess.plotData(sector, superlayer);
 		
@@ -48,9 +48,9 @@ public class ValidateRealData {
 
     }
 
-    public static double getCertainty(FaultNames fault, int sector, INDArray data) throws IOException{
+    public static double getCertainty(FaultNames fault, int superlayer, INDArray data) throws IOException{
 	// get the model
-	FaultClassifier classifier = new FaultClassifier("models/binary_classifiers/sector"+sector+"/"+fault+".zip");
+	FaultClassifier classifier = new FaultClassifier("models/binary_classifiers/SL"+superlayer+"/"+fault+".zip");
 	double[] predictions = classifier.output(data).toDoubleVector();
 	return predictions[0];
     }
