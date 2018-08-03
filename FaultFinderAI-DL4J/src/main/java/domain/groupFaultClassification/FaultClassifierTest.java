@@ -25,7 +25,7 @@ import strategies.MinMaxStrategy;
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 100;
+		int scoreIterations = 1000;
 
 		String fileName = "models/binary_classifiers/SL3/HVChannelOne.zip";
 		boolean reTrain = false;
@@ -54,7 +54,7 @@ public class FaultClassifierTest {
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
 		RecordReader recordReader = new KunkelPetersFaultRecorder(3, 10, FaultNames.CHANNEL_ONE, false);
-		int checkPoints = 1000;
+		int checkPoints = 0;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 5000, 1, recordReader, strategy);
