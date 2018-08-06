@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -25,86 +24,114 @@ import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
 public class FaultClassifierTestLooped {
-	public static void main(String args[]) throws IOException {
 
-		List<FaultNames> aList = new ArrayList<>();
-		aList.add(FaultNames.CHANNEL_ONE);
-		aList.add(FaultNames.CHANNEL_TWO);
-		aList.add(FaultNames.CHANNEL_THREE);
-		aList.add(FaultNames.CONNECTOR_E);
-		aList.add(FaultNames.CONNECTOR_THREE);
-		aList.add(FaultNames.CONNECTOR_TREE);
-		aList.add(FaultNames.FUSE_A);
-		aList.add(FaultNames.FUSE_B);
-		aList.add(FaultNames.FUSE_C);
-		for (int moreSaves = 1; moreSaves < 4; moreSaves++) {
+	private List<FaultNames> fautList;
+	private int superLayer;
 
-			for (int SL = 1; SL < 7; SL++) {
-				for (FaultNames faultNames : aList) {
-					int scoreIterations = 10000;
+	private int savePoint;
+	private int nFaults;
 
-					String fileName = "models/binary_classifiers/SL" + SL + "/" + faultNames + "_save" + moreSaves
-							+ ".zip";
-					System.out.println(fileName);
-					FaultClassifier classifier;
-					// check if a saved model exists
-					if ((new File(fileName)).exists()) {
-						System.out.println("remodel");
-						// initialize the classifier with the saved model
-						classifier = new FaultClassifier(fileName);
-					} else {
-						// initialize the classifier with a fresh model
-						MultiLayerNetwork model = ModelFactory.deeperCNN(2);
+	private int checkPoints;
+	private int scoreIterations;
+	private FaultClassifier classifier;
+	private FaultRecordScalerStrategy strategy;
+	private RecordReader recordReader;
+	private UIServer uiServer;
+	private StatsStorage statsStorage;
+	private String fileName;
+	private String saveName;
 
-						classifier = new FaultClassifier(model);
-					}
-					FaultRecordScalerStrategy strategy = new MinMaxStrategy();
+	public FaultClassifierTestLooped(int superLayer, int savePoint, int scoreIterations, int nFaults, int checkPoints) {
+		this.superLayer = superLayer;
+		this.savePoint = savePoint;
+		this.scoreIterations = scoreIterations;
+		this.nFaults = nFaults;
+		this.checkPoints = checkPoints;
+		makeList();
+	}
 
-					// set up a local web-UI to monitor the training available
-					// at
-					// localhost:9000
-					UIServer uiServer = UIServer.getInstance();
-					StatsStorage statsStorage = new InMemoryStatsStorage();
-					// additionally print the score on every iteration
-					classifier.setListeners(new StatsListener(statsStorage),
-							new ScoreIterationListener(scoreIterations));
-					uiServer.attach(statsStorage);
+	private void makeList() {
+		fautList = new ArrayList<>();
+		fautList.add(FaultNames.CHANNEL_ONE);
+		fautList.add(FaultNames.CHANNEL_TWO);
+		fautList.add(FaultNames.CHANNEL_THREE);
+		fautList.add(FaultNames.CONNECTOR_E);
+		fautList.add(FaultNames.CONNECTOR_THREE);
+		fautList.add(FaultNames.CONNECTOR_TREE);
+		fautList.add(FaultNames.FUSE_A);
+		fautList.add(FaultNames.FUSE_B);
+		fautList.add(FaultNames.FUSE_C);
+	}
 
-					// train the classifier for a number of checkpoints and save
-					// the
-					// model
-					// after each checkpoint
-					RecordReader recordReader = new KunkelPetersFaultRecorder(SL, 10, faultNames, false);
-					int checkPoints = 5;
-					for (int i = 0; i < checkPoints; i++) {
-						// train the classifier
-						classifier.train(2, 1, 5000, 1, recordReader, strategy);
+	public void runClassifier() throws IOException {
+		for (FaultNames faultNames : fautList) {
 
-						DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-						LocalDateTime now = LocalDateTime.now();
+			this.fileName = "models/binary_classifiers/SL" + this.superLayer + "/" + faultNames.getSaveName() + "_save"
+					+ (this.savePoint - 1) + ".zip";
+			this.saveName = "models/binary_classifiers/SL" + this.superLayer + "/" + faultNames.getSaveName() + "_save"
+					+ this.savePoint + ".zip";
+			System.out.println(fileName);
 
-						// save the trained model
-						classifier.save(fileName);
+			// check if a saved model exists
+			if ((new File(fileName)).exists()) {
+				System.out.println("remodel");
+				// initialize the classifier with the saved model
+				this.classifier = new FaultClassifier(fileName);
+			} else {
+				// initialize the classifier with a fresh model
+				MultiLayerNetwork model = ModelFactory.deeperCNN(2);
 
-						System.out.println("#############################################");
-						System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
-						System.out.println("#############################################");
+				this.classifier = new FaultClassifier(model);
+			}
+			this.strategy = new MinMaxStrategy();
 
-					}
-					System.out.println("Evaluation for " + faultNames);
-					// evaluate the classifier
-					Evaluation evaluation = classifier.evaluate(2, 1, 10000, recordReader, strategy);
-					System.out.println(evaluation.stats());
+			// set up a local web-UI to monitor the training available
+			// at
+			// localhost:9000
+			this.uiServer = UIServer.getInstance();
+			this.statsStorage = new InMemoryStatsStorage();
+			// additionally print the score on every iteration
+			classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(scoreIterations));
+			uiServer.attach(statsStorage);
 
-				}
+			// train the classifier for a number of checkpoints and save
+			// the
+			// model
+			// after each checkpoint
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultNames, false);
+			for (int i = 0; i < this.checkPoints; i++) {
+				// train the classifier
+				classifier.train(2, 1, 5000, 1, recordReader, strategy);
+
+				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+				LocalDateTime now = LocalDateTime.now();
+
+				// save the trained model
+				classifier.save(this.saveName);
+
+				System.out.println("#############################################");
+				System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
+				System.out.println("#############################################");
+
+			}
+			// this.uiServer.stop();
+			// runEvaluation();
+		}
+	}
+
+	public void runEvaluation() {
+		// System.out.println("Evaluation for " + faultNames);
+		// evaluate the classifier
+		Evaluation evaluation = classifier.evaluate(2, 1, 10000, recordReader, strategy);
+		System.out.println(evaluation.stats());
+	}
+
+	public static void main(String[] args) throws IOException {
+		for (int moreSaves = 4; moreSaves < 5; moreSaves++) {
+			for (int SL = 5; SL < 7; SL++) {
+				FaultClassifierTestLooped looped = new FaultClassifierTestLooped(SL, moreSaves, 5000, 10, 5);
+				looped.runClassifier();
 			}
 		}
-		// press enter to exit the program
-		// this will tear down the web ui
-		Scanner sc = new Scanner(System.in);
-		System.out.println("Press enter to exit.");
-		sc.nextLine();
-
-		System.exit(0);
 	}
 }

@@ -25,13 +25,13 @@ public class FaultFactory {
 	private List<Fault> faultList;
 
 	/**
-	 * sector is used to call the correct background data, This data has been
-	 * engineered from actual data in Run 3923
+	 * superLayer is used to call the correct background data, This data has
+	 * been engineered from actual data in Run 3923
 	 */
-	private int sector;
+	private int superLayer;
 
 	/**
-	 * data is an array to generate faults into. Its ideal for each sector
+	 * data is an array to generate faults into. Its ideal for each superLayer
 	 */
 	private int[][] data;
 
@@ -57,8 +57,8 @@ public class FaultFactory {
 	 */
 	private FaultNames desiredFault;
 
-	public FaultFactory(int sector, int maxFaults, FaultNames desiredFault, boolean singleFaultGeneration) {
-		this.sector = sector;
+	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean singleFaultGeneration) {
+		this.superLayer = superLayer;
 		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
 		this.desiredFault = desiredFault;
 		this.singleFaultGeneration = singleFaultGeneration;
@@ -70,18 +70,34 @@ public class FaultFactory {
 	}
 
 	private void loadData() {
-		try {
-			this.data = new int[112][6];
-			int[][] newData = FaultUtils.getData(sector);
-			for (int row = 0; row < 112; row++) {
-				for (int col = 0; col < 6; col++) {
-					this.data[row][col] = newData[row][col];
+		if (singleFaultGeneration) {
+			try {
+				this.data = new int[112][6];
+				int[][] newData = FaultUtils.getData(this.superLayer);
+				for (int row = 0; row < 112; row++) {
+					for (int col = 0; col < 6; col++) {
+						this.data[row][col] = newData[row][col];
+					}
 				}
+				this.lMinMax = getMinMax(data);
+			} catch (DataFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			this.lMinMax = getMinMax(data);
-		} catch (DataFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} else {
+			try {
+				this.data = new int[112][6];
+				int[][] newData = FaultUtils.getData(ThreadLocalRandom.current().nextInt(1, 7));
+				for (int row = 0; row < 112; row++) {
+					for (int col = 0; col < 6; col++) {
+						this.data[row][col] = newData[row][col];
+					}
+				}
+				this.lMinMax = getMinMax(data);
+			} catch (DataFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
