@@ -22,14 +22,15 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import client.ModelFactory;
 import faultrecordreader.FaultRecorderScaler;
-import faultrecordreader.SingleFaultRecorder;
+import faultrecordreader.KunkelPetersFaultRecorder;
+import faults.FaultNames;
 import strategies.MinMaxStrategy;
 
 public class SideApproach2 {
 
 	public static void main(String[] args) throws IOException {
 		int faultType = 6;
-		MultiLayerNetwork net = ModelFactory.anomolyDetection(112 * 6, 112 * 6);
+		MultiLayerNetwork net = ModelFactory.deeperCNN(2);
 		// set up a local web-UI to monitor the training available at
 		// localhost:9000
 		UIServer uiServer = UIServer.getInstance();
@@ -37,12 +38,13 @@ public class SideApproach2 {
 
 		net.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(1000));
 		uiServer.attach(statsStorage);
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 3; i++) {
 
-			DataSetIterator iter = new RecordReaderDataSetIterator.Builder(new SingleFaultRecorder(faultType), 1)
-					// currently there are 14 labels in the dataset
-					.classification(1, 112 * 6).maxNumBatches(112 * 6)
-					.preProcessor(new FaultRecorderScaler(new MinMaxStrategy())).build();
+			DataSetIterator iter = new RecordReaderDataSetIterator.Builder(
+					new KunkelPetersFaultRecorder(1, 10, FaultNames.CHANNEL_ONE, false), 1)
+							// currently there are 14 labels in the dataset
+							.classification(1, 2).maxNumBatches(112 * 6)
+							.preProcessor(new FaultRecorderScaler(new MinMaxStrategy())).build();
 
 			List<INDArray> featuresTrain = new ArrayList<>();
 			List<INDArray> labelsTrain = new ArrayList<>();
@@ -67,7 +69,7 @@ public class SideApproach2 {
 			int nEpochs = 25;
 			for (int epoch = 0; epoch < nEpochs; epoch++) {
 				for (int j = 0; j < featuresTrain.size(); j++) {
-					net.fit(featuresTrain.get(j), featuresTrain.get(j));
+					net.fit(featuresTrain.get(j), labelsTrain.get(j));
 
 				}
 
@@ -75,12 +77,13 @@ public class SideApproach2 {
 			}
 			iter.reset();
 		}
-		ModelSerializer.writeModel(net, new File("models/ATest4Hotness.zip"), false);
+		ModelSerializer.writeModel(net, new File("models/testTest.zip"), false);
 
-		DataSetIterator iterTest = new RecordReaderDataSetIterator.Builder(new SingleFaultRecorder(faultType), 1)
-				// currently there are 14 labels in the dataset
-				.classification(1, 112 * 6).maxNumBatches(10000)
-				.preProcessor(new FaultRecorderScaler(new MinMaxStrategy())).build();
+		DataSetIterator iterTest = new RecordReaderDataSetIterator.Builder(
+				new KunkelPetersFaultRecorder(1, 10, FaultNames.CHANNEL_ONE, false), 1)
+						// currently there are 14 labels in the dataset
+						.classification(1, 2).maxNumBatches(10000)
+						.preProcessor(new FaultRecorderScaler(new MinMaxStrategy())).build();
 		Evaluation evaluation = net.evaluate(iterTest);
 		System.out.println(evaluation.stats(false, true));
 
