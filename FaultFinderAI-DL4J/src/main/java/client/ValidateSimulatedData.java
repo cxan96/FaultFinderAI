@@ -9,41 +9,38 @@ import java.util.Scanner;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import faults.FaultNames;
+import faults.FaultFactory;
 import processHipo.DataProcess;
 import strategies.*;
 
-public class ValidateRealData {
+public class ValidateSimulatedData {
 
     public static void main(String[] args) throws IOException{
 
-	String dataDir = "data/";
-		    
-	List<String> aList = new ArrayList<>();
-	aList.add(dataDir + "out_clas_003923.evio.80.hipo");
-	aList.add(dataDir + "out_clas_003923.evio.8.hipo");
-		
-	DataProcess dataProcess = new DataProcess(aList);
-	dataProcess.processFile();
-
 	FaultRecordScalerStrategy strategy = new MinMaxStrategy();
+	int maxFaults = 5;
 
-	for (int sector = 1; sector < 7; sector++) {
-	    for (int superlayer = 1; superlayer < 7; superlayer++) {
-		double smallPinCertainty = getCertainty(FaultNames.PIN_SMALL, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double bigPinCertainty = getCertainty(FaultNames.PIN_BIG, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double deadWireCertainty = getCertainty(FaultNames.DEADWIRE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double hotWireCertainty = getCertainty(FaultNames.HOTWIRE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double connectorECertainty = getCertainty(FaultNames.CONNECTOR_E, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double connectorTreeCertainty = getCertainty(FaultNames.CONNECTOR_TREE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double connectorThreeCertainty = getCertainty(FaultNames.CONNECTOR_THREE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double fuseACertainty = getCertainty(FaultNames.FUSE_A, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double fuseBCertainty = getCertainty(FaultNames.FUSE_B, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double fuseCCertainty = getCertainty(FaultNames.FUSE_C, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double channelOneCertainty = getCertainty(FaultNames.CHANNEL_ONE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double channelTwoCertainty = getCertainty(FaultNames.CHANNEL_TWO, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-		double channelThreeCertainty = getCertainty(FaultNames.CHANNEL_THREE, superlayer, dataProcess.getFeatureVector(sector, superlayer, strategy));
-
-		dataProcess.plotData(sector, superlayer);
+	for (int superlayer = 1; superlayer <= 6; superlayer++) {
+	    for (int i = 0; i < 5; i++) {
+		
+		FaultFactory factory = new FaultFactory(superlayer, maxFaults, FaultNames.DEADWIRE, false);
+		factory.draw();
+		INDArray faultData = factory.getFeatureVector();
+		strategy.normalize(faultData);		
+					
+		double smallPinCertainty = getCertainty(FaultNames.PIN_SMALL, superlayer, faultData);
+		double bigPinCertainty = getCertainty(FaultNames.PIN_BIG, superlayer, faultData);
+		double deadWireCertainty = getCertainty(FaultNames.DEADWIRE, superlayer, faultData);
+		double hotWireCertainty = getCertainty(FaultNames.HOTWIRE, superlayer, faultData);
+		double connectorECertainty = getCertainty(FaultNames.CONNECTOR_E, superlayer, faultData);
+		double connectorTreeCertainty = getCertainty(FaultNames.CONNECTOR_TREE, superlayer, faultData);
+		double connectorThreeCertainty = getCertainty(FaultNames.CONNECTOR_THREE, superlayer, faultData);
+		double fuseACertainty = getCertainty(FaultNames.FUSE_A, superlayer, faultData);
+		double fuseBCertainty = getCertainty(FaultNames.FUSE_B, superlayer, faultData);
+		double fuseCCertainty = getCertainty(FaultNames.FUSE_C, superlayer, faultData);
+		double channelOneCertainty = getCertainty(FaultNames.CHANNEL_ONE, superlayer, faultData);
+		double channelTwoCertainty = getCertainty(FaultNames.CHANNEL_TWO, superlayer, faultData);
+		double channelThreeCertainty = getCertainty(FaultNames.CHANNEL_THREE, superlayer, faultData);
 
 		boolean printAll = false;
 
