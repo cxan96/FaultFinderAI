@@ -63,6 +63,9 @@ public class FaultFactory {
 		this.desiredFault = desiredFault;
 		this.singleFaultGeneration = singleFaultGeneration;
 		this.faultList = new ArrayList<>();
+		if (!singleFaultGeneration) {
+			this.superLayer = ThreadLocalRandom.current().nextInt(1, 7);
+		}
 		loadData();
 		generateFaults();
 		makeDataSet();
@@ -70,34 +73,18 @@ public class FaultFactory {
 	}
 
 	private void loadData() {
-		if (singleFaultGeneration) {
-			try {
-				this.data = new int[112][6];
-				int[][] newData = FaultUtils.getData(this.superLayer);
-				for (int row = 0; row < 112; row++) {
-					for (int col = 0; col < 6; col++) {
-						this.data[row][col] = newData[row][col];
-					}
+		try {
+			this.data = new int[112][6];
+			int[][] newData = FaultUtils.getData(this.superLayer);
+			for (int row = 0; row < 112; row++) {
+				for (int col = 0; col < 6; col++) {
+					this.data[row][col] = newData[row][col];
 				}
-				this.lMinMax = getMinMax(data);
-			} catch (DataFormatException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-		} else {
-			try {
-				this.data = new int[112][6];
-				int[][] newData = FaultUtils.getData(ThreadLocalRandom.current().nextInt(1, 7));
-				for (int row = 0; row < 112; row++) {
-					for (int col = 0; col < 6; col++) {
-						this.data[row][col] = newData[row][col];
-					}
-				}
-				this.lMinMax = getMinMax(data);
-			} catch (DataFormatException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			this.lMinMax = getMinMax(data);
+		} catch (DataFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -234,14 +221,18 @@ public class FaultFactory {
 
 	}
 
+	public int getSuperLayer() {
+		return this.superLayer;
+	}
+
 	public static void main(String[] args) {
 		TCanvas canvas = new TCanvas("aName", 800, 1200);
 		canvas.divide(3, 3);
 		for (int i = 1; i < 10; i++) {
-			FaultFactory factory = new FaultFactory(4, 10, FaultNames.PIN_BIG, true);
+			FaultFactory factory = new FaultFactory(4, 10, FaultNames.PIN_BIG, false);
 
 			System.out.println("####################################");
-			System.out.println("####################################");
+			System.out.println("##############" + factory.getSuperLayer() + "#################");
 			System.out.println("####################################");
 			System.out.println("####################################");
 			factory.printFaultList();

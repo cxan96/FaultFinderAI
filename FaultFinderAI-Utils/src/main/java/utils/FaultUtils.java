@@ -15,18 +15,18 @@ public class FaultUtils {
 	public static int FAULT_RANGE_MAX = 50;
 	public static int FAULT_RANGE_MIN = 0;
 
-	public static int[][] getData(int sector) throws DataFormatException {
-		if (sector == 1) {
+	public static int[][] getData(int superLayer) throws DataFormatException {
+		if (superLayer == 1) {
 			return dataSector1;
-		} else if (sector == 2) {
+		} else if (superLayer == 2) {
 			return dataSector2;
-		} else if (sector == 3) {
+		} else if (superLayer == 3) {
 			return dataSector3;
-		} else if (sector == 4) {
+		} else if (superLayer == 4) {
 			return dataSector4;
-		} else if (sector == 5) {
+		} else if (superLayer == 5) {
 			return dataSector5;
-		} else if (sector == 6) {
+		} else if (superLayer == 6) {
 			return dataSector6;
 		} else {
 			System.err.println("Not A valid Sector");

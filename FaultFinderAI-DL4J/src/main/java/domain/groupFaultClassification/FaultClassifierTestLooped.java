@@ -40,35 +40,44 @@ public class FaultClassifierTestLooped {
 	private StatsStorage statsStorage;
 	private String fileName;
 	private String saveName;
+	private int batchSize;
 
-	public FaultClassifierTestLooped(int superLayer, int savePoint, int scoreIterations, int nFaults, int checkPoints) {
+	public FaultClassifierTestLooped(int superLayer, int savePoint, int scoreIterations, int nFaults, int checkPoints,
+			int batchSize) {
 		this.superLayer = superLayer;
 		this.savePoint = savePoint;
 		this.scoreIterations = scoreIterations;
 		this.nFaults = nFaults;
 		this.checkPoints = checkPoints;
+		this.batchSize = batchSize;
 		makeList();
 	}
 
 	private void makeList() {
 		fautList = new ArrayList<>();
-		fautList.add(FaultNames.CHANNEL_ONE);
-		fautList.add(FaultNames.CHANNEL_TWO);
-		fautList.add(FaultNames.CHANNEL_THREE);
+		// fautList.add(FaultNames.CHANNEL_ONE);
+		// fautList.add(FaultNames.CHANNEL_TWO);
+		// fautList.add(FaultNames.CHANNEL_THREE);
 		fautList.add(FaultNames.CONNECTOR_E);
 		fautList.add(FaultNames.CONNECTOR_THREE);
 		fautList.add(FaultNames.CONNECTOR_TREE);
 		fautList.add(FaultNames.FUSE_A);
 		fautList.add(FaultNames.FUSE_B);
 		fautList.add(FaultNames.FUSE_C);
+
+		fautList.add(FaultNames.DEADWIRE);
+		fautList.add(FaultNames.HOTWIRE);
+		fautList.add(FaultNames.PIN_BIG);
+		fautList.add(FaultNames.PIN_SMALL);
+
 	}
 
 	public void runClassifier() throws IOException {
 		for (FaultNames faultNames : fautList) {
 
-			this.fileName = "models/binary_classifiers/SL" + this.superLayer + "/" + faultNames.getSaveName() + "_save"
+			this.fileName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
 					+ (this.savePoint - 1) + ".zip";
-			this.saveName = "models/binary_classifiers/SL" + this.superLayer + "/" + faultNames.getSaveName() + "_save"
+			this.saveName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
 					+ this.savePoint + ".zip";
 			System.out.println(fileName);
 
@@ -101,7 +110,7 @@ public class FaultClassifierTestLooped {
 			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultNames, false);
 			for (int i = 0; i < this.checkPoints; i++) {
 				// train the classifier
-				classifier.train(2, 1, 5000, 1, recordReader, strategy);
+				classifier.train(2, 1, this.batchSize, 1, recordReader, strategy);
 
 				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 				LocalDateTime now = LocalDateTime.now();
@@ -127,11 +136,11 @@ public class FaultClassifierTestLooped {
 	}
 
 	public static void main(String[] args) throws IOException {
-		for (int moreSaves = 4; moreSaves < 5; moreSaves++) {
-			for (int SL = 5; SL < 7; SL++) {
-				FaultClassifierTestLooped looped = new FaultClassifierTestLooped(SL, moreSaves, 5000, 10, 5);
-				looped.runClassifier();
-			}
+		for (int moreSaves = 1; moreSaves < 2; moreSaves++) {
+			// for (int SL = 1; SL < 7; SL++) {
+			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(1, moreSaves, 5000, 10, 10, 10000);
+			looped.runClassifier();
+			// }
 		}
 	}
 }
