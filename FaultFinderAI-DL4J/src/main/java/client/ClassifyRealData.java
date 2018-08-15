@@ -2,87 +2,115 @@ package client;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
+import faults.FaultNames;
 import processHipo.DataProcess;
 import strategies.FaultRecordScalerStrategy;
-import strategies.StandardizeMinMax;
+import strategies.MinMaxStrategy;
 
 public class ClassifyRealData {
 
-	public static void main(String[] args) throws IOException {
+	private String dataDir = null;
+	private List<String> aList = null;
+	private List<FaultNames> fautList = null;
 
-		FaultRecordScalerStrategy strategy = new StandardizeMinMax(0.05);
-		// String mkDir =
-		// "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
+	private DataProcess dataProcess;
+	private FaultRecordScalerStrategy strategy;
+	private boolean singleModels = false;
 
-		String mkDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";// DomainUtils.getDataLocation();
-		List<String> aList = new ArrayList<>();
-		aList.add(mkDir + "out_clas_003923.evio.80.hipo");
-		aList.add(mkDir + "out_clas_003923.evio.8.hipo");
+	public ClassifyRealData() {
+		this.dataDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";
+		this.aList = new ArrayList<>();
+		fautList = new ArrayList<>();
 
-		// aList.add(dir + "out_clas_003923.evio.8.hipo");
-		DataProcess dataProcess = new DataProcess(aList);
+		makeList();
+		this.dataProcess = new DataProcess(aList);
+		this.strategy = new MinMaxStrategy();
+	}
+
+	private void makeList() {
+		aList.add(dataDir + "out_clas_003923.evio.80.hipo");
+		aList.add(dataDir + "out_clas_003923.evio.8.hipo");
+
+		// fautList.add(FaultNames.CHANNEL_ONE);
+		// fautList.add(FaultNames.CHANNEL_TWO);
+		// fautList.add(FaultNames.CHANNEL_THREE);
+
+		// fautList.add(FaultNames.CONNECTOR_E);
+		// fautList.add(FaultNames.CONNECTOR_THREE);
+		// fautList.add(FaultNames.CONNECTOR_TREE);
+
+		// fautList.add(FaultNames.FUSE_A);
+		// fautList.add(FaultNames.FUSE_B);
+		// fautList.add(FaultNames.FUSE_C);
+		//
+		fautList.add(FaultNames.DEADWIRE);
+		//
+		// fautList.add(FaultNames.HOTWIRE);
+		//
+		// fautList.add(FaultNames.PIN_BIG);
+		// fautList.add(FaultNames.PIN_SMALL);
+	}
+
+	public void runSingleModels() throws IOException {
 		dataProcess.processFile();
-		// dataProcess.plotData();
-		String fileName = "models/SingleFaultClassifyingHVPinFault.zip";
-		FaultClassifier fClassifier = new FaultClassifier(fileName);
-
-		// for (int i = 0; i < 100; i++) {
-		// FaultFactory factory = new FaultFactory();
-		// factory.getFault(1);
-		//
-		// // factory.plotData();
-		// // int[] predictedClasses =
-		// // fClassifier.predict(factory.getFeatureVector());
-		// // System.out.println(Arrays.toString(predictedClasses) + " actual
-		// // label " + factory.getReducedFaultIndex());
-		//
-		// System.out.println("Actual label: " +
-		// Arrays.toString(factory.getReducedLabel()));
-		//
-		// INDArray predictionsAtXYPoints =
-		// fClassifier.output(factory.getFeatureVector());
-		// System.out.println("Predicted label: " +
-		// Arrays.toString(predictionsAtXYPoints.toIntVector()));
-		// System.out.println("##############################");
-		//
-		// }
-		List<TCanvas> aTCanvas = new ArrayList<>();
-		for (int i = 1; i < 7; i++) {
-			System.out.println("IN LOOP");
-			for (int j = 1; j < 7; j++) {
-				// int j = 6;
-				INDArray predictionsAtXYPoints = fClassifier.output(dataProcess.getFeatureVector(i, j, strategy));
-
-				double[] predictedClasses = predictionsAtXYPoints.toDoubleVector();
-				// int[] predictedClasses =
-				// fClassifier.output(dataProcess.getFeatureVector(i, j,
-				// strategy));
-
-				predictedClasses = Arrays.stream(predictedClasses).map(x -> (x < 1E-04) ? 0.0 : x)
-						.map(x -> Math.round(x * 10000.0) / 10000.0).toArray();
-				System.out.println(Arrays.toString(predictedClasses) + "  S: " + i + " SL: " + j);
-				System.out.println("################################################");
-
-				dataProcess.plotData(i, j);
+		for (int sector = 1; sector < 7; sector++) {
+			for (int superlayer = 1; superlayer < 7; superlayer++) {
+				dataProcess.plotData(sector, superlayer);
+				System.out.println("Detected Faults for Sector: " + sector + " SuperLayer: " + superlayer);
+				INDArray featureArray = dataProcess.getFeatureVector(sector, superlayer, strategy);
+				for (FaultNames fault : fautList) {
+					printCertainty(fault, superlayer, featureArray, true);
+				}
 			}
 		}
+	}
 
-		// int[] predictedClasses =
-		// fClassifier.predict(dataProcess.getFeatureVector(1, 2));
-		// System.out.println(Arrays.toString(predictedClasses));
-		// dataProcess.plotData(1, 2);
-		// List<String> allClassLabels = new
-		// ReducedFaultRecordReader().getLabels();
-		// String modelPrediction = allClassLabels.get(predictedClasses[0]);
-		// System.out.print("\n the model predicted " + modelPrediction +
-		// "\n\n");
+	public double getCertainty(FaultNames fault, int superlayer, INDArray data) throws IOException {
+		// get the model
+		FaultClassifier classifier;
+		if (!singleModels) {
+			classifier = new FaultClassifier(
+					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
+		} else {
+			classifier = new FaultClassifier(
+					"models/binary_classifiers/IntegratedModel/" + fault.getSaveName() + "_save1.zip");
+		}
+		double[] predictions = classifier.output(data).toDoubleVector();
+		return predictions[0];
+	}
 
+	public void printCertainty(FaultNames fault, int superlayer, INDArray data, boolean printAll) throws IOException {
+		// get the model
+		FaultClassifier classifier;
+		if (!singleModels) {
+			classifier = new FaultClassifier(
+					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
+		} else {
+			classifier = new FaultClassifier(
+					"models/binary_classifiers/IntegratedModel/" + fault.getSaveName() + "PadedCNN.zip");
+		}
+		double[] predictions = classifier.output(data).toDoubleVector();
+		if (printAll) {
+			System.out.println(fault + "  " + predictions[0] * 100);
+		}
+		if (predictions[0] > 0.5 && !printAll) {
+			System.out.println(fault + "  " + predictions[0] * 100);
+		}
+
+	}
+
+	public void setSingleModel(boolean singleModels) {
+		this.singleModels = singleModels;
+	}
+
+	public static void main(String[] args) throws IOException {
+		ClassifyRealData cData = new ClassifyRealData();
+		cData.setSingleModel(true);
+		cData.runSingleModels();
 	}
 
 }

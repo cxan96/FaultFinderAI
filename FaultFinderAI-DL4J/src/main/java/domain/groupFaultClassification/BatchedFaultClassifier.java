@@ -26,8 +26,7 @@ import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
-public class FaultClassifierTestLooped {
-
+public class BatchedFaultClassifier {
 	private List<FaultNames> fautList;
 	private int superLayer;
 
@@ -45,7 +44,7 @@ public class FaultClassifierTestLooped {
 	private String saveName;
 	private int batchSize;
 
-	public FaultClassifierTestLooped(int superLayer, int savePoint, int scoreIterations, int nFaults, int checkPoints,
+	public BatchedFaultClassifier(int superLayer, int savePoint, int scoreIterations, int nFaults, int checkPoints,
 			int batchSize) {
 		this.superLayer = superLayer;
 		this.savePoint = savePoint;
@@ -56,62 +55,61 @@ public class FaultClassifierTestLooped {
 		makeList();
 	}
 
+	private void init() {
+		this.uiServer = UIServer.getInstance();
+		this.statsStorage = new InMemoryStatsStorage();
+		// additionally print the score on every iteration
+		classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(scoreIterations));
+		uiServer.attach(statsStorage);
+	}
+
+	private void loadOrCreateModel(FaultNames faultNames) throws IOException {
+		this.fileName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
+				+ (this.savePoint - 1) + ".zip";
+		this.saveName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
+				+ this.savePoint + ".zip";
+		System.out.println(fileName);
+
+		// check if a saved model exists
+		if ((new File(fileName)).exists()) {
+			System.out.println("remodel");
+			// initialize the classifier with the saved model
+			this.classifier = new FaultClassifier(fileName);
+		} else {
+			// initialize the classifier with a fresh model
+			MultiLayerNetwork model = ModelFactory.deeperCNN(2);
+
+			this.classifier = new FaultClassifier(model);
+		}
+	}
+
 	private void makeList() {
 		fautList = new ArrayList<>();
-		fautList.add(FaultNames.CHANNEL_ONE);
-		fautList.add(FaultNames.CHANNEL_TWO);
-		fautList.add(FaultNames.CHANNEL_THREE);
-		fautList.add(FaultNames.CONNECTOR_E);
-		fautList.add(FaultNames.CONNECTOR_THREE);
-		fautList.add(FaultNames.CONNECTOR_TREE);
-		fautList.add(FaultNames.FUSE_A);
-		fautList.add(FaultNames.FUSE_B);
-		fautList.add(FaultNames.FUSE_C);
+		// fautList.add(FaultNames.CHANNEL_ONE);
+		// fautList.add(FaultNames.CHANNEL_TWO);
+		// fautList.add(FaultNames.CHANNEL_THREE);
+		// fautList.add(FaultNames.CONNECTOR_E);
+		// fautList.add(FaultNames.CONNECTOR_THREE);
+		// fautList.add(FaultNames.CONNECTOR_TREE);
+		// fautList.add(FaultNames.FUSE_A);
+		// fautList.add(FaultNames.FUSE_B);
+		// fautList.add(FaultNames.FUSE_C);
 
 		fautList.add(FaultNames.DEADWIRE);
 
-		fautList.add(FaultNames.HOTWIRE);
-		fautList.add(FaultNames.PIN_BIG);
-		fautList.add(FaultNames.PIN_SMALL);
+		// fautList.add(FaultNames.HOTWIRE);
+		// fautList.add(FaultNames.PIN_BIG);
+		// fautList.add(FaultNames.PIN_SMALL);
 
 	}
 
 	public void runClassifier() throws IOException {
 		for (FaultNames faultNames : fautList) {
 
-			this.fileName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
-					+ (this.savePoint - 1) + ".zip";
-			this.saveName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
-					+ this.savePoint + ".zip";
-			System.out.println(fileName);
-
-			// check if a saved model exists
-			if ((new File(fileName)).exists()) {
-				System.out.println("remodel");
-				// initialize the classifier with the saved model
-				this.classifier = new FaultClassifier(fileName);
-			} else {
-				// initialize the classifier with a fresh model
-				MultiLayerNetwork model = ModelFactory.deeperPaddedCNN(2);
-
-				this.classifier = new FaultClassifier(model);
-			}
+			loadOrCreateModel(faultNames);
+			init();
 			this.strategy = new MinMaxStrategy();
-
-			// set up a local web-UI to monitor the training available
-			// at
-			// localhost:9000
-			this.uiServer = UIServer.getInstance();
-			this.statsStorage = new InMemoryStatsStorage();
-			// additionally print the score on every iteration
-			classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(scoreIterations));
-			uiServer.attach(statsStorage);
-
-			// train the classifier for a number of checkpoints and save
-			// the
-			// model
-			// after each checkpoint
-			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultNames, true);
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultNames, false);
 			for (int i = 0; i < this.checkPoints; i++) {
 				// train the classifier
 				classifier.train(2, 1, this.batchSize, 1, recordReader, strategy);
@@ -127,8 +125,6 @@ public class FaultClassifierTestLooped {
 				System.out.println("#############################################");
 
 			}
-			// this.uiServer.stop();
-			// runEvaluation();
 		}
 	}
 
@@ -139,7 +135,7 @@ public class FaultClassifierTestLooped {
 		// System.out.println("Evaluation for " + faultNames);
 		// evaluate the classifier
 		Evaluation evaluation = classifier.evaluate(2, 1, 10000, this.recordReader, this.strategy);
-		System.out.println(evaluation.stats() + "  " + evaluation.accuracy());
+		System.out.println(evaluation.stats());
 	}
 
 	public Map<String, Double> getEvaluation(String fileName, FaultNames faultNames) throws IOException {
@@ -165,18 +161,11 @@ public class FaultClassifierTestLooped {
 
 	public static void main(String[] args) throws IOException {
 
-		for (int moreSaves = 2; moreSaves < 3; moreSaves++) {
+		for (int moreSaves = 100; moreSaves < 101; moreSaves++) {
 			// for (int SL = 1; SL < 7; SL++) {
 			// int moreSaves = 10;
-			/**
-			 * FaultClassifierTestLooped(int superLayer, int savePoint, int
-			 * scoreIterations, int nFaults, int checkPoints, int batchSize)
-			 */
-
-			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 5000, 10, 112, 5000);
+			BatchedFaultClassifier looped = new BatchedFaultClassifier(1, moreSaves, 5000, 3, 110, 10000);
 			looped.runClassifier();
-			// looped.runEvaluation("models/binary_classifiers/IntegratedModel/"
-
 			// }
 		}
 

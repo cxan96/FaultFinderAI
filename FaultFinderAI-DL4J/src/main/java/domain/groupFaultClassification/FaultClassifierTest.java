@@ -11,7 +11,6 @@ import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
@@ -27,7 +26,7 @@ public class FaultClassifierTest {
 		// the model is stored here
 		int scoreIterations = 1000;
 
-		String fileName = "models/binary_classifiers/SL3/HVChannelOne.zip";
+		String fileName = "models/binary_classifiers/IntegratedModel/DeadWirePadedCNN.zip";
 		boolean reTrain = false;
 		FaultClassifier classifier;
 		// check if a saved model exists
@@ -37,7 +36,7 @@ public class FaultClassifierTest {
 			classifier = new FaultClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			MultiLayerNetwork model = ModelFactory.deeperCNN(2);
+			MultiLayerNetwork model = ModelFactory.deeperPaddedCNN(2);
 
 			classifier = new FaultClassifier(model);
 		}
@@ -45,19 +44,19 @@ public class FaultClassifierTest {
 
 		// set up a local web-UI to monitor the training available at
 		// localhost:9000
-		UIServer uiServer = UIServer.getInstance();
+		// UIServer uiServer = UIServer.getInstance();
 		StatsStorage statsStorage = new InMemoryStatsStorage();
 		// additionally print the score on every iteration
 		classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(scoreIterations));
-		uiServer.attach(statsStorage);
+		// uiServer.attach(statsStorage);
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		RecordReader recordReader = new KunkelPetersFaultRecorder(3, 10, FaultNames.CHANNEL_ONE, false);
-		int checkPoints = 0;
+		RecordReader recordReader = new KunkelPetersFaultRecorder(3, 10, FaultNames.DEADWIRE, true);
+		int checkPoints = 30;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(2, 1, 5000, 1, recordReader, strategy);
+			classifier.train(2, 1, 10000, 1, recordReader, strategy);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();

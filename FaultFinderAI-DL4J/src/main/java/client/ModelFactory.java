@@ -8,26 +8,26 @@ import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
+import org.deeplearning4j.nn.conf.layers.ZeroPaddingLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.activations.impl.ActivationReLU;
 import org.nd4j.linalg.activations.impl.ActivationSigmoid;
 import org.nd4j.linalg.activations.impl.ActivationSoftmax;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.learning.config.AdaDelta;
 import org.nd4j.linalg.learning.config.Adam;
-import org.nd4j.linalg.learning.config.AdaGrad;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.impl.LossL2;
 import org.nd4j.linalg.lossfunctions.impl.LossNegativeLogLikelihood;
-import org.nd4j.linalg.api.ndarray.INDArray;
 
 /**
  * This class is used to retrieve all the different models that are available.
  */
 public class ModelFactory {
 	public static MultiLayerNetwork simpleOriginalCNN(int numLabels) {
-
+		//
 		// create the network configuration
 		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
 				// user xavier initialization
@@ -67,58 +67,167 @@ public class ModelFactory {
 		return neuralNetwork;
 	}
 
-    public static MultiLayerNetwork deeperCNN(int numLabels) {
-	MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
-	    .weightInit(WeightInit.XAVIER)
-	    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-	    .updater(new Adam()).list()
-	    .layer(0,
-		   new ConvolutionLayer.Builder(3, 2)
-		   .nIn(1)
-		   .stride(1, 1)
-		   .nOut(40)
-		   .activation(new ActivationReLU()).build())
-	    .layer(1,
-		   new ConvolutionLayer.Builder(2, 2)
-		   .nIn(40)
-		   .stride(1, 1)
-		   .nOut(30)
-		   .activation(new ActivationReLU()).build())
-	    .layer(2,
-		   new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-		   .kernelSize(2, 2)
-		   .stride(2, 2)
-		   .build())
-	    .layer(3,
-		   new ConvolutionLayer.Builder(2, 2)
-		   .nIn(30)
-		   .stride(1, 1)
-		   .nOut(20)
-		   .activation(new ActivationReLU())
-		   .build())
-	    .layer(4,
-		   new DenseLayer.Builder()
-		   .activation(new ActivationReLU())
-		   .nOut(100).build())
-	    .layer(5,
-		   new OutputLayer.Builder(new LossNegativeLogLikelihood())
-		   .nOut(numLabels)
-		   .activation(new ActivationSoftmax())
-		   .build())
-	    .setInputType(InputType.convolutionalFlat(112, 6, 1))
-	    .backprop(true)
-	    .pretrain(false)
-	    .build();
+	public static MultiLayerNetwork deeperCNN(int numLabels) {
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).list()
+				.layer(0,
+						new ConvolutionLayer.Builder(3, 2).nIn(1).stride(1, 1).nOut(40).activation(new ActivationReLU())
+								.build())
+				.layer(1,
+						new ConvolutionLayer.Builder(2, 2).nIn(40).stride(1, 1).nOut(30)
+								.activation(new ActivationReLU()).build())
+				.layer(2,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build())
+				.layer(3,
+						new ConvolutionLayer.Builder(2, 2).nIn(30).stride(1, 1).nOut(20)
+								.activation(new ActivationReLU()).build())
+				.layer(4, new DenseLayer.Builder().activation(new ActivationReLU()).nOut(100).build())
+				.layer(5,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood()).nOut(numLabels)
+								.activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
 
-	// now create the neural network from the configuration
-	MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
-	// initialize the network
-	neuralNetwork.init();
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
 
-	return neuralNetwork;
-    }
+		return neuralNetwork;
+	}
 
-    public static MultiLayerNetwork simpleWeightedCNN(int numLabels, INDArray weights) {
+	public static MultiLayerNetwork deeperPaddedCNN(int numLabels) {
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).list()
+				.layer(0, new ZeroPaddingLayer(2, 2, 2, 2))// 114x8 input now
+				.layer(1,
+						new ConvolutionLayer.Builder(3, 3).nIn(1).stride(1, 1).nOut(40).activation(new ActivationReLU())
+								.build())
+				.layer(2,
+						new ConvolutionLayer.Builder(2, 2).nIn(40).stride(1, 1).nOut(30)
+								.activation(new ActivationReLU()).build())
+				.layer(3,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build())
+				.layer(4,
+						new ConvolutionLayer.Builder(2, 2).nIn(30).stride(1, 1).nOut(20)
+								.activation(new ActivationReLU()).build())
+				.layer(5, new DenseLayer.Builder().activation(new ActivationReLU()).nOut(100).build())
+				.layer(6,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood()).nOut(numLabels)
+								.activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
+
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	public static MultiLayerNetwork deeperPadded2CNN(int numLabels) {
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).list()
+				.layer(0, new ZeroPaddingLayer(1, 1, 1, 1))// 114x8 input now
+				.layer(1,
+						new ConvolutionLayer.Builder(3, 2).nIn(1).stride(1, 1).nOut(40).activation(new ActivationReLU())
+								.build())
+				.layer(2,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build())
+				.layer(3,
+						new ConvolutionLayer.Builder(2, 2).nIn(40).stride(1, 1).nOut(30)
+								.activation(new ActivationReLU()).build())
+				.layer(4,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
+								.build())
+				.layer(5,
+						new ConvolutionLayer.Builder(2, 2).nIn(30).stride(1, 1).nOut(20)
+								.activation(new ActivationReLU()).build())
+				.layer(6, new DenseLayer.Builder().activation(new ActivationReLU()).nOut(100).build())
+				.layer(7,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood()).nOut(numLabels)
+								.activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
+
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	// ZeroPaddingLayer(int padTop, int padBottom, int padLeft, int padRight)
+	public static MultiLayerNetwork deeperPaddedTestCNN(int numLabels) {
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).list()
+				.layer(0, new ZeroPaddingLayer(1, 1, 1, 2))// 114x9 input now
+				.layer(1,
+						new ConvolutionLayer.Builder(3, 3).nIn(1).stride(1, 1).nOut(32).activation(new ActivationReLU())
+								.build())
+				.layer(2,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build())
+				.layer(3,
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(64).activation(new ActivationReLU())
+								.build())
+				// .layer(4,
+				// new
+				// SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(1,
+				// 3).stride(1, 3)
+				// .build())
+				// .layer(5,
+				// new ConvolutionLayer.Builder(1, 2).stride(1,
+				// 1).nOut(128).activation(new ActivationReLU())
+				// .build())
+				.layer(4, new DenseLayer.Builder().activation(new ActivationReLU()).nOut(256).build())
+				.layer(5,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood()).nOut(numLabels)
+								.activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
+
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	// ZeroPaddingLayer(int padTop, int padBottom, int padLeft, int padRight)
+	public static MultiLayerNetwork YOLOMod(int numLabels) {
+		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).list()
+				.layer(0, new ZeroPaddingLayer(1, 2, 1, 1))
+				.layer(1,
+						new ConvolutionLayer.Builder(3, 2).nIn(1).stride(3, 2).nOut(32).activation(new ActivationReLU())
+								.build())
+				.layer(2,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build())
+				.layer(3,
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(64).activation(new ActivationReLU())
+								.build())
+				.layer(4,
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
+								.build())
+				.layer(5, new DenseLayer.Builder().activation(new ActivationReLU()).nOut(100).build())
+				.layer(6,
+						new OutputLayer.Builder(new LossNegativeLogLikelihood()).nOut(numLabels)
+								.activation(new ActivationSoftmax()).build())
+				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
+
+		// now create the neural network from the configuration
+		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
+		// initialize the network
+		neuralNetwork.init();
+
+		return neuralNetwork;
+	}
+
+	public static MultiLayerNetwork simpleWeightedCNN(int numLabels, INDArray weights) {
 
 		// create the network configuration
 		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()

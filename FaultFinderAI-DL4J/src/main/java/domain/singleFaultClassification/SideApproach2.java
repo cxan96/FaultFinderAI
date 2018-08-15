@@ -2,6 +2,8 @@ package domain.singleFaultClassification;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -30,7 +32,7 @@ public class SideApproach2 {
 
 	public static void main(String[] args) throws IOException {
 		int faultType = 6;
-		MultiLayerNetwork net = ModelFactory.deeperCNN(2);
+		MultiLayerNetwork net = ModelFactory.YOLOMod(2);
 		// set up a local web-UI to monitor the training available at
 		// localhost:9000
 		UIServer uiServer = UIServer.getInstance();
@@ -38,12 +40,12 @@ public class SideApproach2 {
 
 		net.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(1000));
 		uiServer.attach(statsStorage);
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 5000; i++) {
 
 			DataSetIterator iter = new RecordReaderDataSetIterator.Builder(
-					new KunkelPetersFaultRecorder(1, 10, FaultNames.CHANNEL_ONE, false), 1)
+					new KunkelPetersFaultRecorder(1, 10, FaultNames.DEADWIRE, false), 1)
 							// currently there are 14 labels in the dataset
-							.classification(1, 2).maxNumBatches(112 * 6)
+							.classification(1, 2).maxNumBatches(50)
 							.preProcessor(new FaultRecorderScaler(new MinMaxStrategy())).build();
 
 			List<INDArray> featuresTrain = new ArrayList<>();
@@ -66,7 +68,7 @@ public class SideApproach2 {
 			// " + labelsTrain.size());
 			// System.out.println(labelsTest.get(0));
 			// Train model:
-			int nEpochs = 25;
+			int nEpochs = 10;
 			for (int epoch = 0; epoch < nEpochs; epoch++) {
 				for (int j = 0; j < featuresTrain.size(); j++) {
 					net.fit(featuresTrain.get(j), labelsTrain.get(j));
@@ -75,12 +77,20 @@ public class SideApproach2 {
 
 				// System.out.println("Epoch " + epoch + " complete");
 			}
+			if (i % 2 == 0) {
+
+				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+				LocalDateTime now = LocalDateTime.now();
+				System.out.println("#############################################");
+				System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
+				System.out.println("#############################################");
+				ModelSerializer.writeModel(net, new File("models/deadTestYoloMod.zip"), false);
+			}
 			iter.reset();
 		}
-		ModelSerializer.writeModel(net, new File("models/testTest.zip"), false);
 
 		DataSetIterator iterTest = new RecordReaderDataSetIterator.Builder(
-				new KunkelPetersFaultRecorder(1, 10, FaultNames.CHANNEL_ONE, false), 1)
+				new KunkelPetersFaultRecorder(1, 10, FaultNames.DEADWIRE, false), 1)
 						// currently there are 14 labels in the dataset
 						.classification(1, 2).maxNumBatches(10000)
 						.preProcessor(new FaultRecorderScaler(new MinMaxStrategy())).build();
