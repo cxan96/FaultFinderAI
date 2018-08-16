@@ -26,18 +26,23 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 	protected FaultFactory factory = null;
 	private int label;
 	// args for FaultFactory constructor
-	private int sector;
+	private int superLayer;
 	private int maxFaults;
 	private FaultNames desiredFault;
 	private boolean singleFaultGeneration;
 
-	public KunkelPetersFaultRecorder(int sector, int maxFaults, FaultNames desiredFault,
+	public KunkelPetersFaultRecorder(int superLayer, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration) {
-		this.sector = sector;
+		this(superLayer, maxFaults, desiredFault, singleFaultGeneration, false);
+	}
+
+	public KunkelPetersFaultRecorder(int superLayer, int maxFaults, FaultNames desiredFault,
+			boolean singleFaultGeneration, boolean blurredFaults) {
+		this.superLayer = superLayer;
 		this.maxFaults = maxFaults;
 		this.desiredFault = desiredFault;
 		this.singleFaultGeneration = singleFaultGeneration;
-		this.factory = new FaultFactory(sector, maxFaults, desiredFault, singleFaultGeneration);
+		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults);
 	}
 
 	@Override
@@ -66,7 +71,7 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 
 	@Override
 	public void reset() {
-		this.factory = new FaultFactory(this.sector, this.maxFaults, this.desiredFault, this.singleFaultGeneration);
+		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.singleFaultGeneration);
 	}
 
 	@Override

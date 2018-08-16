@@ -22,7 +22,9 @@ public class ClassifyRealData {
 	private boolean singleModels = false;
 
 	public ClassifyRealData() {
-		this.dataDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";
+		// this.dataDir =
+		// "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";
+		this.dataDir = "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
 		this.aList = new ArrayList<>();
 		fautList = new ArrayList<>();
 
@@ -47,12 +49,12 @@ public class ClassifyRealData {
 		// fautList.add(FaultNames.FUSE_B);
 		// fautList.add(FaultNames.FUSE_C);
 		//
-		fautList.add(FaultNames.DEADWIRE);
+		// fautList.add(FaultNames.DEADWIRE);
 		//
 		// fautList.add(FaultNames.HOTWIRE);
 		//
 		// fautList.add(FaultNames.PIN_BIG);
-		// fautList.add(FaultNames.PIN_SMALL);
+		fautList.add(FaultNames.PIN_SMALL);
 	}
 
 	public void runSingleModels() throws IOException {
@@ -77,7 +79,7 @@ public class ClassifyRealData {
 					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
 		} else {
 			classifier = new FaultClassifier(
-					"models/binary_classifiers/IntegratedModel/" + fault.getSaveName() + "_save1.zip");
+					"models/binary_classifiers/benchmark/" + fault.getSaveName() + "_save1.zip");
 		}
 		double[] predictions = classifier.output(data).toDoubleVector();
 		return predictions[0];
@@ -90,8 +92,11 @@ public class ClassifyRealData {
 			classifier = new FaultClassifier(
 					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
 		} else {
-			classifier = new FaultClassifier(
-					"models/binary_classifiers/IntegratedModel/" + fault.getSaveName() + "PadedCNN.zip");
+			// classifier = new FaultClassifier(
+			// "models/binary_classifiers/benchmark/" + fault.getSaveName() +
+			// "PadedCNN.zip");
+			classifier = new FaultClassifier("models/binary_classifiers/benchmark/PinTestWithSmearSL2.zip");
+			System.out.println("models/binary_classifiers/benchmark/PinTestWithSmearSL2.zip");
 		}
 		double[] predictions = classifier.output(data).toDoubleVector();
 		if (printAll) {

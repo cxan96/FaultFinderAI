@@ -41,10 +41,10 @@ public class FaultFactory {
 	 */
 	private List<Integer> lMinMax;
 	/**
-	 * singleFaultGeneration is true for now. It's a placeholder for an another
-	 * idea
+	 * randomSuperlayer is whether or not to randomize the superlayer or use the
+	 * user selected superlayer idea
 	 */
-	private boolean singleFaultGeneration;
+	private boolean randomSuperlayer;
 
 	/**
 	 * nFaults is used to generate the number of background faults to
@@ -53,17 +53,29 @@ public class FaultFactory {
 	private int nFaults;
 
 	/**
+	 * randomSmear is to blurr out the faults by the median value of the
+	 * activations from the surrounding neighbors
+	 */
+	private boolean randomSmear;
+
+	/**
 	 * desiredFault is used to check if the fault to learn from was generated
 	 */
 	private FaultNames desiredFault;
 
-	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean singleFaultGeneration) {
+	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer) {
+		this(superLayer, maxFaults, desiredFault, randomSuperlayer, false);
+	}
+
+	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer,
+			boolean randomSmear) {
 		this.superLayer = superLayer;
 		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
 		this.desiredFault = desiredFault;
-		this.singleFaultGeneration = singleFaultGeneration;
+		this.randomSuperlayer = randomSuperlayer;
+		this.randomSmear = randomSmear;
 		this.faultList = new ArrayList<>();
-		if (!singleFaultGeneration) {
+		if (!randomSuperlayer) {
 			this.superLayer = ThreadLocalRandom.current().nextInt(1, 7);
 		}
 		loadData();
@@ -111,6 +123,7 @@ public class FaultFactory {
 		} else if (type == 5) {
 			retFault = new HVHotWire().getInformation();
 		}
+		retFault.setRandomSmear(randomSmear);
 		return retFault;
 	}
 
@@ -171,7 +184,6 @@ public class FaultFactory {
 		int min = stream2.min().getAsInt();
 		lMinMax.add(min);
 		lMinMax.add(max);
-
 		return lMinMax;
 	}
 
@@ -229,7 +241,7 @@ public class FaultFactory {
 		TCanvas canvas = new TCanvas("aName", 800, 1200);
 		canvas.divide(3, 3);
 		for (int i = 1; i < 10; i++) {
-			FaultFactory factory = new FaultFactory(4, 10, FaultNames.PIN_BIG, false);
+			FaultFactory factory = new FaultFactory(2, 10, FaultNames.PIN_BIG, true, true);
 
 			System.out.println("####################################");
 			System.out.println("##############" + factory.getSuperLayer() + "#################");
