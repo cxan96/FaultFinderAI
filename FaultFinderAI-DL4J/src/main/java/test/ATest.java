@@ -1,7 +1,6 @@
 package test;
 
 import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class ATest {
 	public static void main(String[] args) {
@@ -14,10 +13,25 @@ public class ATest {
 		System.out.println(Arrays.toString(d));
 
 		System.out.println(Arrays.toString(blah));
-		for (int i = 0; i < 15; i++) {
-			int rndm = ThreadLocalRandom.current().nextInt(3);
-			System.out.println(rndm);
+		// for (int i = 0; i < 15; i++) {
+		// int rndm = ThreadLocalRandom.current().nextInt(3);
+		// System.out.println(rndm);
+		//
+		// }
+
+		for (int xBin = 1; xBin < 113; xBin++) {
+			int xPlace = (xBin - 1) / 16 * 16;
+			int iInc = xPlace / 8;
+			int placer = (xBin + iInc) % 18;
+
+			// int xPlace = (xBin - 1) / 8 * 8;
+			// int iInc = xPlace / 8;
+			// int placer = (xBin + iInc) % 9;
+			System.out.println(xPlace + "  " + iInc + "  " + placer);
+			System.out.println(xBin - 1 + "  " + (xBin - 1) / 8 + "  \t \t" + xBin);
+			System.out.println("#####################");
 
 		}
+
 	}
 }

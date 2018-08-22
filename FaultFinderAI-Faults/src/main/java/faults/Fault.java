@@ -84,7 +84,14 @@ public class Fault {
 			max = 10 * min;
 		} else {
 			if (randomSmear) {
-				int smearValue = ThreadLocalRandom.current().nextInt(90, 99);
+				int smearValue;
+				// Deadwire has to be different since its not a collection of
+				// activations
+				if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
+					smearValue = ThreadLocalRandom.current().nextInt(5, 40);
+				} else {
+					smearValue = ThreadLocalRandom.current().nextInt(5, 100);
+				}
 				double lowValue;
 				double highValue;
 				if (smearValue == 0.0) {
@@ -136,7 +143,8 @@ public class Fault {
 										// before this
 				aList.add(data[wires.getLeft() - 2][layer]);
 			}
-			if (wires.getRight() != 112) {// this is the left most wire, nothing
+			if (wires.getRight() != 112) {// this is the right most wire,
+											// nothing
 				// before this
 				aList.add(data[wires.getRight() - 2][layer]);
 			}

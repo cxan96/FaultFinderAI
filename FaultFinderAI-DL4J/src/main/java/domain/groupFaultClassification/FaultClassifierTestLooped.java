@@ -54,6 +54,8 @@ public class FaultClassifierTestLooped {
 		this.checkPoints = checkPoints;
 		this.batchSize = batchSize;
 		makeList();
+
+		this.strategy = new MinMaxStrategy();
 	}
 
 	private void makeList() {
@@ -77,11 +79,11 @@ public class FaultClassifierTestLooped {
 	}
 
 	public void runClassifier() throws IOException {
-		for (FaultNames faultNames : fautList) {
+		for (FaultNames faultName : fautList) {
 
-			this.fileName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
+			this.fileName = "models/binary_classifiers/SmearedFaults/" + faultName.getSaveName() + "_save"
 					+ (this.savePoint - 1) + ".zip";
-			this.saveName = "models/binary_classifiers/IntegratedModel/" + faultNames.getSaveName() + "_save"
+			this.saveName = "models/binary_classifiers/SmearedFaults/" + faultName.getSaveName() + "_save"
 					+ this.savePoint + ".zip";
 			System.out.println(fileName);
 
@@ -92,11 +94,10 @@ public class FaultClassifierTestLooped {
 				this.classifier = new FaultClassifier(fileName);
 			} else {
 				// initialize the classifier with a fresh model
-				MultiLayerNetwork model = ModelFactory.deeperPaddedCNN(2);
+				MultiLayerNetwork model = ModelFactory.deeperCNN(2);
 
 				this.classifier = new FaultClassifier(model);
 			}
-			this.strategy = new MinMaxStrategy();
 
 			// set up a local web-UI to monitor the training available
 			// at
@@ -111,7 +112,7 @@ public class FaultClassifierTestLooped {
 			// the
 			// model
 			// after each checkpoint
-			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultNames, true);
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
 			for (int i = 0; i < this.checkPoints; i++) {
 				// train the classifier
 				classifier.train(2, 1, this.batchSize, 1, recordReader, strategy);
@@ -132,14 +133,19 @@ public class FaultClassifierTestLooped {
 		}
 	}
 
-	public void runEvaluation(String fileName, FaultNames faultNames) throws IOException {
-		this.strategy = new MinMaxStrategy();
-		this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultNames, false);
-		this.classifier = new FaultClassifier(fileName);
-		// System.out.println("Evaluation for " + faultNames);
-		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(2, 1, 10000, this.recordReader, this.strategy);
-		System.out.println(evaluation.stats() + "  " + evaluation.accuracy());
+	public void runEvaluation() throws IOException {
+		for (FaultNames faultName : fautList) {
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
+			String fileName = "models/binary_classifiers/SmearedFaults/" + faultName.getSaveName() + "_save"
+					+ this.savePoint + ".zip";
+
+			this.classifier = new FaultClassifier(fileName);
+			System.out.println("Evaluation for " + faultName + " " + this.savePoint);
+			// evaluate the classifier
+			Evaluation evaluation = classifier.evaluate(2, 1, 10000, this.recordReader, this.strategy);
+			System.out.println(evaluation.stats() + "  " + evaluation.accuracy());
+			System.out.println("############################################");
+		}
 	}
 
 	public Map<String, Double> getEvaluation(String fileName, FaultNames faultNames) throws IOException {
@@ -165,7 +171,7 @@ public class FaultClassifierTestLooped {
 
 	public static void main(String[] args) throws IOException {
 
-		for (int moreSaves = 2; moreSaves < 3; moreSaves++) {
+		for (int moreSaves = 1; moreSaves < 2; moreSaves++) {
 			// for (int SL = 1; SL < 7; SL++) {
 			// int moreSaves = 10;
 			/**
@@ -173,9 +179,9 @@ public class FaultClassifierTestLooped {
 			 * scoreIterations, int nFaults, int checkPoints, int batchSize)
 			 */
 
-			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 5000, 10, 112, 5000);
-			looped.runClassifier();
-			// looped.runEvaluation("models/binary_classifiers/IntegratedModel/"
+			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 5000, 10, 10, 10000);
+			// looped.runClassifier();
+			looped.runEvaluation();
 
 			// }
 		}

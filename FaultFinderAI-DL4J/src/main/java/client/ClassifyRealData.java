@@ -22,9 +22,9 @@ public class ClassifyRealData {
 	private boolean singleModels = false;
 
 	public ClassifyRealData() {
+		this.dataDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/5b.3.3/";
 		// this.dataDir =
-		// "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";
-		this.dataDir = "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
+		// "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
 		this.aList = new ArrayList<>();
 		fautList = new ArrayList<>();
 
@@ -34,8 +34,13 @@ public class ClassifyRealData {
 	}
 
 	private void makeList() {
-		aList.add(dataDir + "out_clas_003923.evio.80.hipo");
-		aList.add(dataDir + "out_clas_003923.evio.8.hipo");
+		// aList.add(dataDir + "out_clas_003923.evio.80.hipo");
+		// aList.add(dataDir + "out_clas_003923.evio.8.hipo");
+		aList.add(dataDir + "out_clas_003971.evio.1000.hipo");
+		aList.add(dataDir + "out_clas_003971.evio.1001.hipo");
+		aList.add(dataDir + "out_clas_003971.evio.1002.hipo");
+		aList.add(dataDir + "out_clas_003971.evio.1003.hipo");
+		aList.add(dataDir + "out_clas_003971.evio.1004.hipo");
 
 		// fautList.add(FaultNames.CHANNEL_ONE);
 		// fautList.add(FaultNames.CHANNEL_TWO);
@@ -65,7 +70,7 @@ public class ClassifyRealData {
 				System.out.println("Detected Faults for Sector: " + sector + " SuperLayer: " + superlayer);
 				INDArray featureArray = dataProcess.getFeatureVector(sector, superlayer, strategy);
 				for (FaultNames fault : fautList) {
-					printCertainty(fault, superlayer, featureArray, true);
+					printCertainty(fault, superlayer, featureArray, false);
 				}
 			}
 		}
