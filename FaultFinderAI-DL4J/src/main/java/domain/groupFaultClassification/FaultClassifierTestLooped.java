@@ -60,19 +60,19 @@ public class FaultClassifierTestLooped {
 
 	private void makeList() {
 		fautList = new ArrayList<>();
-		// fautList.add(FaultNames.CHANNEL_ONE);
-		// fautList.add(FaultNames.CHANNEL_TWO);
-		// fautList.add(FaultNames.CHANNEL_THREE);
-		// fautList.add(FaultNames.CONNECTOR_E);
-		// fautList.add(FaultNames.CONNECTOR_THREE);
-		// fautList.add(FaultNames.CONNECTOR_TREE);
-		// fautList.add(FaultNames.FUSE_A);
-		// fautList.add(FaultNames.FUSE_B);
-		// fautList.add(FaultNames.FUSE_C);
+		fautList.add(FaultNames.CHANNEL_ONE);
+		fautList.add(FaultNames.CHANNEL_TWO);
+		fautList.add(FaultNames.CHANNEL_THREE);
+		fautList.add(FaultNames.CONNECTOR_E);
+		fautList.add(FaultNames.CONNECTOR_THREE);
+		fautList.add(FaultNames.CONNECTOR_TREE);
+		fautList.add(FaultNames.FUSE_A);
+		fautList.add(FaultNames.FUSE_B);
+		fautList.add(FaultNames.FUSE_C);
 
-		// fautList.add(FaultNames.DEADWIRE);
+		fautList.add(FaultNames.DEADWIRE);
 
-		// fautList.add(FaultNames.HOTWIRE);
+		fautList.add(FaultNames.HOTWIRE);
 		fautList.add(FaultNames.PIN_BIG);
 		fautList.add(FaultNames.PIN_SMALL);
 

@@ -22,9 +22,9 @@ public class ClassifyRealData {
 	private boolean singleModels = false;
 
 	public ClassifyRealData() {
-		this.dataDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/5b.3.3/";
 		// this.dataDir =
-		// "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
+		// "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/5b.3.3/";
+		this.dataDir = "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
 		this.aList = new ArrayList<>();
 		fautList = new ArrayList<>();
 
@@ -34,31 +34,32 @@ public class ClassifyRealData {
 	}
 
 	private void makeList() {
-		// aList.add(dataDir + "out_clas_003923.evio.80.hipo");
+		aList.add(dataDir + "out_clas_003923.evio.80.hipo");
 		// aList.add(dataDir + "out_clas_003923.evio.8.hipo");
-		aList.add(dataDir + "out_clas_003971.evio.1000.hipo");
-		aList.add(dataDir + "out_clas_003971.evio.1001.hipo");
-		aList.add(dataDir + "out_clas_003971.evio.1002.hipo");
-		aList.add(dataDir + "out_clas_003971.evio.1003.hipo");
-		aList.add(dataDir + "out_clas_003971.evio.1004.hipo");
 
-		// fautList.add(FaultNames.CHANNEL_ONE);
-		// fautList.add(FaultNames.CHANNEL_TWO);
-		// fautList.add(FaultNames.CHANNEL_THREE);
+		// aList.add(dataDir + "out_clas_003971.evio.1000.hipo");
+		// aList.add(dataDir + "out_clas_003971.evio.1001.hipo");
+		// aList.add(dataDir + "out_clas_003971.evio.1002.hipo");
+		// aList.add(dataDir + "out_clas_003971.evio.1003.hipo");
+		// aList.add(dataDir + "out_clas_003971.evio.1004.hipo");
 
-		// fautList.add(FaultNames.CONNECTOR_E);
-		// fautList.add(FaultNames.CONNECTOR_THREE);
-		// fautList.add(FaultNames.CONNECTOR_TREE);
+		fautList.add(FaultNames.CHANNEL_ONE);
+		fautList.add(FaultNames.CHANNEL_TWO);
+		fautList.add(FaultNames.CHANNEL_THREE);
 
-		// fautList.add(FaultNames.FUSE_A);
-		// fautList.add(FaultNames.FUSE_B);
-		// fautList.add(FaultNames.FUSE_C);
-		//
-		// fautList.add(FaultNames.DEADWIRE);
-		//
-		// fautList.add(FaultNames.HOTWIRE);
-		//
-		// fautList.add(FaultNames.PIN_BIG);
+		fautList.add(FaultNames.CONNECTOR_E);
+		fautList.add(FaultNames.CONNECTOR_THREE);
+		fautList.add(FaultNames.CONNECTOR_TREE);
+
+		fautList.add(FaultNames.FUSE_A);
+		fautList.add(FaultNames.FUSE_B);
+		fautList.add(FaultNames.FUSE_C);
+
+		fautList.add(FaultNames.DEADWIRE);
+
+		fautList.add(FaultNames.HOTWIRE);
+
+		fautList.add(FaultNames.PIN_BIG);
 		fautList.add(FaultNames.PIN_SMALL);
 	}
 
@@ -67,7 +68,7 @@ public class ClassifyRealData {
 		for (int sector = 1; sector < 7; sector++) {
 			for (int superlayer = 1; superlayer < 7; superlayer++) {
 				dataProcess.plotData(sector, superlayer);
-				System.out.println("Detected Faults for Sector: " + sector + " SuperLayer: " + superlayer);
+				System.out.println("\nDetected Faults for Sector: " + sector + " SuperLayer: " + superlayer);
 				INDArray featureArray = dataProcess.getFeatureVector(sector, superlayer, strategy);
 				for (FaultNames fault : fautList) {
 					printCertainty(fault, superlayer, featureArray, false);
@@ -97,11 +98,8 @@ public class ClassifyRealData {
 			classifier = new FaultClassifier(
 					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
 		} else {
-			// classifier = new FaultClassifier(
-			// "models/binary_classifiers/benchmark/" + fault.getSaveName() +
-			// "PadedCNN.zip");
-			classifier = new FaultClassifier("models/binary_classifiers/benchmark/PinTestWithSmearSL2.zip");
-			System.out.println("models/binary_classifiers/benchmark/PinTestWithSmearSL2.zip");
+			classifier = new FaultClassifier(
+					"models/binary_classifiers/IntegratedModel/" + fault.getSaveName() + "_save1.zip");
 		}
 		double[] predictions = classifier.output(data).toDoubleVector();
 		if (printAll) {
