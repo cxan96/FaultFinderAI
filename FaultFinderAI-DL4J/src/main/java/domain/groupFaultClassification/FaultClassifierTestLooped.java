@@ -60,19 +60,19 @@ public class FaultClassifierTestLooped {
 
 	private void makeList() {
 		fautList = new ArrayList<>();
-		fautList.add(FaultNames.CHANNEL_ONE);
-		fautList.add(FaultNames.CHANNEL_TWO);
-		fautList.add(FaultNames.CHANNEL_THREE);
-		fautList.add(FaultNames.CONNECTOR_E);
-		fautList.add(FaultNames.CONNECTOR_THREE);
-		fautList.add(FaultNames.CONNECTOR_TREE);
-		fautList.add(FaultNames.FUSE_A);
-		fautList.add(FaultNames.FUSE_B);
-		fautList.add(FaultNames.FUSE_C);
+		// fautList.add(FaultNames.CHANNEL_ONE);
+		// fautList.add(FaultNames.CHANNEL_TWO);
+		// fautList.add(FaultNames.CHANNEL_THREE);
+		// fautList.add(FaultNames.CONNECTOR_E);
+		// fautList.add(FaultNames.CONNECTOR_THREE);
+		// fautList.add(FaultNames.CONNECTOR_TREE);
+		// fautList.add(FaultNames.FUSE_A);
+		// fautList.add(FaultNames.FUSE_B);
+		// fautList.add(FaultNames.FUSE_C);
 
 		// fautList.add(FaultNames.DEADWIRE);
 
-		fautList.add(FaultNames.HOTWIRE);
+		// fautList.add(FaultNames.HOTWIRE);
 		fautList.add(FaultNames.PIN_BIG);
 		fautList.add(FaultNames.PIN_SMALL);
 
@@ -139,7 +139,7 @@ public class FaultClassifierTestLooped {
 	public void runEvaluation() throws IOException {
 		for (FaultNames faultName : fautList) {
 			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
-			String fileName = "models/binary_classifiers/SmearedFaults/" + faultName.getSaveName() + "_save"
+			String fileName = "models/binary_classifiers/NewSmearedFaults/" + faultName.getSaveName() + "_save"
 					+ this.savePoint + ".zip";
 
 			this.classifier = new FaultClassifier(fileName);
@@ -186,8 +186,8 @@ public class FaultClassifierTestLooped {
 			// FaultClassifierTestLooped looped = new
 			// FaultClassifierTestLooped(3, moreSaves, 5000, 10, 1, 1000);
 
-			looped.runClassifier();
-			// looped.runEvaluation();
+			// looped.runClassifier();
+			looped.runEvaluation();
 
 			// }
 		}
