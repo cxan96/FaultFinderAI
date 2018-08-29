@@ -43,5 +43,8 @@ public enum FaultNames {
 		System.out.println(FaultNames.PIN_BIG.getIndex() + ": " + FaultNames.PIN_BIG);
 		System.out.println(FaultNames.CHANNEL_ONE.getIndex() + ": " + FaultNames.CHANNEL_ONE + "  "
 				+ FaultNames.CHANNEL_ONE.getSaveName());
+
+		FaultNames aNames = FaultNames.CHANNEL_ONE;
+		System.out.println(aNames.getSaveName());
 	}
 }

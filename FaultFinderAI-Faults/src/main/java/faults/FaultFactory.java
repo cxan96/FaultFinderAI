@@ -198,6 +198,13 @@ public class FaultFactory {
 	public void printFaultList() {
 		faultList.forEach(k -> {
 			k.printWireInformation();
+			k.getFaultCoordinates().printFaultCoordinates();
+		});
+	}
+
+	public void printFaultLocation() {
+		faultList.forEach(k -> {
+			k.getFaultCoordinates().printFaultCoordinates();
 		});
 	}
 
@@ -241,14 +248,16 @@ public class FaultFactory {
 		TCanvas canvas = new TCanvas("aName", 800, 1200);
 		canvas.divide(3, 3);
 		for (int i = 1; i < 10; i++) {
-			FaultFactory factory = new FaultFactory(2, 10, FaultNames.PIN_BIG, true, true);
+			FaultFactory factory = new FaultFactory(2, 10, FaultNames.PIN_SMALL, true, true);
 
 			System.out.println("####################################");
 			System.out.println("##############" + factory.getSuperLayer() + "#################");
 			System.out.println("####################################");
 			System.out.println("####################################");
 			factory.printFaultList();
+			System.out.println(Arrays.toString(factory.getFaultLabel()));
 			canvas.cd(i - 1);
+
 			canvas.draw(factory.getHist());
 			// System.out.println(factory.getFeatureVector());
 		}

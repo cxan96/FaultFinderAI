@@ -70,7 +70,7 @@ public class FaultClassifierTestLooped {
 		fautList.add(FaultNames.FUSE_B);
 		fautList.add(FaultNames.FUSE_C);
 
-		fautList.add(FaultNames.DEADWIRE);
+		// fautList.add(FaultNames.DEADWIRE);
 
 		fautList.add(FaultNames.HOTWIRE);
 		fautList.add(FaultNames.PIN_BIG);
@@ -81,9 +81,9 @@ public class FaultClassifierTestLooped {
 	public void runClassifier() throws IOException {
 		for (FaultNames faultName : fautList) {
 
-			this.fileName = "models/binary_classifiers/SmearedFaults/" + faultName.getSaveName() + "_save"
+			this.fileName = "models/binary_classifiers/NewSmearedFaults/" + faultName.getSaveName() + "_save"
 					+ (this.savePoint - 1) + ".zip";
-			this.saveName = "models/binary_classifiers/SmearedFaults/" + faultName.getSaveName() + "_save"
+			this.saveName = "models/binary_classifiers/NewSmearedFaults/" + faultName.getSaveName() + "_save"
 					+ this.savePoint + ".zip";
 			System.out.println(fileName);
 
@@ -107,6 +107,9 @@ public class FaultClassifierTestLooped {
 			// additionally print the score on every iteration
 			classifier.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(scoreIterations));
 			uiServer.attach(statsStorage);
+
+			System.out.println("\nuiServer Address for  " + faultName.getSaveName() + " is  \n"
+					+ this.uiServer.toString().substring(this.uiServer.toString().indexOf("eventQueue")) + "\n\n\n");
 
 			// train the classifier for a number of checkpoints and save
 			// the
@@ -179,9 +182,12 @@ public class FaultClassifierTestLooped {
 			 * scoreIterations, int nFaults, int checkPoints, int batchSize)
 			 */
 
-			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 5000, 10, 10, 10000);
-			// looped.runClassifier();
-			looped.runEvaluation();
+			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 50000, 10, 10, 10000);
+			// FaultClassifierTestLooped looped = new
+			// FaultClassifierTestLooped(3, moreSaves, 5000, 10, 1, 1000);
+
+			looped.runClassifier();
+			// looped.runEvaluation();
 
 			// }
 		}

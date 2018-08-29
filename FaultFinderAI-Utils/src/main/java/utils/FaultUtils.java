@@ -48,7 +48,7 @@ public class FaultUtils {
 	}
 
 	public static H2F getHist(int[][] data) {
-		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
+		H2F hData = new H2F("Data", 112, 1, 112, 6, 0, 6);
 		for (int i = 0; i < data[0].length; i++) { // i are the rows
 													// (layers)
 			for (int j = 0; j < data.length; j++) { // j are the columns

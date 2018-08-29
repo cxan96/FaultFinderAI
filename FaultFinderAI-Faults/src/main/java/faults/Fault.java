@@ -26,15 +26,15 @@ public class Fault {
 	}
 
 	public Map<Integer, Pair<Integer, Integer>> getWireInfo() {
-		return wireInfo;
+		return this.wireInfo;
 	}
 
 	public String getFaultName() {
-		return faultName;
+		return this.faultName;
 	}
 
 	public FaultNames getSubFaultName() {
-		return subFaultName;
+		return this.subFaultName;
 	}
 
 	public boolean compareFault(Fault anotherFault) {
@@ -79,30 +79,32 @@ public class Fault {
 
 		int min;
 		int max;
-		if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
-			min = lMinMax.get(1) * 2;
-			max = 10 * min;
+		if (randomSmear) {
+			int smearValue;
+			// Deadwire has to be different since its not a collection of
+			// activations
+			if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
+				smearValue = ThreadLocalRandom.current().nextInt(5, 40);
+			} else if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
+				smearValue = ThreadLocalRandom.current().nextInt(200, 400);
+			} else {
+				smearValue = ThreadLocalRandom.current().nextInt(5, 75);
+			}
+			double lowValue;
+			double highValue;
+			if (smearValue == 0.0) {
+				lowValue = 0.0;
+				highValue = 0.05;
+			} else {
+				lowValue = ((double) smearValue) / 100.0 - 0.05;
+				highValue = ((double) smearValue) / 100.0;
+			}
+			min = (int) (lowValue * averageNeighbors(data));
+			max = (int) (highValue * averageNeighbors(data));
 		} else {
-			if (randomSmear) {
-				int smearValue;
-				// Deadwire has to be different since its not a collection of
-				// activations
-				if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
-					smearValue = ThreadLocalRandom.current().nextInt(5, 40);
-				} else {
-					smearValue = ThreadLocalRandom.current().nextInt(5, 100);
-				}
-				double lowValue;
-				double highValue;
-				if (smearValue == 0.0) {
-					lowValue = 0.0;
-					highValue = 0.05;
-				} else {
-					lowValue = ((double) smearValue) / 100.0 - 0.05;
-					highValue = ((double) smearValue) / 100.0;
-				}
-				min = (int) (lowValue * averageNeighbors(data));
-				max = (int) (highValue * averageNeighbors(data));
+			if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
+				min = lMinMax.get(1) * 2;
+				max = 4 * min;
 			} else {
 				min = 0;
 				max = lMinMax.get(0);
@@ -173,5 +175,23 @@ public class Fault {
 		}
 
 		return (int) retVal;
+	}
+
+	public FaultCoordinates getFaultCoordinates() {
+		// first let get the wireinfomap
+
+		int xMin = 113; // 1 more than possible allowed number of wires
+		int xMax = 0;
+		int yMin = 7; // 1 more than possible allowed number of layers
+		int yMax = 0;
+		for (Map.Entry<Integer, Pair<Integer, Integer>> entry : this.getWireInfo().entrySet()) {
+			Integer key = entry.getKey();
+			Pair<Integer, Integer> value = entry.getValue();
+			xMin = Math.min(xMin, value.getLeft());
+			xMax = Math.max(xMax, value.getRight());
+			yMin = Math.min(yMin, key);
+			yMax = Math.max(yMax, key);
+		}
+		return new FaultCoordinates(xMin, yMin, xMax, yMax, this.subFaultName.getSaveName());
 	}
 }
