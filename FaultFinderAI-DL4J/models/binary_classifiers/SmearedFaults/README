@@ -1,0 +1,6 @@
+This folder states integrated model, but the model is actually trained on SL3.
+				MultiLayerNetwork model = ModelFactory.deeperPaddedCNN(2);
+				DeadWire_save0 stopped unexpectedly at ~695,000
+				DeadWire_save1 loaded Deadwire_save0, i.e. started with the stopping parms of DeadWire_save0
+				and ended at 1.25M events
+				

@@ -99,7 +99,7 @@ public class ClassifyRealData {
 					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
 		} else {
 			classifier = new FaultClassifier(
-					"models/binary_classifiers/IntegratedModel/" + fault.getSaveName() + "_save1.zip");
+					"models/binary_classifiers/SmearedFaults/" + fault.getSaveName() + "_save1.zip");
 		}
 		double[] predictions = classifier.output(data).toDoubleVector();
 		if (printAll) {
