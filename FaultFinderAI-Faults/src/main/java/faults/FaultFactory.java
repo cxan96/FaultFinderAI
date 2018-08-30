@@ -244,6 +244,10 @@ public class FaultFactory {
 		return this.superLayer;
 	}
 
+	public List<Fault> getFaultList() {
+		return this.faultList;
+	}
+
 	public static void main(String[] args) {
 		TCanvas canvas = new TCanvas("aName", 800, 1200);
 		canvas.divide(3, 3);

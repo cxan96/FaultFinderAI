@@ -2,7 +2,10 @@ package faultrecordreader;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.datavec.api.writable.Writable;
 import org.datavec.api.writable.batch.NDArrayRecordBatch;
@@ -34,6 +37,7 @@ public class FaultObjectDetectionRecordReader extends KunkelPetersFaultRecorder 
 	private int height;
 	private int width;
 	private int channels;
+	protected List<String> labels;
 
 	protected FaultFactory factory = null;
 	private int label;
@@ -72,6 +76,22 @@ public class FaultObjectDetectionRecordReader extends KunkelPetersFaultRecorder 
 	}
 
 	@Override
+	public void initialize() {
+		Set<String> labelSet = new HashSet<>();
+		for (Fault io : factory.getFaultList()) {
+			String name = io.getSubFaultName().getSaveName();
+			if (!labelSet.contains(name)) {
+				labelSet.add(name);
+			}
+		}
+
+		// To ensure consistent order for label assignment (irrespective of file
+		// iteration order), we want to sort the list of labels
+		labels = new ArrayList<>(labelSet);
+		Collections.sort(labels);
+	}
+
+	@Override
 	public List<List<Writable>> next(int num) {
 		List<Fault> faults = new ArrayList<>(num);
 		List<List<Fault>> objects = new ArrayList<>(num);
@@ -80,12 +100,12 @@ public class FaultObjectDetectionRecordReader extends KunkelPetersFaultRecorder 
 			File f = iter.next();
 			this.currentFile = f;
 			if (!f.isDirectory()) {
-				files.add(f);
+				faults.add(f);
 				objects.add(labelProvider.getImageObjectsForPath(f.getPath()));
 			}
 		}
 
-		int nClasses = labels.size();
+		int nClasses = factory.ge
 
 		INDArray outImg = Nd4j.create(files.size(), channels, height, width);
 		INDArray outLabel = Nd4j.create(files.size(), 4 + nClasses, gridH, gridW);

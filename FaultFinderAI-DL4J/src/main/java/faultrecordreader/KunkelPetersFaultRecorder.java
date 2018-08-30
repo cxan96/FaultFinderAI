@@ -186,4 +186,8 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 		return this.label;
 	}
 
+	public void initialize() {
+
+	}
+
 }
