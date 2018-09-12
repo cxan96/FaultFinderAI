@@ -1,16 +1,28 @@
 package faultrecordreader;
 
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
+
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.datavec.api.conf.Configuration;
+import org.datavec.api.records.Record;
+import org.datavec.api.records.listener.RecordListener;
+import org.datavec.api.records.metadata.RecordMetaData;
+import org.datavec.api.records.metadata.RecordMetaDataURI;
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.split.InputSplit;
 import org.datavec.api.writable.Writable;
 import org.datavec.api.writable.batch.NDArrayRecordBatch;
-import org.datavec.image.recordreader.objdetect.ImageObject;
-import org.nd4j.linalg.api.concurrency.AffinityManager;
+import org.datavec.image.util.ImageUtils;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
@@ -26,11 +38,11 @@ import faults.FaultNames;
  * Where the image is quantized into h x w grid locations.
  * <p>
  * Note that this is a modified version of Alex Black's
- * ObjectDetectionRecordReader
+ * ObjectDetectionRecordReader.java
  *
  * @author Michael C. Kunkel
  */
-public class FaultObjectDetectionRecordReader extends KunkelPetersFaultRecorder {
+public class FaultObjectDetectionRecordReader implements RecordReader {
 
 	private final int gridW;
 	private final int gridH;
@@ -46,6 +58,7 @@ public class FaultObjectDetectionRecordReader extends KunkelPetersFaultRecorder 
 	private int maxFaults;
 	private FaultNames desiredFault;
 	private boolean singleFaultGeneration;
+	private boolean blurredFaults;
 
 	/**
 	 *
@@ -66,72 +79,234 @@ public class FaultObjectDetectionRecordReader extends KunkelPetersFaultRecorder 
 	public FaultObjectDetectionRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration, boolean blurredFaults, int height, int width, int channels, int gridH,
 			int gridW) {
-		super(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults);
+		this.superLayer = superLayer;
+		this.maxFaults = maxFaults;
+		this.desiredFault = desiredFault;
+		this.singleFaultGeneration = singleFaultGeneration;
+		this.blurredFaults = blurredFaults;
+		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults);
+
 		this.height = height;
 		this.width = width;
 		this.channels = channels;
 		this.gridW = gridW;
 		this.gridH = gridH;
-
+		initialize();
 	}
 
-	@Override
-	public void initialize() {
+	private void initialize() {
 		Set<String> labelSet = new HashSet<>();
-		for (Fault io : factory.getFaultList()) {
-			String name = io.getSubFaultName().getSaveName();
-			if (!labelSet.contains(name)) {
-				labelSet.add(name);
-			}
+		/**
+		 * OK, we need all the faults loaded at once otherwise it doesn't make
+		 * sense with the one-hot representation
+		 */
+		for (FaultNames d : FaultNames.values()) {
+			labelSet.add(d.getSaveName());
 		}
+		labels = new ArrayList<>(labelSet);
 
 		// To ensure consistent order for label assignment (irrespective of file
 		// iteration order), we want to sort the list of labels
-		labels = new ArrayList<>(labelSet);
-		Collections.sort(labels);
+		// Collections.sort(labels);
+	}
+
+	@Override
+	public boolean batchesSupported() {
+		// I might want to set this to true so that I train in batches, reduces
+		// memory
+		// will get back to this after impl of modes
+		return true;
+	}
+
+	@Override
+	public boolean hasNext() {
+		// since this is batch mode, and the data is generated on the fly, this
+		// should always be true
+		return true;
+	}
+
+	@Override
+	public List<Writable> next() {
+		return next(1).get(0);
+	}
+
+	@Override
+	public void reset() {
+		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.singleFaultGeneration,
+				this.blurredFaults);
+	}
+
+	@Override
+	public boolean resetSupported() {
+		// Why would we need to reset in this type of training?
+		return true;
 	}
 
 	@Override
 	public List<List<Writable>> next(int num) {
-		List<Fault> faults = new ArrayList<>(num);
+		List<INDArray> faultData = new ArrayList<>(num);
 		List<List<Fault>> objects = new ArrayList<>(num);
 
 		for (int i = 0; i < num && hasNext(); i++) {
-			File f = iter.next();
-			this.currentFile = f;
-			if (!f.isDirectory()) {
-				faults.add(f);
-				objects.add(labelProvider.getImageObjectsForPath(f.getPath()));
-			}
+			faultData.add(factory.getFeatureVectorAsMatrix());
+			objects.add(factory.getFaultList());
 		}
 
-		int nClasses = factory.ge
+		int nClasses = factory.getNFaults();
 
-		INDArray outImg = Nd4j.create(files.size(), channels, height, width);
-		INDArray outLabel = Nd4j.create(files.size(), 4 + nClasses, gridH, gridW);
+		INDArray outImg = Nd4j.create(faultData.size(), channels, height, width);
+		INDArray outLabel = Nd4j.create(faultData.size(), 4 + nClasses, gridH, gridW);
 
 		int exampleNum = 0;
-		for (int i = 0; i < files.size(); i++) {
-			File imageFile = files.get(i);
-			this.currentFile = imageFile;
-			try {
-				this.invokeListeners(imageFile);
-				Image image = this.imageLoader.asImageMatrix(imageFile);
-				this.currentImage = image;
-				Nd4j.getAffinityManager().ensureLocation(image.getImage(), AffinityManager.Location.DEVICE);
+		for (int i = 0; i < faultData.size(); i++) {
+			INDArray imageFile = faultData.get(i);
 
-				outImg.put(new INDArrayIndex[] { point(exampleNum), all(), all(), all() }, image.getImage());
+			outImg.put(new INDArrayIndex[] { point(exampleNum), all(), all(), all() }, imageFile);
 
-				List<ImageObject> objectsThisImg = objects.get(exampleNum);
+			List<Fault> objectsThisImg = objects.get(exampleNum);
 
-				label(image, objectsThisImg, outLabel, exampleNum);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			label(imageFile, objectsThisImg, outLabel, exampleNum);
 
 			exampleNum++;
 		}
-
+		reset();
 		return new NDArrayRecordBatch(Arrays.asList(outImg, outLabel));
 	}
+
+	private void label(INDArray image, List<Fault> objectsThisImg, INDArray outLabel, int exampleNum) {
+		int oW = image.columns();
+		int oH = image.rows();
+
+		int W = oW;
+		int H = oH;
+
+		// put the label data into the output label array
+		for (Fault io : objectsThisImg) {
+			/**
+			 * OK here is a little nuance. The locations of the Faults are in
+			 * natural CLAS x->wires; y->layers coordinates. but the featured
+			 * data itself is in columns->x->layers; rows->y->wires so we should
+			 * SWITCH XCenter <-> YCenter XMin <-> YMin XMax <-> YMax
+			 * 
+			 */
+
+			double cx = io.getFaultCoordinates().getYCenterPixels();
+			double cy = io.getFaultCoordinates().getXCenterPixels();
+
+			double[] cxyPostScaling = ImageUtils.translateCoordsScaleImage(cx, cy, W, H, width, height);
+			double[] tlPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getyMin(),
+					io.getFaultCoordinates().getxMin(), W, H, width, height);
+			double[] brPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getyMax(),
+					io.getFaultCoordinates().getxMax(), W, H, width, height);
+
+			// Get grid position for image
+			int imgGridX = (int) (cxyPostScaling[0] / width * gridW);
+			int imgGridY = (int) (cxyPostScaling[1] / height * gridH);
+
+			// Convert pixels to grid position, for TL and BR X/Y
+			tlPost[0] = tlPost[0] / width * gridW;
+			tlPost[1] = tlPost[1] / height * gridH;
+			brPost[0] = brPost[0] / width * gridW;
+			brPost[1] = brPost[1] / height * gridH;
+
+			// Put TL, BR into label array:
+			outLabel.putScalar(exampleNum, 0, imgGridY, imgGridX, tlPost[0]);
+			outLabel.putScalar(exampleNum, 1, imgGridY, imgGridX, tlPost[1]);
+			outLabel.putScalar(exampleNum, 2, imgGridY, imgGridX, brPost[0]);
+			outLabel.putScalar(exampleNum, 3, imgGridY, imgGridX, brPost[1]);
+
+			// Put label class into label array: (one-hot representation)
+			int labelIdx = labels.indexOf(io.getSubFaultName().getSaveName());
+			outLabel.putScalar(exampleNum, 4 + labelIdx, imgGridY, imgGridX, 1.0);
+		}
+	}
+
+	@Override
+	public Record nextRecord() {
+		List<Writable> list = next();
+		URI uri = URI.create("FaultFinderAI");
+		// return new org.datavec.api.records.impl.Record(list, metaData)
+		return new org.datavec.api.records.impl.Record(list,
+				new RecordMetaDataURI(null, FaultObjectDetectionRecordReader.class));
+
+	}
+
+	// the rest below here are not needed, but kept for as need
+
+	@Override
+	public void close() throws IOException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Configuration getConf() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setConf(Configuration arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<String> getLabels() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<RecordListener> getListeners() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void initialize(InputSplit arg0) throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void initialize(Configuration arg0, InputSplit arg1) throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Record loadFromMetaData(RecordMetaData arg0) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Record> loadFromMetaData(List<RecordMetaData> arg0) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Writable> record(URI arg0, DataInputStream arg1) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setListeners(RecordListener... arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setListeners(Collection<RecordListener> arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public static void main(String[] args) {
+
+	}
+
 }

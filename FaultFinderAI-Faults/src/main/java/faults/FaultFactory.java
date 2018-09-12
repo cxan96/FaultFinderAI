@@ -10,6 +10,7 @@ import java.util.zip.DataFormatException;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
@@ -212,6 +213,10 @@ public class FaultFactory {
 		return NDArrayUtil.toNDArray(ArrayUtil.flatten(this.data));
 	}
 
+	public INDArray getFeatureVectorAsMatrix() {
+		return Nd4j.create(FaultUtils.convertToDouble(this.data));
+	}
+
 	public int[] getFaultLabel() {
 		int[] label = new int[2];
 		// lets see if the desired fault is located in the list, if it is, we
@@ -248,11 +253,15 @@ public class FaultFactory {
 		return this.faultList;
 	}
 
-	public static void main(String[] args) {
+	public int getNFaults() {
+		return this.nFaults;
+	}
+
+	public static void main(String[] args) throws DataFormatException {
 		TCanvas canvas = new TCanvas("aName", 800, 1200);
 		canvas.divide(3, 3);
 		for (int i = 1; i < 10; i++) {
-			FaultFactory factory = new FaultFactory(2, 10, FaultNames.PIN_SMALL, true, true);
+			FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true);
 
 			System.out.println("####################################");
 			System.out.println("##############" + factory.getSuperLayer() + "#################");
@@ -263,7 +272,15 @@ public class FaultFactory {
 			canvas.cd(i - 1);
 
 			canvas.draw(factory.getHist());
-			// System.out.println(factory.getFeatureVector());
+			System.out.println(
+					factory.getFeatureVectorAsMatrix().columns() + "   " + factory.getFeatureVectorAsMatrix().rows());
+			System.out.println("#######%%%%%%%%%%#######%%%%%%%%%%#######%%%%%%%%%%");
+			for (int ii = 0; ii < factory.getFeatureVectorAsMatrix().columns(); ii++) {
+				for (int j = 0; j < factory.getFeatureVectorAsMatrix().rows(); j++) {
+					System.out.println(
+							factory.getFeatureVectorAsMatrix().getDouble(j, ii) + "   " + FaultUtils.getData(3)[j][ii]);
+				}
+			}
 		}
 
 	}

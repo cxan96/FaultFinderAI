@@ -37,10 +37,19 @@ public class FaultUtils {
 	public static void draw(int[][] data) {
 		TCanvas canvas = new TCanvas("Data", 800, 1200);
 		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
-		for (int i = 0; i < data[0].length; i++) { // i are the rows
-													// (layers)
-			for (int j = 0; j < data.length; j++) { // j are the columns
-													// (wires)
+		for (int i = 0; i < data[0].length; i++) {
+			for (int j = 0; j < data.length; j++) {
+				hData.setBinContent(j, i, data[j][i]);
+			}
+		}
+		canvas.draw(hData);
+	}
+
+	public static void draw(double[][] data) {
+		TCanvas canvas = new TCanvas("Data", 800, 1200);
+		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
+		for (int i = 0; i < data[0].length; i++) {
+			for (int j = 0; j < data.length; j++) {
 				hData.setBinContent(j, i, data[j][i]);
 			}
 		}
@@ -293,4 +302,13 @@ public class FaultUtils {
 			{ 10, 19, 19, 14, 17, 16 }, { 13, 14, 16, 19, 17, 14 }, { 8, 14, 15, 14, 18, 15 },
 			{ 2, 10, 10, 15, 13, 12 }, { 1, 1, 1, 12, 14, 11 } };
 
+	public static double[][] convertToDouble(int[][] data) {
+		double[][] retValue = new double[data.length][data[0].length];
+		for (int i = 0; i < data[0].length; i++) {
+			for (int j = 0; j < data.length; j++) {
+				retValue[j][i] = (double) data[j][i];
+			}
+		}
+		return retValue;
+	}
 }

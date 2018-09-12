@@ -22,9 +22,9 @@ public class ClassifyRealData {
 	private boolean singleModels = false;
 
 	public ClassifyRealData() {
+		this.dataDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";
 		// this.dataDir =
-		// "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/5b.3.3/";
-		this.dataDir = "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
+		// "/Users/michaelkunkel/WORK/CLAS/CLAS12/CLAS12Data/RGACooked/V5b.2.1/";
 		this.aList = new ArrayList<>();
 		fautList = new ArrayList<>();
 

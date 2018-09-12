@@ -46,5 +46,9 @@ public enum FaultNames {
 
 		FaultNames aNames = FaultNames.CHANNEL_ONE;
 		System.out.println(aNames.getSaveName());
+		System.out.println("###########################################");
+		for (FaultNames d : FaultNames.values()) {
+			System.out.println(d.getSaveName());
+		}
 	}
 }
