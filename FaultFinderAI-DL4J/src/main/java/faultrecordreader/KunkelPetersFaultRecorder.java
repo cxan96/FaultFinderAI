@@ -18,6 +18,7 @@ import org.datavec.api.writable.IntWritable;
 import org.datavec.api.writable.NDArrayWritable;
 import org.datavec.api.writable.Writable;
 
+import faults.Fault;
 import faults.FaultFactory;
 import faults.FaultNames;
 
@@ -112,7 +113,10 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 
 	@Override
 	public List<String> getLabels() {
-		// TODO Auto-generated method stub
+		List<String> labels = new ArrayList<>();
+		for (Fault faults : factory.getFaultList()) {
+			labels.add(faults.getFaultName());
+		}
 		return null;
 	}
 
@@ -192,5 +196,4 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 	public void initialize() {
 
 	}
-
 }

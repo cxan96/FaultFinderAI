@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -107,7 +108,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 		// To ensure consistent order for label assignment (irrespective of file
 		// iteration order), we want to sort the list of labels
-		// Collections.sort(labels);
+		Collections.sort(labels);
 	}
 
 	@Override
@@ -149,10 +150,12 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 		for (int i = 0; i < num && hasNext(); i++) {
 			faultData.add(factory.getFeatureVectorAsMatrix());
+			// faultData.add(factory.getFeatureVector());
+
 			objects.add(factory.getFaultList());
 		}
 
-		int nClasses = factory.getNFaults();
+		int nClasses = labels.size();
 
 		INDArray outImg = Nd4j.create(faultData.size(), channels, height, width);
 		INDArray outLabel = Nd4j.create(faultData.size(), 4 + nClasses, gridH, gridW);
@@ -174,8 +177,8 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	}
 
 	private void label(INDArray image, List<Fault> objectsThisImg, INDArray outLabel, int exampleNum) {
-		int oW = image.columns();
-		int oH = image.rows();
+		int oW = image.columns(); // should be 6
+		int oH = image.rows(); // should be 112
 
 		int W = oW;
 		int H = oH;
@@ -184,7 +187,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 		for (Fault io : objectsThisImg) {
 			/**
 			 * OK here is a little nuance. The locations of the Faults are in
-			 * natural CLAS x->wires; y->layers coordinates. but the featured
+			 * natural CLAS x->wires; y->layers coordinates. But the featured
 			 * data itself is in columns->x->layers; rows->y->wires so we should
 			 * SWITCH XCenter <-> YCenter XMin <-> YMin XMax <-> YMax
 			 * 
@@ -302,10 +305,6 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	@Override
 	public void setListeners(Collection<RecordListener> arg0) {
 		// TODO Auto-generated method stub
-
-	}
-
-	public static void main(String[] args) {
 
 	}
 

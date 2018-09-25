@@ -71,7 +71,8 @@ public class FaultFactory {
 	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer,
 			boolean randomSmear) {
 		this.superLayer = superLayer;
-		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
+		this.nFaults = 2;// ThreadLocalRandom.current().nextInt(0, maxFaults +
+							// 1);
 		this.desiredFault = desiredFault;
 		this.randomSuperlayer = randomSuperlayer;
 		this.randomSmear = randomSmear;
@@ -224,8 +225,6 @@ public class FaultFactory {
 		// [1,0]
 		// If not the label is
 		// [0,1]
-		// if there is no fault the label is
-		// [0,0]
 		if (faultList.size() == 0) {
 			label = IntStream.of(0, 1).toArray();
 		} else {
@@ -262,25 +261,32 @@ public class FaultFactory {
 		canvas.divide(3, 3);
 		for (int i = 1; i < 10; i++) {
 			FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true);
-
-			System.out.println("####################################");
-			System.out.println("##############" + factory.getSuperLayer() + "#################");
-			System.out.println("####################################");
-			System.out.println("####################################");
-			factory.printFaultList();
-			System.out.println(Arrays.toString(factory.getFaultLabel()));
+			INDArray array = factory.getFeatureVectorAsMatrix();
+			System.out.println("columns " + array.columns() + "   rows " + array.rows());
+			//
+			// System.out.println("####################################");
+			// System.out.println("##############" + factory.getSuperLayer() +
+			// "#################");
+			// System.out.println("####################################");
+			// System.out.println("####################################");
+			// factory.printFaultList();
+			// System.out.println(Arrays.toString(factory.getFaultLabel()));
 			canvas.cd(i - 1);
-
+			//
 			canvas.draw(factory.getHist());
-			System.out.println(
-					factory.getFeatureVectorAsMatrix().columns() + "   " + factory.getFeatureVectorAsMatrix().rows());
-			System.out.println("#######%%%%%%%%%%#######%%%%%%%%%%#######%%%%%%%%%%");
-			for (int ii = 0; ii < factory.getFeatureVectorAsMatrix().columns(); ii++) {
-				for (int j = 0; j < factory.getFeatureVectorAsMatrix().rows(); j++) {
-					System.out.println(
-							factory.getFeatureVectorAsMatrix().getDouble(j, ii) + "   " + FaultUtils.getData(3)[j][ii]);
-				}
-			}
+			// System.out.println(
+			// factory.getFeatureVectorAsMatrix().columns() + " " +
+			// factory.getFeatureVectorAsMatrix().rows());
+			// System.out.println("#######%%%%%%%%%%#######%%%%%%%%%%#######%%%%%%%%%%");
+			// for (int ii = 0; ii <
+			// factory.getFeatureVectorAsMatrix().columns(); ii++) {
+			// for (int j = 0; j < factory.getFeatureVectorAsMatrix().rows();
+			// j++) {
+			// System.out.println(
+			// factory.getFeatureVectorAsMatrix().getDouble(j, ii) + " " +
+			// FaultUtils.getData(3)[j][ii]);
+			// }
+			// }
 		}
 
 	}

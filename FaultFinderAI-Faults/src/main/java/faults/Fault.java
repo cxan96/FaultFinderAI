@@ -1,8 +1,10 @@
 package faults;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,12 +19,22 @@ public class Fault {
 	private String faultName;
 	private FaultNames subFaultName;
 	private boolean randomSmear;
+	private Set<FaultNames> notSixLayerFaults;
 
 	public Fault(String faultName, FaultNames subFaultName, Map<Integer, Pair<Integer, Integer>> wireInfo) {
 		this.faultName = faultName;
 		this.subFaultName = subFaultName;
 		this.wireInfo = wireInfo;
 		this.randomSmear = false;
+		makeSixLayerFaults();
+	}
+
+	private void makeSixLayerFaults() {
+		this.notSixLayerFaults = new HashSet<>();
+		notSixLayerFaults.add(FaultNames.HOTWIRE);
+		notSixLayerFaults.add(FaultNames.DEADWIRE);
+		notSixLayerFaults.add(FaultNames.PIN_BIG);
+		notSixLayerFaults.add(FaultNames.PIN_SMALL);
 	}
 
 	public Map<Integer, Pair<Integer, Integer>> getWireInfo() {
@@ -99,8 +111,9 @@ public class Fault {
 				lowValue = ((double) smearValue) / 100.0 - 0.05;
 				highValue = ((double) smearValue) / 100.0;
 			}
-			min = (int) (lowValue * averageNeighbors(data));
-			max = (int) (highValue * averageNeighbors(data));
+			int averageNeighbors = averageNeighbors(data);
+			min = (int) (lowValue * averageNeighbors);
+			max = (int) (highValue * averageNeighbors);
 		} else {
 			if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
 				min = lMinMax.get(1) * 2;
@@ -136,37 +149,47 @@ public class Fault {
 	private int averageNeighbors(int[][] data) {
 		List<Integer> aList = new ArrayList<>();
 		double retVal = 0.0;
+
 		for (Map.Entry<Integer, Pair<Integer, Integer>> entry : this.getWireInfo().entrySet()) {
 			Integer layer = entry.getKey() - 1;
 			Pair<Integer, Integer> wires = entry.getValue();
-
 			// add the left and right activations next to the fault
 			if (wires.getLeft() != 1) {// this is the left most wire, nothing
-										// before this
 				aList.add(data[wires.getLeft() - 2][layer]);
 			}
-			if (wires.getRight() != 112) {// this is the right most wire,
-											// nothing
-				// before this
-				aList.add(data[wires.getRight() - 2][layer]);
+			// this is the right most wire, nothing before this
+			if (wires.getRight() != 112) {
+				aList.add(data[wires.getRight()][layer]);
 			}
-			// sum activations below the fault
-			// superlayer of the fault is not SL1 i.e. entry.getKey!=1
-			if ((layer + 1) != 1) {
-				for (int j = 0; j < data.length; j++) { // j are the columns
-					// (wires)
-					if (j <= wires.getRight() - 1 && j >= wires.getLeft() - 1) {
-						aList.add(data[j][layer - 1]);
+
+			/**
+			 * Sum below and above the fault IF the fault is not a 1-6 layer
+			 * fault. Far less faults that do not span six layers
+			 */
+			if (this.notSixLayerFaults.contains(this.subFaultName)) {
+				/**
+				 * sum activations below the fault superlayer of the fault is
+				 * not SL1 i.e. entry.getKey!=1
+				 */
+				if ((layer + 1) != 1) {
+					for (int j = 0; j < data.length; j++) { // j are the columns
+						// (wires)
+						if (j <= wires.getRight() - 1 && j >= wires.getLeft() - 1) {
+							aList.add(data[j][layer - 1]);
+						}
 					}
 				}
-			}
-			// sum activations above the fault
-			// superlayer of the fault is not SL6 i.e. entry.getKey!=6
-			if ((layer + 1) != 6) {
-				for (int j = 0; j < data.length; j++) { // j are the columns
-					// (wires)
-					if (j <= wires.getRight() - 1 && j >= wires.getLeft() - 1) {
-						aList.add(data[j][layer + 1]);
+
+				/**
+				 * sum activations above the fault superlayer of the fault is
+				 * not SL6 i.e. entry.getKey!=6
+				 */
+				if ((layer + 1) != 6) {
+					for (int j = 0; j < data.length; j++) { // j are the columns
+						// (wires)
+						if (j <= wires.getRight() - 1 && j >= wires.getLeft() - 1) {
+							aList.add(data[j][layer + 1]);
+						}
 					}
 				}
 			}
