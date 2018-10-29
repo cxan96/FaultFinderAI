@@ -234,6 +234,64 @@ public class ModelFactory {
 		return neuralNetwork;
 	}
 
+	public static ComputationGraph computationGraphModelYolo() {
+		int nBoxes = 5;
+		int numClasses = 14;
+		double[][] priorBoxes = { { 1.08, 1.19 }, { 3.42, 4.41 }, { 6.63, 11.38 }, { 9.42, 5.11 }, { 16.62, 10.52 } };
+		INDArray priors = Nd4j.create(priorBoxes);
+		double lambdaNoObj = 0.5;
+		double lambdaCoord = 1.0;
+		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).graphBuilder()
+				.addInputs("input").setInputTypes(InputType.convolutional(112, 6, 1))
+				.addLayer("cnn1",
+						new ConvolutionLayer.Builder(3, 2).nIn(1).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(40).activation(new ActivationReLU()).build(),
+						"input")
+				.addLayer("cnn2",
+						new ConvolutionLayer.Builder(2, 2).nIn(40).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(30).activation(new ActivationReLU()).build(),
+						"cnn1")
+				.addLayer("pool1",
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build(),
+						"cnn2")
+				.addLayer("cnn3",
+						new ConvolutionLayer.Builder(2, 2).nIn(30).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(20).activation(new ActivationReLU()).build(),
+						"pool1")
+				.addLayer("insert1",
+						new ConvolutionLayer.Builder(2, 1).nIn(20).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(15).activation(new ActivationReLU()).build(),
+						"cnn3")
+				.addLayer("pool2",
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
+								.build(),
+						"insert1")
+				.addLayer("insert2",
+						new ConvolutionLayer.Builder(2, 2).nIn(15).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(10).activation(new ActivationReLU()).build(),
+						"pool2")
+				.addLayer("cnn4",
+						new ConvolutionLayer.Builder(1, 1).nIn(10).nOut(nBoxes * (5 + numClasses))
+								.weightInit(WeightInit.XAVIER).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.weightInit(WeightInit.RELU).activation(Activation.IDENTITY).build(),
+						"insert2")
+				.addLayer("outputs",
+						new Yolo2OutputLayer.Builder().lambbaNoObj(lambdaNoObj).lambdaCoord(lambdaCoord)
+								.boundingBoxPriors(priors).build(),
+						"cnn4")
+				.setOutputs("outputs").backprop(true).pretrain(false);
+
+		ComputationGraph neuralNetwork = new ComputationGraph(graphBuilder.build());
+
+		// initialize the network
+		neuralNetwork.init();
+		System.out.println(neuralNetwork.summary(InputType.convolutional(112, 6, 1)));
+
+		return neuralNetwork;
+	}
+
 	public static MultiLayerNetwork deeperPaddedCNN(int numLabels) {
 		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).list()

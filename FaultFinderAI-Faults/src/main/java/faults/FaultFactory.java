@@ -71,8 +71,7 @@ public class FaultFactory {
 	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer,
 			boolean randomSmear) {
 		this.superLayer = superLayer;
-		this.nFaults = 2;// ThreadLocalRandom.current().nextInt(0, maxFaults +
-							// 1);
+		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
 		this.desiredFault = desiredFault;
 		this.randomSuperlayer = randomSuperlayer;
 		this.randomSmear = randomSmear;
@@ -104,9 +103,13 @@ public class FaultFactory {
 
 	private void generateFaults() {
 		for (int i = 0; i < nFaults; i++) {
-			Fault fault = this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
+			Fault fault = this.getFault();
 			checkNeighborhood(fault);
 		}
+	}
+
+	private Fault getFault() {
+		return this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
 	}
 
 	private Fault getFault(int type) {
@@ -142,7 +145,7 @@ public class FaultFactory {
 			}
 			if (!addFault) {
 
-				newFault = this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
+				newFault = this.getFault();
 				checkNeighborhood(newFault, 0);
 			}
 			if (addFault) {
@@ -162,7 +165,7 @@ public class FaultFactory {
 		}
 		if (!addFault) {
 			if (runs < 30) {
-				newFault = this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
+				newFault = this.getFault();
 				checkNeighborhood(newFault, runs);
 			}
 		}
@@ -218,6 +221,10 @@ public class FaultFactory {
 		return Nd4j.create(FaultUtils.convertToDouble(this.data));
 	}
 
+	public double[][] getDataAsMatrix() {
+		return FaultUtils.convertToDouble(this.data);
+	}
+
 	public int[] getFaultLabel() {
 		int[] label = new int[2];
 		// lets see if the desired fault is located in the list, if it is, we
@@ -259,35 +266,54 @@ public class FaultFactory {
 	public static void main(String[] args) throws DataFormatException {
 		TCanvas canvas = new TCanvas("aName", 800, 1200);
 		canvas.divide(3, 3);
-		for (int i = 1; i < 10; i++) {
-			FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true);
-			INDArray array = factory.getFeatureVectorAsMatrix();
-			System.out.println("columns " + array.columns() + "   rows " + array.rows());
-			//
-			// System.out.println("####################################");
-			// System.out.println("##############" + factory.getSuperLayer() +
-			// "#################");
-			// System.out.println("####################################");
-			// System.out.println("####################################");
-			// factory.printFaultList();
-			// System.out.println(Arrays.toString(factory.getFaultLabel()));
-			canvas.cd(i - 1);
-			//
-			canvas.draw(factory.getHist());
-			// System.out.println(
-			// factory.getFeatureVectorAsMatrix().columns() + " " +
-			// factory.getFeatureVectorAsMatrix().rows());
-			// System.out.println("#######%%%%%%%%%%#######%%%%%%%%%%#######%%%%%%%%%%");
-			// for (int ii = 0; ii <
-			// factory.getFeatureVectorAsMatrix().columns(); ii++) {
-			// for (int j = 0; j < factory.getFeatureVectorAsMatrix().rows();
-			// j++) {
-			// System.out.println(
-			// factory.getFeatureVectorAsMatrix().getDouble(j, ii) + " " +
-			// FaultUtils.getData(3)[j][ii]);
-			// }
-			// }
+		// for (int i = 1; i < 10; i++) {
+		FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true);
+		INDArray array = factory.getFeatureVectorAsMatrix();
+		double[][] data = factory.getDataAsMatrix();
+		FaultUtils.draw(data);
+		factory.draw();
+		FaultUtils.draw(array);
+
+		int xLength = array.columns();
+		int yLength = array.rows();
+		int xDataLength = data[0].length;
+		int yDataLength = data.length;
+
+		System.out.println(xDataLength + "  " + xLength);
+		System.out.println(yDataLength + "  " + yLength);
+
+		for (int y = 0; y < yLength; y++) {
+			for (int x = 0; x < xLength; x++) {
+				System.out.println(array.getDouble(y, x) - data[y][x]);
+			}
 		}
+		// System.out.println("columns " + array.columns() + " rows " +
+		// array.rows());
+		//
+		// System.out.println("####################################");
+		// System.out.println("##############" + factory.getSuperLayer() +
+		// "#################");
+		// System.out.println("####################################");
+		// System.out.println("####################################");
+		// factory.printFaultList();
+		// System.out.println(Arrays.toString(factory.getFaultLabel()));
+		canvas.cd(1);
+		//
+		canvas.draw(factory.getHist());
+		// System.out.println(
+		// factory.getFeatureVectorAsMatrix().columns() + " " +
+		// factory.getFeatureVectorAsMatrix().rows());
+		// System.out.println("#######%%%%%%%%%%#######%%%%%%%%%%#######%%%%%%%%%%");
+		// for (int ii = 0; ii <
+		// factory.getFeatureVectorAsMatrix().columns(); ii++) {
+		// for (int j = 0; j < factory.getFeatureVectorAsMatrix().rows();
+		// j++) {
+		// System.out.println(
+		// factory.getFeatureVectorAsMatrix().getDouble(j, ii) + " " +
+		// FaultUtils.getData(3)[j][ii]);
+		// }
+		// }
+		// }
 
 	}
 }// end

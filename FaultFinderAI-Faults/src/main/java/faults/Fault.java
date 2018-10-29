@@ -96,11 +96,11 @@ public class Fault {
 			// Deadwire has to be different since its not a collection of
 			// activations
 			if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
-				smearValue = ThreadLocalRandom.current().nextInt(5, 40);
+				smearValue = ThreadLocalRandom.current().nextInt(5, 10);
 			} else if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
 				smearValue = ThreadLocalRandom.current().nextInt(200, 400);
 			} else {
-				smearValue = ThreadLocalRandom.current().nextInt(5, 75);
+				smearValue = ThreadLocalRandom.current().nextInt(5, 15);
 			}
 			double lowValue;
 			double highValue;

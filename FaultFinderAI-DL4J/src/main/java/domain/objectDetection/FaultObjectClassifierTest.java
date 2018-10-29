@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
@@ -23,9 +22,11 @@ import strategies.MinMaxStrategy;
 public class FaultObjectClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 1000;
+		int scoreIterations = 100;
 
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/TestII.zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/TestMK.zip";
+		String saveName = "models/binary_classifiers/ComputationalGraphModel/TestMKI.zip";
+
 		boolean reTrain = false;
 		FaultObjectClassifier classifier;
 		// check if a saved model exists
@@ -38,7 +39,7 @@ public class FaultObjectClassifierTest {
 			// ComputationGraph model =
 			// ModelFactory.deeperCNN(2).toComputationGraph();
 			// ComputationGraph model = ModelFactory.computationGraphModelII(2);
-			ComputationGraph model = ModelFactory.computationGraphModelYolo(2);
+			ComputationGraph model = ModelFactory.computationGraphModelYolo();
 
 			classifier = new FaultObjectClassifier(model);
 		}
@@ -58,10 +59,10 @@ public class FaultObjectClassifierTest {
 		// RecordReader recordReader = new KunkelPetersFaultRecorder(2, 10,
 		// FaultNames.PIN_SMALL, true, true);
 		RecordReader recordReader = new FaultObjectDetectionRecordReader(3, 10, FaultNames.CHANNEL_ONE, true, true, 112,
-				6, 1, 56, 3);
+				6, 1, 28, 3);
 		// (2, 10, FaultNames.PIN_SMALL, true, true);
 
-		int checkPoints = 1;
+		int checkPoints = 100;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);
@@ -70,7 +71,7 @@ public class FaultObjectClassifierTest {
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			classifier.save(fileName);
+			classifier.save(saveName);
 
 			System.out.println("#############################################");
 			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));
@@ -79,7 +80,8 @@ public class FaultObjectClassifierTest {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(2, 1, 10000, recordReader, strategy);
-		System.out.println(evaluation.stats());
+		// Evaluation evaluation = classifier.evaluate(2, 1, 10000,
+		// recordReader, strategy);
+		// System.out.println(evaluation.stats());
 	}
 }

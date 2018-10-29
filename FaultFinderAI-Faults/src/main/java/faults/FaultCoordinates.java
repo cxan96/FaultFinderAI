@@ -59,7 +59,7 @@ public class FaultCoordinates {
 		double xCenter = 0;
 		double yCenter = 0;
 		if (this.xMax == this.xMin) {
-			xCenter = (double) this.xMax + 0.5;
+			xCenter = (double) this.xMax - 0.5;
 		} else {
 			xCenter = (double) (this.xMax + this.xMin) * 0.5;
 		}

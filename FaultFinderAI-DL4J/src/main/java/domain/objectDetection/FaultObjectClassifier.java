@@ -146,4 +146,8 @@ public class FaultObjectClassifier {
 	public INDArray[] outputArray(INDArray d) {
 		return this.network.output(d);
 	}
+
+	public ComputationGraph getModel() {
+		return this.network;
+	}
 }

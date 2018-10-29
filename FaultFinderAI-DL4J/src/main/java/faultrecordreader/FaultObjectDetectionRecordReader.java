@@ -111,6 +111,13 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 		Collections.sort(labels);
 	}
 
+	// MK Testing stuff
+
+	public FaultFactory getFactory() {
+		return factory;
+	}
+
+	// End MK testing stuff
 	@Override
 	public boolean batchesSupported() {
 		// I might want to set this to true so that I train in batches, reduces
@@ -153,6 +160,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 			// faultData.add(factory.getFeatureVector());
 
 			objects.add(factory.getFaultList());
+
 		}
 
 		int nClasses = labels.size();
@@ -173,6 +181,8 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 			exampleNum++;
 		}
 		reset();
+		// System.out.println("#########" + outLabel.shapeInfoToString() + " " +
+		// objects.size());
 		return new NDArrayRecordBatch(Arrays.asList(outImg, outLabel));
 	}
 
@@ -182,7 +192,6 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 		int W = oW;
 		int H = oH;
-
 		// put the label data into the output label array
 		for (Fault io : objectsThisImg) {
 			/**
@@ -195,7 +204,6 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 			double cx = io.getFaultCoordinates().getYCenterPixels();
 			double cy = io.getFaultCoordinates().getXCenterPixels();
-
 			double[] cxyPostScaling = ImageUtils.translateCoordsScaleImage(cx, cy, W, H, width, height);
 			double[] tlPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getyMin(),
 					io.getFaultCoordinates().getxMin(), W, H, width, height);
@@ -212,6 +220,20 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 			brPost[0] = brPost[0] / width * gridW;
 			brPost[1] = brPost[1] / height * gridH;
 
+			// MK Debugging
+			// System.out.println(" oW " + oW + " oH " + oH + " W " + W + " H "
+			// + H);
+			if (imgGridY > 55) {
+				factory.draw();
+				System.out.println(io.getSubFaultName());
+				System.out.println(" cx " + cx + " cy " + cy);
+				System.out.println("io.getFaultCoordinates().getyMin() " + io.getFaultCoordinates().getyMin()
+						+ " io.getFaultCoordinates().getxMin() " + io.getFaultCoordinates().getxMin());
+				System.out.println("io.getFaultCoordinates().getyMax() " + io.getFaultCoordinates().getyMax()
+						+ " io.getFaultCoordinates().getxMax() " + io.getFaultCoordinates().getxMax());
+				System.out.println(exampleNum + "  " + 0 + "   " + imgGridY + "   " + imgGridX + "  " + tlPost[0]
+						+ "   " + width + "  " + gridW + "  " + height + "  " + gridH);
+			}
 			// Put TL, BR into label array:
 			outLabel.putScalar(exampleNum, 0, imgGridY, imgGridX, tlPost[0]);
 			outLabel.putScalar(exampleNum, 1, imgGridY, imgGridX, tlPost[1]);
@@ -256,8 +278,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 	@Override
 	public List<String> getLabels() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.labels;
 	}
 
 	@Override

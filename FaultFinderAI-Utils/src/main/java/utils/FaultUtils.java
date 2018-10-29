@@ -1,9 +1,14 @@
 package utils;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.zip.DataFormatException;
 
+import org.bytedeco.javacv.CanvasFrame;
+import org.jlab.groot.base.ColorPalette;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
 public class FaultUtils {
 
@@ -36,6 +41,7 @@ public class FaultUtils {
 
 	public static void draw(int[][] data) {
 		TCanvas canvas = new TCanvas("Data", 800, 1200);
+		canvas.getCanvas().setGridY(false);
 		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
 		for (int i = 0; i < data[0].length; i++) {
 			for (int j = 0; j < data.length; j++) {
@@ -54,6 +60,34 @@ public class FaultUtils {
 			}
 		}
 		canvas.draw(hData);
+	}
+
+	public static void draw(INDArray arr) {
+		double max = (double) arr.maxNumber();
+		int xLength = arr.columns();
+		int yLength = arr.rows();
+
+		BufferedImage b = new BufferedImage(yLength, xLength, BufferedImage.TYPE_INT_RGB);
+		ColorPalette palette = new ColorPalette();
+		for (int y = 0; y < yLength; y++) {
+			for (int x = 0; x < xLength; x++) {
+
+				Color weightColor = palette.getColor3D(arr.getDouble(y, x), max, false);
+
+				int red = weightColor.getRed();
+				int green = weightColor.getGreen();
+				int blue = weightColor.getBlue();
+				int rgb = (red * 65536) + (green * 256) + blue;
+
+				b.setRGB(y, xLength - x - 1, rgb);
+
+			}
+		}
+		CanvasFrame cframe = new CanvasFrame("test");
+		cframe.setTitle("test - HouseNumberDetection");
+		cframe.setCanvasSize(800, 600);
+		cframe.showImage(b);
+		// cframe.waitKey();
 	}
 
 	public static H2F getHist(int[][] data) {
