@@ -10,19 +10,8 @@
 	<artifactId>FaultFinderAI-Utils</artifactId>
 	<dependencies>
 		<dependency>
-			<groupId>org.nd4j</groupId>
-			<artifactId>nd4j-native-platform</artifactId>
-			<version>1.0.0-beta</version>
-		</dependency>
-		<dependency>
 			<groupId>org.jlab.coat</groupId>
 			<artifactId>coat-libs</artifactId>
-			<version>5.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bytedeco</groupId>
-			<artifactId>javacv</artifactId>
-			<version>1.4</version>
 		</dependency>
 	</dependencies>
 </project>

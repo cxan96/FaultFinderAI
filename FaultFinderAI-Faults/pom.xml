@@ -10,20 +10,10 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.nd4j</groupId>
-			<artifactId>nd4j-native-platform</artifactId>
-			<version>1.0.0-beta</version>
-		</dependency>
-		<dependency>
 			<artifactId>FaultFinderAI-Utils</artifactId>
 			<groupId>com.IKP.faultfinderai-utils</groupId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
+				
 	</dependencies>
 </project>

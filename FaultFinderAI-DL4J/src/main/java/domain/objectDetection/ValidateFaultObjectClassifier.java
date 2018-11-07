@@ -35,6 +35,7 @@ import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
 public class ValidateFaultObjectClassifier {
+
 	private String fileName;
 	private DataSetIterator test;
 	private FaultObjectClassifier classifier;

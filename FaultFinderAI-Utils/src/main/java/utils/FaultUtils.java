@@ -5,10 +5,14 @@ import java.awt.image.BufferedImage;
 import java.util.zip.DataFormatException;
 
 import org.bytedeco.javacv.CanvasFrame;
+import org.datavec.image.data.Image;
 import org.jlab.groot.base.ColorPalette;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
+import org.nd4j.linalg.api.concurrency.AffinityManager;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.util.ArrayUtil;
 
 public class FaultUtils {
 
@@ -64,30 +68,93 @@ public class FaultUtils {
 
 	public static void draw(INDArray arr) {
 		double max = (double) arr.maxNumber();
-		int xLength = arr.columns();
-		int yLength = arr.rows();
+		System.out.println(max + " max from FaultUtils");
+		int rank = arr.rank();
+		int rows = arr.size(rank == 3 ? 1 : 2);
+		int cols = arr.size(rank == 3 ? 2 : 3);
+		int nchannels = arr.size(rank == 3 ? 0 : 1);
 
-		BufferedImage b = new BufferedImage(yLength, xLength, BufferedImage.TYPE_INT_RGB);
+		BufferedImage b = new BufferedImage(rows, cols, BufferedImage.TYPE_INT_RGB);
 		ColorPalette palette = new ColorPalette();
-		for (int y = 0; y < yLength; y++) {
-			for (int x = 0; x < xLength; x++) {
+		if (nchannels == 1) {
+			for (int y = 0; y < rows; y++) {
+				for (int x = 0; x < cols; x++) {
 
-				Color weightColor = palette.getColor3D(arr.getDouble(y, x), max, false);
+					Color weightColor = palette.getColor3D(arr.getDouble(0, 0, y, x), max, false);
 
-				int red = weightColor.getRed();
-				int green = weightColor.getGreen();
-				int blue = weightColor.getBlue();
-				int rgb = (red * 65536) + (green * 256) + blue;
+					int red = weightColor.getRed();
+					int green = weightColor.getGreen();
+					int blue = weightColor.getBlue();
+					int rgb = (red * 65536) + (green * 256) + blue;
 
-				b.setRGB(y, xLength - x - 1, rgb);
+					b.setRGB(y, cols - x - 1, rgb);
 
+				}
 			}
+		} else if (nchannels == 3) {
+			for (int y = 0; y < rows; y++) {
+				for (int x = 0; x < cols; x++) {
+
+					double red = arr.getDouble(0, 0, y, x);
+					double green = arr.getDouble(0, 1, y, x);
+					double blue = arr.getDouble(0, 2, y, x);
+					double rgb = ((red * 65536) + (green * 256) + blue);
+
+					b.setRGB(y, cols - x - 1, (int) rgb);
+
+				}
+			}
+		} else {
+			throw new ArithmeticException("Number of channels must be 1 or 3");
 		}
-		CanvasFrame cframe = new CanvasFrame("test");
-		cframe.setTitle("test - HouseNumberDetection");
+		CanvasFrame cframe = new CanvasFrame("FaultUtils Plotted Me");
+		cframe.setTitle("FU Plot");
 		cframe.setCanvasSize(800, 600);
 		cframe.showImage(b);
-		// cframe.waitKey();
+	}
+
+	public static INDArray toColor(int nChannels, INDArray data) {
+		int rows = data.rows();
+		int cols = data.columns();
+		double max = (double) data.maxNumber();
+
+		INDArray a = Nd4j.create(nChannels, rows, cols);
+		ColorPalette palette = new ColorPalette();
+		if (nChannels == 1) {
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < cols; j++) {
+					a.putScalar(0, i, j, data.getDouble(i, j));
+				}
+			}
+		} else if (nChannels == 3) {
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < cols; j++) {
+					Color weightColor = palette.getColor3D(data.getDouble(i, j), max, false);
+					int red = weightColor.getRed();
+					int green = weightColor.getGreen();
+					int blue = weightColor.getBlue();
+					a.putScalar(0, i, j, red);
+					a.putScalar(1, i, j, green);
+					a.putScalar(2, i, j, blue);
+
+				}
+			}
+		} else {
+			throw new ArithmeticException("Number of channels must be 1 or 3");
+		}
+		return a;
+	}
+
+	public static Image asImageMatrix(int nChannels, INDArray data) {
+		INDArray a = toColor(nChannels, data);
+
+		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
+		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
+
+		Image i = new Image(a, nChannels, data.rows(), data.columns());
+
+		return i;
+
 	}
 
 	public static H2F getHist(int[][] data) {

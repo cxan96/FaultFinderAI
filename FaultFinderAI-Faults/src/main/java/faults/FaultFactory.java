@@ -7,8 +7,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 import java.util.zip.DataFormatException;
 
+import org.datavec.image.data.Image;
 import org.jlab.groot.data.H2F;
-import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.util.ArrayUtil;
@@ -17,11 +17,7 @@ import org.nd4j.linalg.util.NDArrayUtil;
 import utils.FaultUtils;
 
 public class FaultFactory {
-	private final int rangeMax = FaultUtils.RANGE_MAX;
-	private final int rangeMin = FaultUtils.RANGE_MIN;
-
-	private final int faultRangeMax = FaultUtils.FAULT_RANGE_MAX;
-	private final int faultRangeMin = FaultUtils.FAULT_RANGE_MIN;
+	private int nChannels;
 
 	private List<Fault> faultList;
 
@@ -70,11 +66,18 @@ public class FaultFactory {
 
 	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer,
 			boolean randomSmear) {
+		this(superLayer, maxFaults, desiredFault, randomSuperlayer, false, 1);
+
+	}
+
+	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer,
+			boolean randomSmear, int nChannels) {
 		this.superLayer = superLayer;
 		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
 		this.desiredFault = desiredFault;
 		this.randomSuperlayer = randomSuperlayer;
 		this.randomSmear = randomSmear;
+		this.nChannels = nChannels;
 		this.faultList = new ArrayList<>();
 		if (!randomSuperlayer) {
 			this.superLayer = ThreadLocalRandom.current().nextInt(1, 7);
@@ -218,7 +221,14 @@ public class FaultFactory {
 	}
 
 	public INDArray getFeatureVectorAsMatrix() {
+
 		return Nd4j.create(FaultUtils.convertToDouble(this.data));
+	}
+
+	public Image asImageMatrix() {
+		draw();
+		return FaultUtils.asImageMatrix(this.nChannels, getFeatureVectorAsMatrix());
+
 	}
 
 	public double[][] getDataAsMatrix() {
@@ -264,56 +274,15 @@ public class FaultFactory {
 	}
 
 	public static void main(String[] args) throws DataFormatException {
-		TCanvas canvas = new TCanvas("aName", 800, 1200);
-		canvas.divide(3, 3);
+		int channels = 3;
+		// TCanvas canvas = new TCanvas("aName", 800, 1200);
+		// canvas.divide(3, 3);
 		// for (int i = 1; i < 10; i++) {
-		FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true);
-		INDArray array = factory.getFeatureVectorAsMatrix();
-		double[][] data = factory.getDataAsMatrix();
-		FaultUtils.draw(data);
+		FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true, channels);
+		Image image = factory.asImageMatrix();
+		INDArray iArray = image.getImage();
+		FaultUtils.draw(iArray);
 		factory.draw();
-		FaultUtils.draw(array);
-
-		int xLength = array.columns();
-		int yLength = array.rows();
-		int xDataLength = data[0].length;
-		int yDataLength = data.length;
-
-		System.out.println(xDataLength + "  " + xLength);
-		System.out.println(yDataLength + "  " + yLength);
-
-		for (int y = 0; y < yLength; y++) {
-			for (int x = 0; x < xLength; x++) {
-				System.out.println(array.getDouble(y, x) - data[y][x]);
-			}
-		}
-		// System.out.println("columns " + array.columns() + " rows " +
-		// array.rows());
-		//
-		// System.out.println("####################################");
-		// System.out.println("##############" + factory.getSuperLayer() +
-		// "#################");
-		// System.out.println("####################################");
-		// System.out.println("####################################");
-		// factory.printFaultList();
-		// System.out.println(Arrays.toString(factory.getFaultLabel()));
-		canvas.cd(1);
-		//
-		canvas.draw(factory.getHist());
-		// System.out.println(
-		// factory.getFeatureVectorAsMatrix().columns() + " " +
-		// factory.getFeatureVectorAsMatrix().rows());
-		// System.out.println("#######%%%%%%%%%%#######%%%%%%%%%%#######%%%%%%%%%%");
-		// for (int ii = 0; ii <
-		// factory.getFeatureVectorAsMatrix().columns(); ii++) {
-		// for (int j = 0; j < factory.getFeatureVectorAsMatrix().rows();
-		// j++) {
-		// System.out.println(
-		// factory.getFeatureVectorAsMatrix().getDouble(j, ii) + " " +
-		// FaultUtils.getData(3)[j][ii]);
-		// }
-		// }
-		// }
 
 	}
 }// end

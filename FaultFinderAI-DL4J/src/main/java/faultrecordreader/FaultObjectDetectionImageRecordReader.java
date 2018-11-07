@@ -19,10 +19,10 @@ import org.datavec.api.records.Record;
 import org.datavec.api.records.listener.RecordListener;
 import org.datavec.api.records.metadata.RecordMetaData;
 import org.datavec.api.records.metadata.RecordMetaDataURI;
-import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.split.InputSplit;
 import org.datavec.api.writable.Writable;
 import org.datavec.api.writable.batch.NDArrayRecordBatch;
+import org.datavec.image.recordreader.BaseImageRecordReader;
 import org.datavec.image.util.ImageUtils;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -43,7 +43,7 @@ import faults.FaultNames;
  *
  * @author Michael C. Kunkel
  */
-public class FaultObjectDetectionRecordReader implements RecordReader {
+public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader {
 
 	private final int gridW;
 	private final int gridH;
@@ -77,7 +77,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	 *            ImageObjectLabelProvider - used to look up which objects are
 	 *            in each image
 	 */
-	public FaultObjectDetectionRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
+	public FaultObjectDetectionImageRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration, boolean blurredFaults, int height, int width, int channels, int gridH,
 			int gridW) {
 		this.superLayer = superLayer;
@@ -85,8 +85,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 		this.desiredFault = desiredFault;
 		this.singleFaultGeneration = singleFaultGeneration;
 		this.blurredFaults = blurredFaults;
-		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults,
-				channels);
+		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults);
 
 		this.height = height;
 		this.width = width;
@@ -142,7 +141,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	@Override
 	public void reset() {
 		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.singleFaultGeneration,
-				this.blurredFaults, this.channels);
+				this.blurredFaults);
 	}
 
 	@Override
@@ -289,7 +288,7 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	}
 
 	@Override
-	public void initialize(InputSplit arg0) throws IOException, InterruptedException {
+	public void initialize(InputSplit arg0) throws IOException {
 		// TODO Auto-generated method stub
 
 	}
