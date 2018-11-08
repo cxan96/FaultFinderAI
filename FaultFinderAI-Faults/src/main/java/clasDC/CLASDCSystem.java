@@ -18,47 +18,49 @@ import utils.FaultUtils;
  * 
  * @author m.c.kunkel
  *
- *         A CLASDCRegion consists of 6 CLASDriftChambers
+ *         A CLASDCSystem consists of 3 CLASDCRegions
  * 
  */
 @Getter
-public class CLASDCRegion implements CLASFactory {
-	private int region;
+public class CLASDCSystem implements CLASFactory {
+
 	private int nchannels;
 	private Image image = null;
 	private List<Fault> faultList = null;
 
 	@Getter(AccessLevel.NONE)
-	private Map<Integer, CLASDriftChamber> dcChambers = null;
+	private Map<Integer, CLASDCRegion> dcRegions = null;
 
-	public CLASDCRegion(int region, int nchannels) {
-		if (region > 3 || region < 1) {
-			throw new IllegalArgumentException("Invalid input: (region), must have values less than"
-					+ " (4, 7) and more than (0, 0). Received: (" + region + ")");
+	public CLASDCSystem(int nchannels) {
+		if (!(nchannels == 3 || nchannels == 1)) {
+			throw new IllegalArgumentException(
+					"Invalid input: (nchannels), must have values of" + " 3 or 1. Received: (" + nchannels + ")");
 		}
-		this.region = region;
 		this.nchannels = nchannels;
 		init();
 		concat();
 	}
 
 	private void init() {
-		this.dcChambers = new HashMap<>();
+		this.dcRegions = new HashMap<>();
 		this.faultList = new ArrayList<>();
-		for (int i = 1; i < 7; i++) {
-			dcChambers.put(i, new CLASDriftChamber(this.region, i, this.nchannels));
+
+		for (int i = 1; i < 4; i++) {
+			dcRegions.put(i, new CLASDCRegion(i, this.nchannels));
 		}
+
 	}
 
 	private void concat() {
-		INDArray a = dcChambers.get(1).getImage().getImage();
+		INDArray a = dcRegions.get(1).getImage().getImage();
 		int rank = a.rank();
 		int rows = a.size(rank == 3 ? 1 : 2);
 		int cols = a.size(rank == 3 ? 2 : 3);
 		int nchannels = a.size(rank == 3 ? 0 : 1);
 		INDArray ret = a;
-		for (int i = 2; i < 7; i++) {
-			CLASDriftChamber d = dcChambers.get(i);
+		// ret = ret.reshape(ArrayUtil.combine(new int[] { 1 }, ret.shape()));
+		for (int i = 2; i < 4; i++) {
+			CLASDCRegion d = dcRegions.get(i);
 			INDArray b = d.getImage().getImage();
 			if (a.rank() != b.rank() || a.size(a.rank() == 3 ? 1 : 2) != b.size(b.rank() == 3 ? 1 : 2)
 					|| a.size(a.rank() == 3 ? 2 : 3) != b.size(b.rank() == 3 ? 2 : 3)) {
@@ -66,7 +68,7 @@ public class CLASDCRegion implements CLASFactory {
 			}
 			ret = Nd4j.concat(2, ret, b);
 			for (Fault fault : d.getFaultList()) {
-				fault.offsetFaultCoodinates(12.0 * (i - 1), "y");
+				fault.offsetFaultCoodinates(72.0 * (i - 1), "y");
 				this.faultList.add(fault);
 			}
 
@@ -81,7 +83,7 @@ public class CLASDCRegion implements CLASFactory {
 	}
 
 	public static void main(String[] args) {
-		CLASDCRegion factory = new CLASDCRegion(1, 3);
+		CLASFactory factory = new CLASDCSystem(3);
 		INDArray ret = factory.getImage().getImage();
 
 		FaultUtils.draw(factory.getImage());
@@ -94,6 +96,7 @@ public class CLASDCRegion implements CLASFactory {
 		for (Fault fault : factory.getFaultList()) {
 			fault.printWireInformation();
 		}
+
 	}
 
 }

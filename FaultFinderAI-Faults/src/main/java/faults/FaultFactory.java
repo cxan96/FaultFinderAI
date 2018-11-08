@@ -22,8 +22,8 @@ public class FaultFactory {
 	private List<Fault> faultList;
 
 	/**
-	 * superLayer is used to call the correct background data, This data has
-	 * been engineered from actual data in Run 3923
+	 * superLayer is used to call the correct background data, This data has been
+	 * engineered from actual data in Run 3923
 	 */
 	private int superLayer;
 
@@ -31,7 +31,11 @@ public class FaultFactory {
 	 * data is an array to generate faults into. Its ideal for each superLayer
 	 */
 	private int[][] data;
-
+	/**
+	 * retData is an array to of faults that is returned in CLAS the coordinate <br>
+	 * system of x = wires y = layers
+	 */
+	private int[][] retData;
 	/**
 	 * List<Double> lMinMax is a list that contains the data minimum value and
 	 * maximum value
@@ -44,14 +48,14 @@ public class FaultFactory {
 	private boolean randomSuperlayer;
 
 	/**
-	 * nFaults is used to generate the number of background faults to
-	 * differentiate against
+	 * nFaults is used to generate the number of background faults to differentiate
+	 * against
 	 */
 	private int nFaults;
 
 	/**
-	 * randomSmear is to blurr out the faults by the median value of the
-	 * activations from the surrounding neighbors
+	 * randomSmear is to blurr out the faults by the median value of the activations
+	 * from the surrounding neighbors
 	 */
 	private boolean randomSmear;
 
@@ -85,6 +89,11 @@ public class FaultFactory {
 		loadData();
 		generateFaults();
 		makeDataSet();
+		/**
+		 * here I am converting the data set back to x = columns = wires y = rows =
+		 * layers
+		 */
+		convertDataset();
 
 	}
 
@@ -184,6 +193,17 @@ public class FaultFactory {
 		}
 	}
 
+	private void convertDataset() {
+		this.retData = new int[6][112];
+		for (int i = 0; i < data[0].length; i++) {
+			for (int j = 0; j < data.length; j++) {
+				// hData.setBinContent(j, i, data[j][i]);
+				this.retData[i][j] = this.data[j][i];
+			}
+		}
+
+	}
+
 	private List<Integer> getMinMax(int[][] data) {
 		List<Integer> lMinMax = new ArrayList<>();
 		IntStream stream = Arrays.stream(data).flatMapToInt(Arrays::stream);
@@ -196,11 +216,11 @@ public class FaultFactory {
 	}
 
 	public void draw() {
-		FaultUtils.draw(this.data);
+		FaultUtils.draw(this.retData);
 	}
 
 	public H2F getHist() {
-		return FaultUtils.getHist(this.data);
+		return FaultUtils.getHist(this.retData);
 	}
 
 	public void printFaultList() {
@@ -217,22 +237,24 @@ public class FaultFactory {
 	}
 
 	public INDArray getFeatureVector() {
-		return NDArrayUtil.toNDArray(ArrayUtil.flatten(this.data));
+		return NDArrayUtil.toNDArray(ArrayUtil.flatten(this.retData));
 	}
 
 	public INDArray getFeatureVectorAsMatrix() {
 
-		return Nd4j.create(FaultUtils.convertToDouble(this.data));
+		return Nd4j.create(FaultUtils.convertToDouble(this.retData));
 	}
 
 	public Image asImageMatrix() {
-		draw();
+		// draw();
+		// printFaultList();
+		// printFaultLocation();
 		return FaultUtils.asImageMatrix(this.nChannels, getFeatureVectorAsMatrix());
 
 	}
 
 	public double[][] getDataAsMatrix() {
-		return FaultUtils.convertToDouble(this.data);
+		return FaultUtils.convertToDouble(this.retData);
 	}
 
 	public int[] getFaultLabel() {
@@ -274,7 +296,7 @@ public class FaultFactory {
 	}
 
 	public static void main(String[] args) throws DataFormatException {
-		int channels = 3;
+		int channels = 1;
 		// TCanvas canvas = new TCanvas("aName", 800, 1200);
 		// canvas.divide(3, 3);
 		// for (int i = 1; i < 10; i++) {
@@ -283,6 +305,14 @@ public class FaultFactory {
 		INDArray iArray = image.getImage();
 		FaultUtils.draw(iArray);
 		factory.draw();
+		double[][] data = factory.getDataAsMatrix();
+		int x = data[0].length;
+		int y = data.length;
+//		for (int i = 0; i < x; i++) {
+//			for (int j = 0; j < y; j++) {
+//				System.out.println(data[j][i] + "  " + j + "  " + i + "  " + iArray.getDouble(0, 0, j, i));
+//			}
+//		}
 
 	}
 }// end

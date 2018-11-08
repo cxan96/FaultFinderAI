@@ -46,10 +46,13 @@ public class FaultUtils {
 	public static void draw(int[][] data) {
 		TCanvas canvas = new TCanvas("Data", 800, 1200);
 		canvas.getCanvas().setGridY(false);
-		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
-		for (int i = 0; i < data[0].length; i++) {
-			for (int j = 0; j < data.length; j++) {
-				hData.setBinContent(j, i, data[j][i]);
+
+		int x = data[0].length;
+		int y = data.length;
+		H2F hData = new H2F("Data", x, 1, x, y, 1, y);
+		for (int i = 0; i < x; i++) {
+			for (int j = 0; j < y; j++) {
+				hData.setBinContent(i, j, data[j][i]);
 			}
 		}
 		canvas.draw(hData);
@@ -57,13 +60,19 @@ public class FaultUtils {
 
 	public static void draw(double[][] data) {
 		TCanvas canvas = new TCanvas("Data", 800, 1200);
-		H2F hData = new H2F("Data", 112, 1, 112, 6, 1, 6);
-		for (int i = 0; i < data[0].length; i++) {
-			for (int j = 0; j < data.length; j++) {
-				hData.setBinContent(j, i, data[j][i]);
+		int x = data[0].length;
+		int y = data.length;
+		H2F hData = new H2F("Data", x, 1, x, y, 1, y);
+		for (int i = 0; i < x; i++) {
+			for (int j = 0; j < y; j++) {
+				hData.setBinContent(i, j, data[j][i]);
 			}
 		}
 		canvas.draw(hData);
+	}
+
+	public static void draw(Image image) {
+		draw(image.getImage());
 	}
 
 	public static void draw(INDArray arr) {
@@ -74,7 +83,8 @@ public class FaultUtils {
 		int cols = arr.size(rank == 3 ? 2 : 3);
 		int nchannels = arr.size(rank == 3 ? 0 : 1);
 
-		BufferedImage b = new BufferedImage(rows, cols, BufferedImage.TYPE_INT_RGB);
+		BufferedImage b = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
+		// BufferedImage bb = new BufferedImage(width, height, imageType)
 		ColorPalette palette = new ColorPalette();
 		if (nchannels == 1) {
 			for (int y = 0; y < rows; y++) {
@@ -87,7 +97,7 @@ public class FaultUtils {
 					int blue = weightColor.getBlue();
 					int rgb = (red * 65536) + (green * 256) + blue;
 
-					b.setRGB(y, cols - x - 1, rgb);
+					b.setRGB(x, rows - y - 1, rgb);
 
 				}
 			}
@@ -100,7 +110,7 @@ public class FaultUtils {
 					double blue = arr.getDouble(0, 2, y, x);
 					double rgb = ((red * 65536) + (green * 256) + blue);
 
-					b.setRGB(y, cols - x - 1, (int) rgb);
+					b.setRGB(x, rows - y - 1, (int) rgb);
 
 				}
 			}

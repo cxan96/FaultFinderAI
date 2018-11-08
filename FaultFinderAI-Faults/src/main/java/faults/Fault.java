@@ -20,6 +20,7 @@ public class Fault {
 	private FaultNames subFaultName;
 	private boolean randomSmear;
 	private Set<FaultNames> notSixLayerFaults;
+	private FaultCoordinates faultCoordinates;
 
 	public Fault(String faultName, FaultNames subFaultName, Map<Integer, Pair<Integer, Integer>> wireInfo) {
 		this.faultName = faultName;
@@ -27,6 +28,7 @@ public class Fault {
 		this.wireInfo = wireInfo;
 		this.randomSmear = false;
 		makeSixLayerFaults();
+		setFaultCoordinates();
 	}
 
 	private void makeSixLayerFaults() {
@@ -85,6 +87,7 @@ public class Fault {
 		this.getWireInfo().forEach((k, v) -> {
 			System.out.println("thisFault Layer " + k + " with left: " + v.getLeft() + " with right: " + v.getRight());
 		});
+		this.faultCoordinates.printFaultCoordinates();
 	}
 
 	public int[][] placeFault(int[][] data, List<Integer> lMinMax) {
@@ -96,9 +99,9 @@ public class Fault {
 			// Deadwire has to be different since its not a collection of
 			// activations
 			if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
-				smearValue = ThreadLocalRandom.current().nextInt(5, 10);
+				smearValue = ThreadLocalRandom.current().nextInt(5, 7);
 			} else if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
-				smearValue = ThreadLocalRandom.current().nextInt(200, 400);
+				smearValue = ThreadLocalRandom.current().nextInt(200, 300);
 			} else {
 				smearValue = ThreadLocalRandom.current().nextInt(5, 15);
 			}
@@ -163,13 +166,13 @@ public class Fault {
 			}
 
 			/**
-			 * Sum below and above the fault IF the fault is not a 1-6 layer
-			 * fault. Far less faults that do not span six layers
+			 * Sum below and above the fault IF the fault is not a 1-6 layer fault. Far less
+			 * faults that do not span six layers
 			 */
 			if (this.notSixLayerFaults.contains(this.subFaultName)) {
 				/**
-				 * sum activations below the fault superlayer of the fault is
-				 * not SL1 i.e. entry.getKey!=1
+				 * sum activations below the fault superlayer of the fault is not SL1 i.e.
+				 * entry.getKey!=1
 				 */
 				if ((layer + 1) != 1) {
 					for (int j = 0; j < data.length; j++) { // j are the columns
@@ -181,8 +184,8 @@ public class Fault {
 				}
 
 				/**
-				 * sum activations above the fault superlayer of the fault is
-				 * not SL6 i.e. entry.getKey!=6
+				 * sum activations above the fault superlayer of the fault is not SL6 i.e.
+				 * entry.getKey!=6
 				 */
 				if ((layer + 1) != 6) {
 					for (int j = 0; j < data.length; j++) { // j are the columns
@@ -201,6 +204,11 @@ public class Fault {
 	}
 
 	public FaultCoordinates getFaultCoordinates() {
+
+		return this.faultCoordinates;
+	}
+
+	private void setFaultCoordinates() {
 		// first let get the wireinfomap
 
 		int xMin = 113; // 1 more than possible allowed number of wires
@@ -215,6 +223,26 @@ public class Fault {
 			yMin = Math.min(yMin, key);
 			yMax = Math.max(yMax, key);
 		}
-		return new FaultCoordinates(xMin, yMin, xMax, yMax, this.subFaultName.getSaveName());
+		this.faultCoordinates = new FaultCoordinates(xMin, yMin, xMax, yMax, this.subFaultName.getSaveName());
+	}
+
+	public void offsetFaultCoodinates(double offset, String axis) {
+		double xMin = this.faultCoordinates.getXMin();
+		double xMax = this.faultCoordinates.getXMax();
+		double yMin = this.faultCoordinates.getYMin();
+		double yMax = this.faultCoordinates.getYMax();
+		if (axis.toLowerCase().equals("x")) {
+			xMax = xMax + offset;
+			xMin = xMin + offset;
+
+		} else if (axis.toLowerCase().equals("y")) {
+			yMax = yMax + offset;
+			yMin = yMin + offset;
+
+		} else {
+			throw new IllegalArgumentException("Invalid input: (x or y axis can only be changed");
+		}
+		this.faultCoordinates = new FaultCoordinates(xMin, yMin, xMax, yMax, this.subFaultName.getSaveName());
+
 	}
 }

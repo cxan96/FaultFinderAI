@@ -30,8 +30,9 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 
+import clasDC.CLASFactory;
+import clasDC.CLASFactoryImpl;
 import faults.Fault;
-import faults.FaultFactory;
 import faults.FaultNames;
 
 /**
@@ -45,7 +46,7 @@ import faults.FaultNames;
  *
  * @author Michael C. Kunkel
  */
-public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader {
+public class CLASObjectRecordReader extends BaseImageRecordReader {
 
 	private final int gridW;
 	private final int gridH;
@@ -54,14 +55,8 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 	private int channels;
 	protected List<String> labels;
 
-	protected FaultFactory factory = null;
-	private int label;
-	// args for FaultFactory constructor
-	private int superLayer;
-	private int maxFaults;
-	private FaultNames desiredFault;
-	private boolean singleFaultGeneration;
-	private boolean blurredFaults;
+	protected CLASFactory factory = null;
+	private String clasType;
 
 	protected Image currentImage;
 
@@ -75,22 +70,15 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 	 * @param labelProvider ImageObjectLabelProvider - used to look up which objects
 	 *                      are in each image
 	 */
-	public FaultObjectDetectionImageRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
-			boolean singleFaultGeneration, boolean blurredFaults, int height, int width, int channels, int gridH,
-			int gridW) {
-		this.superLayer = superLayer;
-		this.maxFaults = maxFaults;
-		this.desiredFault = desiredFault;
-		this.singleFaultGeneration = singleFaultGeneration;
-		this.blurredFaults = blurredFaults;
-		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults,
-				channels);
-
+	public CLASObjectRecordReader(String clasType, int height, int width, int channels, int gridH, int gridW) {
+		this.clasType = clasType;
 		this.height = height;
 		this.width = width;
 		this.channels = channels;
 		this.gridW = gridW;
 		this.gridH = gridH;
+		this.factory = new CLASFactoryImpl(clasType, channels);
+
 		initialize();
 	}
 
@@ -112,7 +100,7 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 
 	// MK Testing stuff
 
-	public FaultFactory getFactory() {
+	public CLASFactory getFactory() {
 		return factory;
 	}
 
@@ -139,8 +127,7 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 
 	@Override
 	public void reset() {
-		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.singleFaultGeneration,
-				this.blurredFaults, this.channels);
+		this.factory = new CLASFactoryImpl(clasType, channels);
 	}
 
 	@Override
@@ -155,11 +142,8 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 		List<List<Fault>> objects = new ArrayList<>(num);
 
 		for (int i = 0; i < num && hasNext(); i++) {
-			faultData.add(factory.asImageMatrix());
-			// faultData.add(factory.getFeatureVector());
-
+			faultData.add(factory.getImage());
 			objects.add(factory.getFaultList());
-
 		}
 
 		int nClasses = labels.size();

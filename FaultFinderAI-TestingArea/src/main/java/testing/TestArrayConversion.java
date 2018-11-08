@@ -4,7 +4,6 @@ import java.util.zip.DataFormatException;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.util.ArrayUtil;
 
 import utils.FaultUtils;
 
@@ -29,14 +28,24 @@ public class TestArrayConversion {
 			}
 		}
 		// FaultUtils.draw(newData);
-		double[][] d = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
-		INDArray array = Nd4j.create(17, 10, 20);
-		System.out.println(array.size(0));
-		INDArray test = Nd4j.create(FaultUtils.convertToDouble(data));
-		System.out.println(test.size(0) + "   " + test.shapeInfoToString());
+		int[][] d = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
+		INDArray ar1 = Nd4j.create(FaultUtils.convertToDouble(d));
+		int[][] d2 = { { 6, 5 }, { 4, 3 }, { 2, 1 } };
+		INDArray ar2 = Nd4j.create(FaultUtils.convertToDouble(d2));
 
-		INDArray ret = test.reshape(ArrayUtil.combine(new int[] { 1 }, test.shape()));
-		System.out.println(ret.size(0) + "   " + ret.shapeInfoToString());
+		INDArray test = Nd4j.concat(0, ar1, ar2);
+		int rank = test.rank();
+		int rows = test.rows();
+		int cols = test.columns();
+
+		System.out.println(rank + "  " + test.columns() + "  " + test.rows());
+
+		for (int y = 0; y < rows; y++) {
+			for (int x = 0; x < cols; x++) {
+				System.out.println(test.getDouble(y, x) + "  " + x + "  " + y);
+
+			}
+		}
 
 	}
 }

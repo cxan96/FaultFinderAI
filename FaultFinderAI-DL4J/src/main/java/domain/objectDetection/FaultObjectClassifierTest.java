@@ -14,16 +14,22 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import client.ModelFactory;
-import faultrecordreader.FaultObjectDetectionRecordReader;
-import faults.FaultNames;
+import faultrecordreader.CLASObjectRecordReader;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
 public class FaultObjectClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 100;
-
+		int scoreIterations = 1000;
+		// with clasdc height = 12 ; gridheight = 6
+		// with clasRegion height = 72 ; gridheight = 36
+		// with clas height = 216 ; gridheight = 108
+		int height = 12;
+		int width = 112;
+		int gridHeight = 6;
+		int gridwidth = 28;
+		int channels = 3;
 		String fileName = "models/binary_classifiers/ComputationalGraphModel/TestMK.zip";
 		String saveName = "models/binary_classifiers/ComputationalGraphModel/TestMKI.zip";
 
@@ -36,10 +42,7 @@ public class FaultObjectClassifierTest {
 			classifier = new FaultObjectClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			// ComputationGraph model =
-			// ModelFactory.deeperCNN(2).toComputationGraph();
-			// ComputationGraph model = ModelFactory.computationGraphModelII(2);
-			ComputationGraph model = ModelFactory.computationGraphModelYolo();
+			ComputationGraph model = ModelFactory.computationGraphModelYolo(height, width, channels);
 
 			classifier = new FaultObjectClassifier(model);
 		}
@@ -55,14 +58,9 @@ public class FaultObjectClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
+		RecordReader recordReader = new CLASObjectRecordReader("clasdc", height, width, channels, 6, 28);
 
-		// RecordReader recordReader = new KunkelPetersFaultRecorder(2, 10,
-		// FaultNames.PIN_SMALL, true, true);
-		RecordReader recordReader = new FaultObjectDetectionRecordReader(3, 10, FaultNames.CHANNEL_ONE, true, true, 112,
-				6, 1, 28, 3);
-		// (2, 10, FaultNames.PIN_SMALL, true, true);
-
-		int checkPoints = 100;
+		int checkPoints = 4;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);

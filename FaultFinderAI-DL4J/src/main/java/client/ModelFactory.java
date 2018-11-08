@@ -45,26 +45,23 @@ public class ModelFactory {
 				.updater(new Adam()).list()
 				// the first layer is a convolution layer with a kernel 2px high
 				// and 3px wide
-				.layer(0,
-						new ConvolutionLayer.Builder(3, 2)
-								// use one input channel
-								.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
+				.layer(0, new ConvolutionLayer.Builder(3, 2)
+						// use one input channel
+						.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
 				// next use a pooling (subsampling) layer utilizing MAX-pooling
 				.layer(1,
 						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
 								.build())
 				// hidden layer in the densely connected network
-				.layer(2,
-						new DenseLayer.Builder().activation(new ActivationReLU())
-								// number of hidden neurons
-								.nOut(100).build())
+				.layer(2, new DenseLayer.Builder().activation(new ActivationReLU())
+						// number of hidden neurons
+						.nOut(100).build())
 				// output layer of the network using negativeloglikelihood as
 				// loss function
-				.layer(3,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
-								// use as many output neurons as there are
-								// labels
-								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.layer(3, new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						// use as many output neurons as there are
+						// labels
+						.nOut(numLabels).activation(new ActivationSoftmax()).build())
 				// the images are represented as vectors, thus the input type is
 				// convolutionalFlat
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
@@ -141,9 +138,9 @@ public class ModelFactory {
 
 	public static ComputationGraph computationGraphModelFail(int numLabels) {
 		/**
-		 * testing the TransferLearning class this test only removes the output
-		 * layer, the denselayer, adds the denselayer with more nodes, then adds
-		 * the output layer
+		 * testing the TransferLearning class this test only removes the output layer,
+		 * the denselayer, adds the denselayer with more nodes, then adds the output
+		 * layer
 		 */
 		ComputationGraph neuralNetwork = new TransferLearning.GraphBuilder(computationGraphModel(2))
 				.removeVertexKeepConnections("dense1")
@@ -243,9 +240,9 @@ public class ModelFactory {
 		double lambdaCoord = 1.0;
 		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).graphBuilder()
-				.addInputs("input").setInputTypes(InputType.convolutional(112, 6, 1))
+				.addInputs("input").setInputTypes(InputType.convolutional(112, 6, 3))
 				.addLayer("cnn1",
-						new ConvolutionLayer.Builder(3, 2).nIn(1).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+						new ConvolutionLayer.Builder(3, 2).nIn(3).stride(1, 1).convolutionMode(ConvolutionMode.Same)
 								.nOut(40).activation(new ActivationReLU()).build(),
 						"input")
 				.addLayer("cnn2",
@@ -287,7 +284,64 @@ public class ModelFactory {
 
 		// initialize the network
 		neuralNetwork.init();
-		System.out.println(neuralNetwork.summary(InputType.convolutional(112, 6, 1)));
+		System.out.println(neuralNetwork.summary(InputType.convolutional(112, 6, 3)));
+
+		return neuralNetwork;
+	}
+
+	public static ComputationGraph computationGraphModelYolo(int height, int width, int channels) {
+		int nBoxes = 5;
+		int numClasses = 14;
+		double[][] priorBoxes = { { 1.08, 1.19 }, { 3.42, 4.41 }, { 6.63, 11.38 }, { 9.42, 5.11 }, { 16.62, 10.52 } };
+		INDArray priors = Nd4j.create(priorBoxes);
+		double lambdaNoObj = 0.5;
+		double lambdaCoord = 1.0;
+		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).graphBuilder()
+				.addInputs("input").setInputTypes(InputType.convolutional(height, width, channels))
+				.addLayer("cnn1", new ConvolutionLayer.Builder(2, 3).nIn(channels).stride(1, 1)
+						.convolutionMode(ConvolutionMode.Same).nOut(40).activation(new ActivationReLU()).build(),
+						"input")
+				.addLayer("cnn2",
+						new ConvolutionLayer.Builder(2, 2).nIn(40).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(30).activation(new ActivationReLU()).build(),
+						"cnn1")
+				.addLayer("pool1",
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build(),
+						"cnn2")
+				.addLayer("cnn3",
+						new ConvolutionLayer.Builder(2, 2).nIn(30).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(20).activation(new ActivationReLU()).build(),
+						"pool1")
+				.addLayer("insert1",
+						new ConvolutionLayer.Builder(1, 2).nIn(20).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(15).activation(new ActivationReLU()).build(),
+						"cnn3")
+				.addLayer("pool2",
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(1, 2).stride(1, 2)
+								.build(),
+						"insert1")
+				.addLayer("insert2",
+						new ConvolutionLayer.Builder(2, 2).nIn(15).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.nOut(10).activation(new ActivationReLU()).build(),
+						"pool2")
+				.addLayer("cnn4",
+						new ConvolutionLayer.Builder(1, 1).nIn(10).nOut(nBoxes * (5 + numClasses))
+								.weightInit(WeightInit.XAVIER).stride(1, 1).convolutionMode(ConvolutionMode.Same)
+								.weightInit(WeightInit.RELU).activation(Activation.IDENTITY).build(),
+						"insert2")
+				.addLayer("outputs",
+						new Yolo2OutputLayer.Builder().lambbaNoObj(lambdaNoObj).lambdaCoord(lambdaCoord)
+								.boundingBoxPriors(priors).build(),
+						"cnn4")
+				.setOutputs("outputs").backprop(true).pretrain(false);
+
+		ComputationGraph neuralNetwork = new ComputationGraph(graphBuilder.build());
+
+		// initialize the network
+		neuralNetwork.init();
+		System.out.println(neuralNetwork.summary(InputType.convolutional(height, width, channels)));
 
 		return neuralNetwork;
 	}
@@ -478,26 +532,23 @@ public class ModelFactory {
 				.updater(new AdaDelta()).list()
 				// the first layer is a convolution layer with a kernel 2px high
 				// and 3px wide
-				.layer(0,
-						new ConvolutionLayer.Builder(3, 2)
-								// use one input channel
-								.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
+				.layer(0, new ConvolutionLayer.Builder(3, 2)
+						// use one input channel
+						.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
 				// next use a pooling (subsampling) layer utilizing MAX-pooling
 				.layer(1,
 						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
 								.build())
 				// hidden layer in the densely connected network
-				.layer(2,
-						new DenseLayer.Builder().activation(new ActivationReLU())
-								// number of hidden neurons
-								.nOut(100).build())
+				.layer(2, new DenseLayer.Builder().activation(new ActivationReLU())
+						// number of hidden neurons
+						.nOut(100).build())
 				// output layer of the network using negativeloglikelihood as
 				// loss function
-				.layer(3,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood(weights))
-								// use as many output neurons as there are
-								// labels
-								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.layer(3, new OutputLayer.Builder(new LossNegativeLogLikelihood(weights))
+						// use as many output neurons as there are
+						// labels
+						.nOut(numLabels).activation(new ActivationSoftmax()).build())
 				// the images are represented as vectors, thus the input type is
 				// convolutionalFlat
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).backprop(true).pretrain(false).build();
@@ -519,26 +570,23 @@ public class ModelFactory {
 				.updater(new AdaDelta()).list()
 				// the first layer is a convolution layer with a kernel 2px high
 				// and 3px wide
-				.layer(0,
-						new ConvolutionLayer.Builder(3, 2)
-								// use one input channel
-								.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
+				.layer(0, new ConvolutionLayer.Builder(3, 2)
+						// use one input channel
+						.nIn(1).stride(1, 1).nOut(20).activation(new ActivationReLU()).build())
 				// next use a pooling (subsampling) layer utilizing MAX-pooling
 				.layer(1,
 						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 1).stride(2, 1)
 								.build())
 				// hidden layer in the densely connected network
-				.layer(2,
-						new DenseLayer.Builder().activation(new ActivationReLU())
-								// number of hidden neurons
-								.nOut(100).build())
+				.layer(2, new DenseLayer.Builder().activation(new ActivationReLU())
+						// number of hidden neurons
+						.nOut(100).build())
 				// output layer of the network using negativeloglikelihood as
 				// loss function
-				.layer(3,
-						new OutputLayer.Builder(new LossL2())
-								// use as many output neurons as there are
-								// labels
-								.nOut(numLabels).activation(new ActivationSigmoid()).build())
+				.layer(3, new OutputLayer.Builder(new LossL2())
+						// use as many output neurons as there are
+						// labels
+						.nOut(numLabels).activation(new ActivationSigmoid()).build())
 				// .layer(3,
 				// new OutputLayer.Builder(new LossNegativeLogLikelihood())
 				// // use as many output neurons as there are
@@ -560,12 +608,11 @@ public class ModelFactory {
 		int numHiddenNodes = numInputs / 2;
 		MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new AdaDelta()).list()
-				.layer(0,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
-								// use as many output neurons as there are
-								// labels
-								.nIn(numInputs).nOut(numLabels).weightInit(WeightInit.XAVIER)
-								.activation(new ActivationSoftmax()).build())
+				.layer(0, new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						// use as many output neurons as there are
+						// labels
+						.nIn(numInputs).nOut(numLabels).weightInit(WeightInit.XAVIER)
+						.activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
 		// now create the neural network from the configuration
 		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
@@ -582,11 +629,10 @@ public class ModelFactory {
 				.layer(0,
 						new DenseLayer.Builder().nIn(numInputs).nOut(numLabels).weightInit(WeightInit.XAVIER)
 								.activation(Activation.RELU).build())
-				.layer(1,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
-								// use as many output neurons as there are
-								// labels
-								.nIn(numLabels).nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.layer(1, new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						// use as many output neurons as there are
+						// labels
+						.nIn(numLabels).nOut(numLabels).activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
 		// now create the neural network from the configuration
 		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
@@ -606,11 +652,10 @@ public class ModelFactory {
 				.layer(1,
 						new DenseLayer.Builder().nIn(numHiddenNodes).nOut(numHiddenNodes / 2)
 								.weightInit(WeightInit.XAVIER).activation(Activation.RELU).build())
-				.layer(2,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
-								// use as many output neurons as there are
-								// labels
-								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.layer(2, new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						// use as many output neurons as there are
+						// labels
+						.nOut(numLabels).activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.feedForward(numInputs)).pretrain(false).backprop(true).build();
 		// now create the neural network from the configuration
 		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
@@ -630,11 +675,10 @@ public class ModelFactory {
 				.layer(1,
 						new DenseLayer.Builder().nIn(numHiddenNodes).nOut(numHiddenNodes / 2)
 								.weightInit(WeightInit.XAVIER).activation(Activation.RELU).build())
-				.layer(2,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
-								// use as many output neurons as there are
-								// labels
-								.nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.layer(2, new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						// use as many output neurons as there are
+						// labels
+						.nOut(numLabels).activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
 		// now create the neural network from the configuration
 		MultiLayerNetwork neuralNetwork = new MultiLayerNetwork(configuration);
@@ -660,11 +704,10 @@ public class ModelFactory {
 				.layer(2,
 						new DenseLayer.Builder().nIn(10).nOut(225).weightInit(WeightInit.XAVIER)
 								.activation(Activation.RELU).build())
-				.layer(3,
-						new OutputLayer.Builder(new LossNegativeLogLikelihood())
-								// use as many output neurons as there are
-								// labels
-								.nIn(225).nOut(numLabels).activation(new ActivationSoftmax()).build())
+				.layer(3, new OutputLayer.Builder(new LossNegativeLogLikelihood())
+						// use as many output neurons as there are
+						// labels
+						.nIn(225).nOut(numLabels).activation(new ActivationSoftmax()).build())
 				.setInputType(InputType.convolutionalFlat(112, 6, 1)).pretrain(false).backprop(true).build();
 
 		// now create the neural network from the configuration
@@ -687,15 +730,12 @@ public class ModelFactory {
 				// reproducibility
 				.activation(Activation.RELU).weightInit(WeightInit.XAVIER).updater(new Nesterovs(rate, 0.98))
 				.l2(rate * 0.005) // regularize learning model
-				.list()
-				.layer(0,
-						new DenseLayer.Builder() // create the first input
-													// layer.
-								.nIn(numInputs).nOut(500).build())
-				.layer(1,
-						new DenseLayer.Builder() // create the second input
+				.list().layer(0, new DenseLayer.Builder() // create the first input
+															// layer.
+						.nIn(numInputs).nOut(500).build())
+				.layer(1, new DenseLayer.Builder() // create the second input
 													// layer
-								.nIn(500).nOut(100).build())
+						.nIn(500).nOut(100).build())
 				.layer(2,
 						new OutputLayer.Builder(new LossNegativeLogLikelihood()).activation(new ActivationSoftmax())
 								.nIn(100).nOut(numLabels).build())

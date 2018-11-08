@@ -5,21 +5,21 @@ package test;
 
 import static org.bytedeco.javacpp.opencv_imgproc.resize;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
+import java.util.List;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.Size;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.datavec.api.writable.NDArrayWritable;
+import org.datavec.api.writable.Writable;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.jlab.groot.base.ColorPalette;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import domain.objectDetection.FaultObjectClassifier;
-import faultrecordreader.FaultObjectDetectionRecordReader;
+import faultrecordreader.FaultObjectDetectionImageRecordReader;
 import faultrecordreader.FaultRecorderScaler;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
@@ -33,15 +33,18 @@ import utils.FaultUtils;
 public class DrawFaults {
 	private DataSetIterator test;
 	private FaultObjectClassifier classifier;
-	private FaultObjectDetectionRecordReader recordReader;
+	// private FaultObjectDetectionRecordReader recordReader;
+	private FaultObjectDetectionImageRecordReader recordReader;
 
 	public DrawFaults() {
 		initialize();
 	}
 
 	private void initialize() {
-		this.recordReader = new FaultObjectDetectionRecordReader(3, 10, FaultNames.CHANNEL_ONE, true, true, 112, 6, 3,
-				56, 3);
+//		this.recordReader = new FaultObjectDetectionRecordReader(3, 10, FaultNames.CHANNEL_ONE, true, true, 112, 6, 3,
+//				56, 3);
+		this.recordReader = new FaultObjectDetectionImageRecordReader(3, 10, FaultNames.CHANNEL_ONE, true, true, 6, 112,
+				3, 3, 28);
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 		// FaultRecordScalerStrategy strategy = new IdentityStrategy();
 
@@ -57,58 +60,11 @@ public class DrawFaults {
 		return this.test;
 	}
 
-	public FaultObjectDetectionRecordReader getRecordReader() {
+//	public FaultObjectDetectionRecordReader getRecordReader() {
+//		return this.recordReader;
+//	}
+	public FaultObjectDetectionImageRecordReader getRecordReader() {
 		return this.recordReader;
-	}
-
-	public void loadImage(INDArray arr) throws java.lang.Exception {
-		double max = (double) arr.maxNumber();
-		System.out.println(max + " max from loadImage");
-		int rank = arr.rank();
-		int rows = arr.size(rank == 3 ? 1 : 2);
-		int cols = arr.size(rank == 3 ? 2 : 3);
-		int nchannels = arr.size(rank == 3 ? 0 : 1);
-
-		int xLength = cols;// arr.columns();
-		int yLength = rows;// arr.rows();
-
-		BufferedImage b = new BufferedImage(rows, cols, BufferedImage.TYPE_INT_RGB);
-		ColorPalette palette = new ColorPalette();
-		if (nchannels == 1) {
-			for (int y = 0; y < rows; y++) {
-				for (int x = 0; x < cols; x++) {
-
-					Color weightColor = palette.getColor3D(arr.getDouble(0, 0, y, x), max, false);
-
-					int red = weightColor.getRed();
-					int green = weightColor.getGreen();
-					int blue = weightColor.getBlue();
-					int rgb = (red * 65536) + (green * 256) + blue;
-
-					b.setRGB(y, cols - x - 1, rgb);
-
-				}
-			}
-		} else if (nchannels == 3) {
-			for (int y = 0; y < rows; y++) {
-				for (int x = 0; x < cols; x++) {
-
-					double red = arr.getDouble(0, 0, y, x);
-					double green = arr.getDouble(0, 1, y, x);
-					double blue = arr.getDouble(0, 2, y, x);
-					double rgb = (red * 65536) + (green * 256) + blue;
-
-					b.setRGB(y, cols - x - 1, (int) rgb);
-
-				}
-			}
-		} else {
-			throw new ArithmeticException("Number of channels must be 1 or 3");
-		}
-		CanvasFrame cframe = new CanvasFrame("Loaded Image made me");
-		cframe.setTitle("LI Plot");
-		cframe.setCanvasSize(800, 600);
-		cframe.showImage(b);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -116,13 +72,17 @@ public class DrawFaults {
 		int gridHeight = 112;
 
 		DrawFaults drawFaults = new DrawFaults();
+		FaultObjectDetectionImageRecordReader rrTransform = drawFaults.getRecordReader();
+		List<Writable> next = rrTransform.next();
+		INDArray labelArray = ((NDArrayWritable) next.get(1)).get();
 
 		RecordReaderDataSetIterator test = (RecordReaderDataSetIterator) drawFaults.getDSIterator();
 		org.nd4j.linalg.dataset.DataSet ds = test.next();
 
-		// for (String string : labels) {
-		// System.out.println(string);
-		// }
+//		List<String> labels = test.getLabels();
+//		for (String string : labels) {
+//			System.out.println(string);
+//		}
 		// RecordMetaDataImageURI metadata = (RecordMetaDataImageURI)
 		// ds.getExampleMetaData().get(0);
 		NativeImageLoader imageLoader = new NativeImageLoader();
@@ -130,22 +90,41 @@ public class DrawFaults {
 		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
 
 		INDArray features = ds.getFeatures();
+		INDArray labels = ds.getLabels();
+		int rank = labels.rank();
+		int rows = labels.size(rank == 3 ? 1 : 2);
+		int cols = labels.size(rank == 3 ? 2 : 3);
+		int one = labels.size(0);
+		int two = labels.size(1);
+		int size1 = labels.size(1);
+		int c = labels.size(1) - 4;
+		int[] nhw = new int[] { 1, 3, 28 };
+
+//		for (int i = 0; i < two; i++) {
+//			System.out.println(labels.getRow(0).getScalar(2) + "   test");
+//
+//			System.out.println(labels.getInt(0, i, 0, 0) + "  " + labels.getInt(1, i, 0, 0) + "  "
+//					+ labels.getInt(2, i, 0, 0) + "  " + labels.getInt(3, i, 0, 0) + "  " + labels.getInt(4, i, 0, 0));
+//
+//		}
 		// drawFaults.loadImage(features);
 		FaultUtils.draw(features);
 		Mat mat = imageLoader.asMat(features);
 		Mat convertedMat = new Mat();
 		mat.convertTo(convertedMat, 0, 255, 0);
+
 		// mat.convertTo(convertedMat, 6, 255, 0);
 
-		int w = 6;
-		int h = 112;
+		int w = 112 * 4;
+		int h = 6 * 100;
 		Mat image = new Mat();
 
 		resize(convertedMat, image, new Size(w, h));
 
 		frame.setTitle(" - test");
-		frame.setCanvasSize(w * 200, h * 5);
+		frame.setCanvasSize(w, h);
 		frame.showImage(converter.convert(convertedMat));
+		// FaultUtils.draw(FaultUtils.dataSector1);
 
 	}
 }

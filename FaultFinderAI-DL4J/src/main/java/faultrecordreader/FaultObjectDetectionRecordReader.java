@@ -63,19 +63,13 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 	/**
 	 *
-	 * @param height
-	 *            Height of the output images
-	 * @param width
-	 *            Width of the output images
-	 * @param channels
-	 *            Number of channels for the output images
-	 * @param gridH
-	 *            Grid/quantization size (along height dimension) - Y axis
-	 * @param gridW
-	 *            Grid/quantization size (along height dimension) - X axis
-	 * @param labelProvider
-	 *            ImageObjectLabelProvider - used to look up which objects are
-	 *            in each image
+	 * @param height        Height of the output images
+	 * @param width         Width of the output images
+	 * @param channels      Number of channels for the output images
+	 * @param gridH         Grid/quantization size (along height dimension) - Y axis
+	 * @param gridW         Grid/quantization size (along height dimension) - X axis
+	 * @param labelProvider ImageObjectLabelProvider - used to look up which objects
+	 *                      are in each image
 	 */
 	public FaultObjectDetectionRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration, boolean blurredFaults, int height, int width, int channels, int gridH,
@@ -99,8 +93,8 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	private void initialize() {
 		Set<String> labelSet = new HashSet<>();
 		/**
-		 * OK, we need all the faults loaded at once otherwise it doesn't make
-		 * sense with the one-hot representation
+		 * OK, we need all the faults loaded at once otherwise it doesn't make sense
+		 * with the one-hot representation
 		 */
 		for (FaultNames d : FaultNames.values()) {
 			labelSet.add(d.getSaveName());
@@ -196,20 +190,20 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 		// put the label data into the output label array
 		for (Fault io : objectsThisImg) {
 			/**
-			 * OK here is a little nuance. The locations of the Faults are in
-			 * natural CLAS x->wires; y->layers coordinates. But the featured
-			 * data itself is in columns->x->layers; rows->y->wires so we should
-			 * SWITCH XCenter <-> YCenter XMin <-> YMin XMax <-> YMax
+			 * OK here is a little nuance. The locations of the Faults are in natural CLAS
+			 * x->wires; y->layers coordinates. But the featured data itself is in
+			 * columns->x->layers; rows->y->wires so we should SWITCH XCenter <-> YCenter
+			 * XMin <-> YMin XMax <-> YMax
 			 * 
 			 */
 
 			double cx = io.getFaultCoordinates().getYCenterPixels();
 			double cy = io.getFaultCoordinates().getXCenterPixels();
 			double[] cxyPostScaling = ImageUtils.translateCoordsScaleImage(cx, cy, W, H, width, height);
-			double[] tlPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getyMin(),
-					io.getFaultCoordinates().getxMin(), W, H, width, height);
-			double[] brPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getyMax(),
-					io.getFaultCoordinates().getxMax(), W, H, width, height);
+			double[] tlPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getYMin(),
+					io.getFaultCoordinates().getXMin(), W, H, width, height);
+			double[] brPost = ImageUtils.translateCoordsScaleImage(io.getFaultCoordinates().getYMax(),
+					io.getFaultCoordinates().getXMax(), W, H, width, height);
 
 			// Get grid position for image
 			int imgGridX = (int) (cxyPostScaling[0] / width * gridW);
@@ -228,10 +222,10 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 				factory.draw();
 				System.out.println(io.getSubFaultName());
 				System.out.println(" cx " + cx + " cy " + cy);
-				System.out.println("io.getFaultCoordinates().getyMin() " + io.getFaultCoordinates().getyMin()
-						+ " io.getFaultCoordinates().getxMin() " + io.getFaultCoordinates().getxMin());
-				System.out.println("io.getFaultCoordinates().getyMax() " + io.getFaultCoordinates().getyMax()
-						+ " io.getFaultCoordinates().getxMax() " + io.getFaultCoordinates().getxMax());
+				System.out.println("io.getFaultCoordinates().getyMin() " + io.getFaultCoordinates().getYMin()
+						+ " io.getFaultCoordinates().getxMin() " + io.getFaultCoordinates().getXMin());
+				System.out.println("io.getFaultCoordinates().getyMax() " + io.getFaultCoordinates().getYMax()
+						+ " io.getFaultCoordinates().getxMax() " + io.getFaultCoordinates().getXMax());
 				System.out.println(exampleNum + "  " + 0 + "   " + imgGridY + "   " + imgGridX + "  " + tlPost[0]
 						+ "   " + width + "  " + gridW + "  " + height + "  " + gridH);
 			}

@@ -1,15 +1,15 @@
 package clasDC;
 
-import java.util.Map;
+import java.util.List;
 
-import org.nd4j.linalg.api.ndarray.INDArray;
+import org.datavec.image.data.Image;
 
-public class CLASFactory {
+import faults.Fault;
 
-	private Map<Integer, INDArray> aMap;
+public interface CLASFactory {
 
-	public static void main(String[] args) {
-		CLASFactory cFactory = new CLASFactory();
-	}
+	Image getImage();
+
+	List<Fault> getFaultList();
 
 }

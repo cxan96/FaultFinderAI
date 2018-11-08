@@ -8,11 +8,12 @@ import static org.bytedeco.javacpp.opencv_imgproc.resize;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-
-import javax.imageio.ImageIO;
+import java.util.Set;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.Point;
@@ -20,6 +21,7 @@ import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_core.Size;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.datavec.api.records.reader.RecordReader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -28,18 +30,21 @@ import org.jlab.groot.base.ColorPalette;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
-import faultrecordreader.FaultObjectDetectionRecordReader;
+import faultrecordreader.CLASObjectRecordReader;
 import faultrecordreader.FaultRecorderScaler;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
+import utils.FaultUtils;
 
 public class ValidateFaultObjectClassifier {
-
+	int height = 6;
+	int width = 112;
+	int channels = 3;
 	private String fileName;
 	private DataSetIterator test;
 	private FaultObjectClassifier classifier;
-	private FaultObjectDetectionRecordReader recordReader;
+	private RecordReader recordReader;
 
 	public ValidateFaultObjectClassifier(String fileName) {
 		this.fileName = fileName;
@@ -53,8 +58,7 @@ public class ValidateFaultObjectClassifier {
 	}
 
 	private void initialize() {
-		this.recordReader = new FaultObjectDetectionRecordReader(3, 10, FaultNames.CHANNEL_ONE, true, true, 112, 6, 1,
-				56, 3);
+		this.recordReader = new CLASObjectRecordReader("clasdc", height, width, channels, 6, 28);
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 		this.test = new RecordReaderDataSetIterator.Builder(recordReader, 1).regression(1).maxNumBatches(1)
 				.preProcessor(new FaultRecorderScaler(strategy)).build();
@@ -72,7 +76,7 @@ public class ValidateFaultObjectClassifier {
 		return this.test;
 	}
 
-	public FaultObjectDetectionRecordReader getRecordReader() {
+	public RecordReader getRecordReader() {
 		return this.recordReader;
 	}
 
@@ -111,20 +115,26 @@ public class ValidateFaultObjectClassifier {
 		cframe.showImage(b);
 		// cframe.waitKey();
 
-		try {
-			ImageIO.write(b, "png", new File("/Users/Mike/Desktop/ScreenShots/Doublearray.png"));
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			ImageIO.write(b, "png", new File("/Users/Mike/Desktop/ScreenShots/Doublearray.png"));
+//
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		System.out.println("end");
-		recordReader.getFactory().draw();
 	}
 
 	public static void main(String[] args) {
-		int gridWidth = 6;
-		int gridHeight = 112;
+		int gridWidth = 112;
+		int gridHeight = 6;
+		Set<String> labelSet = new HashSet<>();
+		for (FaultNames d : FaultNames.values()) {
+			labelSet.add(d.getSaveName());
+		}
+
+		List<String> faultLabels = new ArrayList<>(labelSet);
+		Collections.sort(faultLabels);
 
 		FaultObjectClassifier classifier;
 		String fileName = "models/binary_classifiers/ComputationalGraphModel/TestMKI.zip";
@@ -135,58 +145,70 @@ public class ValidateFaultObjectClassifier {
 		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) model
 				.getOutputLayer(0);
 		RecordReaderDataSetIterator test = (RecordReaderDataSetIterator) vObjectClassifier.getDSIterator();
-		org.nd4j.linalg.dataset.DataSet ds = test.next();
-		List<String> labels = test.getLabels();
-		System.out.println(ds.getFeatureMatrix().columns() + "   " + ds.getFeatureMatrix().rows());
 
-		try {
-			vObjectClassifier.loadImage(vObjectClassifier.getRecordReader().getFactory().getFeatureVectorAsMatrix());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// for (String string : labels) {
-		// System.out.println(string);
-		// }
-		// RecordMetaDataImageURI metadata = (RecordMetaDataImageURI)
-		// ds.getExampleMetaData().get(0);
-		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+		for (int i = 0; i < 100; i++) {
+			System.out.println("#################");
+			System.out.println("#################");
 
-		INDArray features = ds.getFeatures();
-		INDArray results = model.outputSingle(features);
-		List<DetectedObject> objs = yout.getPredictedObjects(results, 0.0001);
+			org.nd4j.linalg.dataset.DataSet ds = test.next();
+			List<String> labels = test.getLabels();
+			// System.out.println(ds.getFeatureMatrix().columns() + " " +
+			// ds.getFeatureMatrix().rows());
 
-		NativeImageLoader imageLoader = new NativeImageLoader();
-		Mat mat = imageLoader.asMat(features);
-		Mat convertedMat = new Mat();
-		mat.convertTo(convertedMat, CV_8U, 255, 0);
-		int w = 6 * 2;
-		int h = 112 * 2;
-		Mat image = new Mat();
+			// for (String string : labels) {
+			// System.out.println(string);
+			// }
+			// RecordMetaDataImageURI metadata = (RecordMetaDataImageURI)
+			// ds.getExampleMetaData().get(0);
+			OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
 
-		resize(convertedMat, image, new Size(w, h));
-		System.out.println(objs.size() + "  size of objs");
-		for (DetectedObject obj : objs) {
-			System.out.println(obj.toString());
-			double[] xy1 = obj.getTopLeftXY();
-			double[] xy2 = obj.getBottomRightXY();
-			String label = labels.get(obj.getPredictedClass());
-			int x1 = (int) Math.round(w * xy1[0] / gridWidth);
-			int y1 = (int) Math.round(h * xy1[1] / gridHeight);
-			int x2 = (int) Math.round(w * xy2[0] / gridWidth);
-			int y2 = (int) Math.round(h * xy2[1] / gridHeight);
-			rectangle(image, new Point(x1, y1), new Point(x2, y2), Scalar.RED);
-			putText(image, label, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, Scalar.GREEN);
-		}
-		CanvasFrame frame = new CanvasFrame("HouseNumberDetection");
-		frame.setTitle(" - HouseNumberDetection");
-		frame.setCanvasSize(w, h);
-		frame.showImage(converter.convert(image));
-		try {
-			frame.waitKey();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			INDArray features = ds.getFeatures();
+			INDArray results = model.outputSingle(features);
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.1);
+			System.out.println(objs.size() + "  size of objs");
+
+			if (objs.size() > 1) {
+//				try {
+//					vObjectClassifier
+//							.loadImage(vObjectClassifier.getRecordReader().getFactory().getFeatureVectorAsMatrix());
+//				} catch (Exception e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+				FaultUtils.draw(features);
+				NativeImageLoader imageLoader = new NativeImageLoader();
+				Mat mat = imageLoader.asMat(features);
+				Mat convertedMat = new Mat();
+				mat.convertTo(convertedMat, CV_8U, 255, 0);
+				int w = 112 * 4;
+				int h = 6 * 100;
+				Mat image = new Mat();
+
+				resize(convertedMat, image, new Size(w, h));
+				for (DetectedObject obj : objs) {
+					System.out.println(obj.toString() + "  " + (obj.getPredictedClass()) + "  "
+							+ faultLabels.get(obj.getPredictedClass()));
+					double[] xy1 = obj.getTopLeftXY();
+					double[] xy2 = obj.getBottomRightXY();
+					String label = labels.get(obj.getPredictedClass());
+					int x1 = (int) Math.round(w * xy1[0] / gridWidth);
+					int y1 = (int) Math.round(h * xy1[1] / gridHeight);
+					int x2 = (int) Math.round(w * xy2[0] / gridWidth);
+					int y2 = (int) Math.round(h * xy2[1] / gridHeight);
+					rectangle(image, new Point(x1, y1), new Point(x2, y2), Scalar.YELLOW);
+					putText(image, label, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, Scalar.GREEN);
+				}
+				CanvasFrame frame = new CanvasFrame("Valididate");
+				frame.setTitle(" Fault - Valididation");
+				frame.setCanvasSize(w, h);
+				frame.showImage(converter.convert(image));
+				try {
+					frame.waitKey();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }
