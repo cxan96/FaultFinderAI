@@ -32,20 +32,31 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 	private FaultNames desiredFault;
 	private boolean singleFaultGeneration;
 	private boolean blurredFaults;
+	private int nchannels;
+	private boolean conv3D;
 
 	public KunkelPetersFaultRecorder(int superLayer, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration) {
-		this(superLayer, maxFaults, desiredFault, singleFaultGeneration, false);
+		this(superLayer, maxFaults, desiredFault, singleFaultGeneration, false, 1, false);
 	}
 
 	public KunkelPetersFaultRecorder(int superLayer, int maxFaults, FaultNames desiredFault,
-			boolean singleFaultGeneration, boolean blurredFaults) {
+			boolean singleFaultGeneration, boolean blurredFaults, int nchannels) {
+		this(superLayer, maxFaults, desiredFault, singleFaultGeneration, false, nchannels, false);
+	}
+
+	public KunkelPetersFaultRecorder(int superLayer, int maxFaults, FaultNames desiredFault,
+			boolean singleFaultGeneration, boolean blurredFaults, int nchannels, boolean cov3D) {
 		this.superLayer = superLayer;
 		this.maxFaults = maxFaults;
 		this.desiredFault = desiredFault;
 		this.singleFaultGeneration = singleFaultGeneration;
 		this.blurredFaults = blurredFaults;
-		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults);
+		this.nchannels = nchannels;
+		this.conv3D = cov3D;
+
+		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults,
+				nchannels);
 	}
 
 	@Override
@@ -66,7 +77,16 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 	@Override
 	public List<Writable> next() {
 		List<Writable> ret = new ArrayList<>();
-		ret.add(new NDArrayWritable(factory.getFeatureVector()));
+		// ret.add(new NDArrayWritable(factory.getFeatureVector()));
+		if (conv3D) {
+			ret.add(new NDArrayWritable(factory.asImageMatrix(2).getImage()));
+		} else {
+			ret.add(new NDArrayWritable(factory.asImageMatrix().getImage()));
+		}
+
+		// ret.add(new
+		// NDArrayWritable(factory.asUnShapedImageMatrix().getImage()));
+
 		ret.add(new IntWritable(getLabelInt(factory.getFaultLabel())));
 		this.reset();
 		return ret;
@@ -75,7 +95,7 @@ public class KunkelPetersFaultRecorder implements RecordReader {
 	@Override
 	public void reset() {
 		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.singleFaultGeneration,
-				this.blurredFaults);
+				this.blurredFaults, this.nchannels);
 	}
 
 	@Override

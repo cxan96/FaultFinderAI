@@ -20,6 +20,7 @@ public class ClassifyRealData {
 	private DataProcess dataProcess;
 	private FaultRecordScalerStrategy strategy;
 	private boolean singleModels = false;
+	private int nchannels = 1;
 
 	public ClassifyRealData() {
 		this.dataDir = "/Volumes/MacStorage/WorkData/CLAS12/RGACooked/V5b.2.1/";
@@ -43,23 +44,23 @@ public class ClassifyRealData {
 		// aList.add(dataDir + "out_clas_003971.evio.1003.hipo");
 		// aList.add(dataDir + "out_clas_003971.evio.1004.hipo");
 
-		fautList.add(FaultNames.CHANNEL_ONE);
-		fautList.add(FaultNames.CHANNEL_TWO);
-		fautList.add(FaultNames.CHANNEL_THREE);
-
-		fautList.add(FaultNames.CONNECTOR_E);
-		fautList.add(FaultNames.CONNECTOR_THREE);
-		fautList.add(FaultNames.CONNECTOR_TREE);
-
-		fautList.add(FaultNames.FUSE_A);
-		fautList.add(FaultNames.FUSE_B);
-		fautList.add(FaultNames.FUSE_C);
-
-		fautList.add(FaultNames.DEADWIRE);
-
-		fautList.add(FaultNames.HOTWIRE);
-
-		fautList.add(FaultNames.PIN_BIG);
+		// fautList.add(FaultNames.CHANNEL_ONE);
+		// fautList.add(FaultNames.CHANNEL_TWO);
+		// fautList.add(FaultNames.CHANNEL_THREE);
+		//
+		// fautList.add(FaultNames.CONNECTOR_E);
+		// fautList.add(FaultNames.CONNECTOR_THREE);
+		// fautList.add(FaultNames.CONNECTOR_TREE);
+		//
+		// fautList.add(FaultNames.FUSE_A);
+		// fautList.add(FaultNames.FUSE_B);
+		// fautList.add(FaultNames.FUSE_C);
+		//
+		// fautList.add(FaultNames.DEADWIRE);
+		//
+		// fautList.add(FaultNames.HOTWIRE);
+		//
+		// fautList.add(FaultNames.PIN_BIG);
 		fautList.add(FaultNames.PIN_SMALL);
 	}
 
@@ -69,26 +70,15 @@ public class ClassifyRealData {
 			for (int superlayer = 1; superlayer < 7; superlayer++) {
 				dataProcess.plotData(sector, superlayer);
 				System.out.println("\nDetected Faults for Sector: " + sector + " SuperLayer: " + superlayer);
-				INDArray featureArray = dataProcess.getFeatureVector(sector, superlayer, strategy);
+				// INDArray featureArray = dataProcess.getFeatureVector(sector,
+				// superlayer, strategy);
+				INDArray featureArray = dataProcess.asImageMartix(sector, superlayer, nchannels, strategy).getImage();
+
 				for (FaultNames fault : fautList) {
 					printCertainty(fault, superlayer, featureArray, false);
 				}
 			}
 		}
-	}
-
-	public double getCertainty(FaultNames fault, int superlayer, INDArray data) throws IOException {
-		// get the model
-		FaultClassifier classifier;
-		if (!singleModels) {
-			classifier = new FaultClassifier(
-					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
-		} else {
-			classifier = new FaultClassifier(
-					"models/binary_classifiers/benchmark/" + fault.getSaveName() + "_save1.zip");
-		}
-		double[] predictions = classifier.output(data).toDoubleVector();
-		return predictions[0];
 	}
 
 	public void printCertainty(FaultNames fault, int superlayer, INDArray data, boolean printAll) throws IOException {
@@ -98,8 +88,8 @@ public class ClassifyRealData {
 			classifier = new FaultClassifier(
 					"models/binary_classifiers/SL" + superlayer + "/" + fault.getSaveName() + ".zip");
 		} else {
-			classifier = new FaultClassifier(
-					"models/binary_classifiers/SmearedFaults/" + fault.getSaveName() + "_save1.zip");
+			System.out.println("here");
+			classifier = new FaultClassifier("models/binary_classifiers/benchmark/SmallPinBW.zip");
 		}
 		double[] predictions = classifier.output(data).toDoubleVector();
 		if (printAll) {
@@ -115,9 +105,14 @@ public class ClassifyRealData {
 		this.singleModels = singleModels;
 	}
 
+	public void setNchannels(int nchannels) {
+		this.nchannels = nchannels;
+	}
+
 	public static void main(String[] args) throws IOException {
 		ClassifyRealData cData = new ClassifyRealData();
 		cData.setSingleModel(true);
+		cData.setNchannels(1);
 		cData.runSingleModels();
 	}
 

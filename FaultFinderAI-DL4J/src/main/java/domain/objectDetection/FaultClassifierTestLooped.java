@@ -19,7 +19,7 @@ import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
-import client.ModelFactory;
+import domain.models.ModelFactory;
 import faultrecordreader.KunkelPetersFaultRecorder;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
@@ -114,7 +114,7 @@ public class FaultClassifierTestLooped {
 			// the
 			// model
 			// after each checkpoint
-			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true, 3);
 			for (int i = 0; i < this.checkPoints; i++) {
 				// train the classifier
 				classifier.train(2, 1, this.batchSize, 1, recordReader, strategy);
@@ -137,7 +137,7 @@ public class FaultClassifierTestLooped {
 
 	public void runEvaluation() throws IOException {
 		for (FaultNames faultName : fautList) {
-			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true, 3);
 			String fileName = "models/binary_classifiers/ComputationalGraphModel/" + faultName.getSaveName() + "_save"
 					+ this.savePoint + ".zip";
 

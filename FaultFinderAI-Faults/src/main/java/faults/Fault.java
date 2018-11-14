@@ -166,13 +166,13 @@ public class Fault {
 			}
 
 			/**
-			 * Sum below and above the fault IF the fault is not a 1-6 layer fault. Far less
-			 * faults that do not span six layers
+			 * Sum below and above the fault IF the fault is not a 1-6 layer
+			 * fault. Far less faults that do not span six layers
 			 */
 			if (this.notSixLayerFaults.contains(this.subFaultName)) {
 				/**
-				 * sum activations below the fault superlayer of the fault is not SL1 i.e.
-				 * entry.getKey!=1
+				 * sum activations below the fault superlayer of the fault is
+				 * not SL1 i.e. entry.getKey!=1
 				 */
 				if ((layer + 1) != 1) {
 					for (int j = 0; j < data.length; j++) { // j are the columns
@@ -184,8 +184,8 @@ public class Fault {
 				}
 
 				/**
-				 * sum activations above the fault superlayer of the fault is not SL6 i.e.
-				 * entry.getKey!=6
+				 * sum activations above the fault superlayer of the fault is
+				 * not SL6 i.e. entry.getKey!=6
 				 */
 				if ((layer + 1) != 6) {
 					for (int j = 0; j < data.length; j++) { // j are the columns

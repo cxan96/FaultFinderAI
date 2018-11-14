@@ -30,7 +30,7 @@ import org.jlab.groot.base.ColorPalette;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
-import faultrecordreader.CLASObjectRecordReader;
+import faultrecordreader.FaultObjectDetectionImageRecordReader;
 import faultrecordreader.FaultRecorderScaler;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
@@ -40,7 +40,9 @@ import utils.FaultUtils;
 public class ValidateFaultObjectClassifier {
 	int height = 6;
 	int width = 112;
-	int channels = 3;
+	int gridHeight = 3;
+	int gridwidth = 28;
+	int channels = 1;
 	private String fileName;
 	private DataSetIterator test;
 	private FaultObjectClassifier classifier;
@@ -58,7 +60,10 @@ public class ValidateFaultObjectClassifier {
 	}
 
 	private void initialize() {
-		this.recordReader = new CLASObjectRecordReader("clasdc", height, width, channels, 6, 28);
+		this.recordReader = new FaultObjectDetectionImageRecordReader(1, 10, FaultNames.CHANNEL_ONE, true, true, height,
+				width, channels, gridHeight, gridwidth);
+		// this.recordReader = new CLASObjectRecordReader("clasdc", height,
+		// width, channels, 6, 28);
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 		this.test = new RecordReaderDataSetIterator.Builder(recordReader, 1).regression(1).maxNumBatches(1)
 				.preProcessor(new FaultRecorderScaler(strategy)).build();
@@ -115,13 +120,14 @@ public class ValidateFaultObjectClassifier {
 		cframe.showImage(b);
 		// cframe.waitKey();
 
-//		try {
-//			ImageIO.write(b, "png", new File("/Users/Mike/Desktop/ScreenShots/Doublearray.png"));
-//
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		// try {
+		// ImageIO.write(b, "png", new
+		// File("/Users/Mike/Desktop/ScreenShots/Doublearray.png"));
+		//
+		// } catch (IOException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 		System.out.println("end");
 	}
 
@@ -137,7 +143,7 @@ public class ValidateFaultObjectClassifier {
 		Collections.sort(faultLabels);
 
 		FaultObjectClassifier classifier;
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/TestMKI.zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/OneChannelNewI.zip";
 		// List<String> labels = train.getLabels();
 		ValidateFaultObjectClassifier vObjectClassifier = new ValidateFaultObjectClassifier(fileName);
 
@@ -146,7 +152,10 @@ public class ValidateFaultObjectClassifier {
 				.getOutputLayer(0);
 		RecordReaderDataSetIterator test = (RecordReaderDataSetIterator) vObjectClassifier.getDSIterator();
 
-		for (int i = 0; i < 100; i++) {
+		boolean noFaultFound = true;
+
+		// for (int i = 0; i < 100; i++) {
+		while (noFaultFound) {
 			System.out.println("#################");
 			System.out.println("#################");
 
@@ -164,17 +173,18 @@ public class ValidateFaultObjectClassifier {
 
 			INDArray features = ds.getFeatures();
 			INDArray results = model.outputSingle(features);
-			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.1);
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.0001);
 			System.out.println(objs.size() + "  size of objs");
 
 			if (objs.size() > 1) {
-//				try {
-//					vObjectClassifier
-//							.loadImage(vObjectClassifier.getRecordReader().getFactory().getFeatureVectorAsMatrix());
-//				} catch (Exception e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
+				noFaultFound = false;
+				// try {
+				// vObjectClassifier
+				// .loadImage(vObjectClassifier.getRecordReader().getFactory().getFeatureVectorAsMatrix());
+				// } catch (Exception e) {
+				// // TODO Auto-generated catch block
+				// e.printStackTrace();
+				// }
 				FaultUtils.draw(features);
 				NativeImageLoader imageLoader = new NativeImageLoader();
 				Mat mat = imageLoader.asMat(features);

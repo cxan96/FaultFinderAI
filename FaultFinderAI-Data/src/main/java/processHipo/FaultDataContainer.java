@@ -45,7 +45,7 @@ public class FaultDataContainer {
 															// (layers)
 					for (int l = 0; l < data.length; l++) { // l are the columns
 															// (wires)
-						hData.setBinContent(l, k, data[l][k]);
+						hData.setBinContent(k, l, data[l][k]);
 					}
 				}
 				canvas.draw(hData);
@@ -61,7 +61,7 @@ public class FaultDataContainer {
 													// (layers)
 			for (int l = 0; l < data.length; l++) { // l are the columns
 													// (wires)
-				hData.setBinContent(l, k, data[l][k]);
+				hData.setBinContent(k, l, data[l][k]);
 			}
 		}
 		canvas.draw(hData);
@@ -75,7 +75,7 @@ public class FaultDataContainer {
 													// (layers)
 			for (int l = 0; l < data.length; l++) { // l are the columns
 													// (wires)
-				hData.setBinContent(l, k, data[l][k]);
+				hData.setBinContent(k, l, data[l][k]);
 			}
 		}
 		canvas.draw(hData);
@@ -90,7 +90,8 @@ public class FaultDataContainer {
 		public Container(int sector, int superLayer) {
 			this.sector = sector;
 			this.superLayer = superLayer;
-			this.data = new int[112][6];
+			this.data = new int[6][112];
+
 		}
 
 		public int getSector() {
@@ -102,7 +103,7 @@ public class FaultDataContainer {
 		}
 
 		public void increment(int wire, int layer) {
-			data[wire - 1][layer - 1]++;
+			data[layer - 1][wire - 1]++;
 		}
 
 		public int[][] getData() {

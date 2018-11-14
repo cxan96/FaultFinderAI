@@ -22,7 +22,6 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 
-import client.ModelFactory;
 import faultrecordreader.FaultRecorderScaler;
 import faultrecordreader.KunkelPetersFaultRecorder;
 import faults.FaultNames;
@@ -32,7 +31,7 @@ public class SideApproach2 {
 
 	public static void main(String[] args) throws IOException {
 		int faultType = 6;
-		MultiLayerNetwork net = ModelFactory.YOLOMod(2);
+		MultiLayerNetwork net = null;// ModelFactory.YOLOMod(2);
 		// set up a local web-UI to monitor the training available at
 		// localhost:9000
 		UIServer uiServer = UIServer.getInstance();

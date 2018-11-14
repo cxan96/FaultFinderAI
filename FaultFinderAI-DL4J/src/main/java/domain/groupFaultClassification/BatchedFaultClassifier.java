@@ -20,7 +20,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import client.FaultClassifier;
-import client.ModelFactory;
+import domain.models.ModelFactory;
 import faultrecordreader.KunkelPetersFaultRecorder;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;

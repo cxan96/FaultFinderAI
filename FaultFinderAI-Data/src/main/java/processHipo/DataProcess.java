@@ -3,14 +3,17 @@ package processHipo;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.datavec.image.data.Image;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
 import org.jlab.io.hipo.HipoDataSource;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.util.ArrayUtil;
 import org.nd4j.linalg.util.NDArrayUtil;
 
 import strategies.FaultRecordScalerStrategy;
+import utils.FaultUtils;
 
 public class DataProcess {
 	private HipoDataSource reader = null;
@@ -106,16 +109,35 @@ public class DataProcess {
 
 	public INDArray getFeatureVector(int sector, int superLayer) {
 		INDArray array = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.getData(sector, superLayer)));
-		// double maxRange = (double) array.maxNumber();
-		// array.divi((maxRange));
 
 		return array;
 	}
 
 	public INDArray getFeatureVector(int sector, int superLayer, FaultRecordScalerStrategy strategy) {
-		INDArray array = NDArrayUtil.toNDArray(ArrayUtil.flatten(this.getData(sector, superLayer)));
+		INDArray array = getFeatureVector(sector, superLayer);
 		strategy.normalize(array);
 		return array;
+	}
+
+	public INDArray getFeatureVectorAsMatrix(int sector, int superLayer) {
+		return Nd4j.create(FaultUtils.convertToDouble(this.getData(sector, superLayer)));
+	}
+
+	public INDArray getFeatureVectorAsMatrix(int sector, int superLayer, FaultRecordScalerStrategy strategy) {
+		INDArray array = Nd4j.create(FaultUtils.convertToDouble(this.getData(sector, superLayer)));
+		strategy.normalize(array);
+
+		return array;
+	}
+
+	public Image asImageMartix(int sector, int superLayer, int nchannels) {
+		return FaultUtils.asImageMatrix(nchannels, getFeatureVectorAsMatrix(sector, superLayer));
+
+	}
+
+	public Image asImageMartix(int sector, int superLayer, int nchannels, FaultRecordScalerStrategy strategy) {
+		return FaultUtils.asImageMatrix(nchannels, getFeatureVectorAsMatrix(sector, superLayer, strategy));
+
 	}
 
 }

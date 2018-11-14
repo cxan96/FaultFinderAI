@@ -16,7 +16,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import client.FaultClassifier;
-import client.ModelFactory;
+import domain.models.ModelFactory;
 import faultrecordreader.KunkelPetersFaultRecorder;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
@@ -26,8 +26,10 @@ public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
 		int scoreIterations = 1000;
+		int nchannels = 3;
+		boolean conv3D = true;
 
-		String fileName = "models/binary_classifiers/benchmark/newSmearPinSmall.zip";
+		String fileName = "models/binary_classifiers/benchmark/3DTest.zip";
 		FaultClassifier classifier;
 		// check if a saved model exists
 		if ((new File(fileName)).exists()) {
@@ -36,7 +38,16 @@ public class FaultClassifierTest {
 			classifier = new FaultClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			MultiLayerNetwork model = ModelFactory.deeperCNN(2);
+			MultiLayerNetwork model = null;
+			if (nchannels == 3) {
+
+				model = ModelFactory.deeperCNN3D(6, 112, nchannels, 2);
+
+			} else {
+				// model = ModelFactory.MKTestCNN(6, 112, nchannels, 2);
+				model = ModelFactory.deeperCNN(6, 112, nchannels, 2);
+
+			}
 
 			classifier = new FaultClassifier(model);
 		}
@@ -52,9 +63,9 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-
-		RecordReader recordReader = new KunkelPetersFaultRecorder(2, 10, FaultNames.PIN_SMALL, true, true);
-		int checkPoints = 5;
+		RecordReader recordReader = new KunkelPetersFaultRecorder(2, 10, FaultNames.PIN_SMALL, true, true, nchannels,
+				conv3D);
+		int checkPoints = 4;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);

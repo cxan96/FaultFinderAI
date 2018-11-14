@@ -13,7 +13,6 @@ import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
-import faultrecordreader.FaultRecordReader;
 import faultrecordreader.FaultRecorderScaler;
 import strategies.FaultRecordScalerStrategy;
 
@@ -94,7 +93,7 @@ public class FaultObjectClassifier {
 	 *
 	 * @return The results of the Evaluation.
 	 */
-	public Evaluation evaluate(int batchSize, int batchNum, FaultRecordReader recordReader,
+	public Evaluation evaluate(int batchSize, int batchNum, RecordReader recordReader,
 			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
 		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize)

@@ -2,6 +2,7 @@ package utils;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.stream.Stream;
 import java.util.zip.DataFormatException;
 
 import org.bytedeco.javacv.CanvasFrame;
@@ -23,6 +24,20 @@ public class FaultUtils {
 	public static int RANGE_MIN = 100;
 	public static int FAULT_RANGE_MAX = 50;
 	public static int FAULT_RANGE_MIN = 0;
+	public static double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
+	public static double[][] HVPinPriors = { { 8.0, 1.0 }, { 16.0, 1.0 } };
+	public static double[][] HVFusePriors = { { 6.0, 6.0 } };
+	public static double[][] HVConnectorPriors = { { 3.0, 6.0 } };
+	public static double[][] HVWirePriors = { { 1.0, 1.0 } };
+
+	public static double[][] allPriors = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors,
+			HVWirePriors);
+	public static double[][] allPriorsNoWire = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors);
+
+	public static double[][] merge(double[][]... arrays) {
+		return Stream.of(arrays).flatMap(Stream::of) // or use Arrays::stream
+				.toArray(double[][]::new);
+	}
 
 	public static int[][] getData(int superLayer) throws DataFormatException {
 		if (superLayer == 1) {
@@ -76,21 +91,24 @@ public class FaultUtils {
 	}
 
 	public static void draw(INDArray arr) {
-		double max = (double) arr.maxNumber();
-		System.out.println(max + " max from FaultUtils");
 		int rank = arr.rank();
 		int rows = arr.size(rank == 3 ? 1 : 2);
 		int cols = arr.size(rank == 3 ? 2 : 3);
 		int nchannels = arr.size(rank == 3 ? 0 : 1);
+		double dataMin = (double) arr.minNumber();
+		double dataMax = (double) arr.maxNumber();
+		// System.out.println(rank + " rank from FaultUtils");
 
 		BufferedImage b = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
 		// BufferedImage bb = new BufferedImage(width, height, imageType)
 		ColorPalette palette = new ColorPalette();
 		if (nchannels == 1) {
+
 			for (int y = 0; y < rows; y++) {
 				for (int x = 0; x < cols; x++) {
 
-					Color weightColor = palette.getColor3D(arr.getDouble(0, 0, y, x), max, false);
+					Color weightColor = palette.getColor3D(
+							rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x), dataMax - dataMin, false);
 
 					int red = weightColor.getRed();
 					int green = weightColor.getGreen();
@@ -124,9 +142,11 @@ public class FaultUtils {
 	}
 
 	public static INDArray toColor(int nChannels, INDArray data) {
+		double dataMin = (double) data.minNumber();
+		double dataMax = (double) data.maxNumber();
 		int rows = data.rows();
 		int cols = data.columns();
-		double max = (double) data.maxNumber();
+		// System.out.println(nChannels + " ######### NCHANNELS");
 
 		INDArray a = Nd4j.create(nChannels, rows, cols);
 		ColorPalette palette = new ColorPalette();
@@ -139,7 +159,7 @@ public class FaultUtils {
 		} else if (nChannels == 3) {
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
-					Color weightColor = palette.getColor3D(data.getDouble(i, j), max, false);
+					Color weightColor = palette.getColor3D(data.getDouble(i, j), dataMax - dataMin, false);
 					int red = weightColor.getRed();
 					int green = weightColor.getGreen();
 					int blue = weightColor.getBlue();
@@ -160,7 +180,31 @@ public class FaultUtils {
 
 		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
 		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
+		Image i = new Image(a, nChannels, data.rows(), data.columns());
 
+		return i;
+
+	}
+
+	public static Image asImageMatrix(int dimensions, int nChannels, INDArray data) {
+		INDArray a = toColor(nChannels, data);
+
+		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
+		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
+		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
+		// a = a.reshape('c', a.shape()[0], a.shape()[1], a.shape()[2],
+		// a.shape()[3], a.shape()[4]);
+		Image i = new Image(a, nChannels, data.rows(), data.columns());
+
+		return i;
+
+	}
+
+	public static Image asUnShapedImageMatrix(int nChannels, INDArray data) {
+		INDArray a = toColor(nChannels, data);
+
+		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
+		// a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
 		Image i = new Image(a, nChannels, data.rows(), data.columns());
 
 		return i;

@@ -20,7 +20,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import client.FaultClassifier;
-import client.ModelFactory;
+import domain.models.ModelFactory;
 import faultrecordreader.KunkelPetersFaultRecorder;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
@@ -44,15 +44,17 @@ public class FaultClassifierTestLooped {
 	private String fileName;
 	private String saveName;
 	private int batchSize;
+	private int nchannels;
 
 	public FaultClassifierTestLooped(int superLayer, int savePoint, int scoreIterations, int nFaults, int checkPoints,
-			int batchSize) {
+			int batchSize, int nchannels) {
 		this.superLayer = superLayer;
 		this.savePoint = savePoint;
 		this.scoreIterations = scoreIterations;
 		this.nFaults = nFaults;
 		this.checkPoints = checkPoints;
 		this.batchSize = batchSize;
+		this.nchannels = nchannels;
 		makeList();
 
 		this.strategy = new MinMaxStrategy();
@@ -115,7 +117,8 @@ public class FaultClassifierTestLooped {
 			// the
 			// model
 			// after each checkpoint
-			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true,
+					nchannels);
 			for (int i = 0; i < this.checkPoints; i++) {
 				// train the classifier
 				classifier.train(2, 1, this.batchSize, 1, recordReader, strategy);
@@ -138,7 +141,8 @@ public class FaultClassifierTestLooped {
 
 	public void runEvaluation() throws IOException {
 		for (FaultNames faultName : fautList) {
-			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true);
+			this.recordReader = new KunkelPetersFaultRecorder(this.superLayer, this.nFaults, faultName, true, true,
+					nchannels);
 			String fileName = "models/binary_classifiers/NewSmearedFaults/" + faultName.getSaveName() + "_save"
 					+ this.savePoint + ".zip";
 
@@ -182,7 +186,7 @@ public class FaultClassifierTestLooped {
 			 * scoreIterations, int nFaults, int checkPoints, int batchSize)
 			 */
 
-			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 50000, 10, 10, 10000);
+			FaultClassifierTestLooped looped = new FaultClassifierTestLooped(3, moreSaves, 50000, 10, 10, 10000, 3);
 			// FaultClassifierTestLooped looped = new
 			// FaultClassifierTestLooped(3, moreSaves, 5000, 10, 1, 1000);
 
