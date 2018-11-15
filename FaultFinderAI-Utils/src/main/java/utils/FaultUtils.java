@@ -24,11 +24,20 @@ public class FaultUtils {
 	public static int RANGE_MIN = 100;
 	public static int FAULT_RANGE_MAX = 50;
 	public static int FAULT_RANGE_MIN = 0;
-	public static double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
-	public static double[][] HVPinPriors = { { 8.0, 1.0 }, { 16.0, 1.0 } };
-	public static double[][] HVFusePriors = { { 6.0, 6.0 } };
-	public static double[][] HVConnectorPriors = { { 3.0, 6.0 } };
-	public static double[][] HVWirePriors = { { 1.0, 1.0 } };
+	private static double yDiv = 5. / 6.;
+	private static double xDiv = 111. / 112.;
+//	public static double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
+//	public static double[][] HVPinPriors = { { 8.0, 1.0 }, { 16.0, 1.0 } };
+//	public static double[][] HVFusePriors = { { 6.0, 6.0 } };
+//	public static double[][] HVConnectorPriors = { { 3.0, 6.0 } };
+//	public static double[][] HVWirePriors = { { 1.0, 1.0 } };
+
+	public static double[][] HVChannelPriors = { { 8.0 * xDiv, 6.0 * yDiv }, { 16.0 * xDiv, 6.0 * yDiv },
+			{ 32.0 * xDiv, 6.0 * yDiv } };
+	public static double[][] HVPinPriors = { { 8.0 * xDiv, 1.0 * yDiv }, { 16.0 * xDiv, 1.0 * yDiv } };
+	public static double[][] HVFusePriors = { { 6.0 * xDiv, 6.0 * yDiv } };
+	public static double[][] HVConnectorPriors = { { 3.0 * xDiv, 6.0 * yDiv } };
+	public static double[][] HVWirePriors = { { 1.0 * xDiv, 1.0 * yDiv } };
 
 	public static double[][] allPriors = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors,
 			HVWirePriors);
@@ -92,9 +101,17 @@ public class FaultUtils {
 
 	public static void draw(INDArray arr) {
 		int rank = arr.rank();
-		int rows = arr.size(rank == 3 ? 1 : 2);
-		int cols = arr.size(rank == 3 ? 2 : 3);
-		int nchannels = arr.size(rank == 3 ? 0 : 1);
+		int rows;
+		int cols;
+		int nchannels = 1;
+		if (rank == 2) {
+			rows = arr.size(0);
+			cols = arr.size(1);
+		} else {
+			rows = arr.size(rank == 3 ? 1 : 2);
+			cols = arr.size(rank == 3 ? 2 : 3);
+			nchannels = arr.size(rank == 3 ? 0 : 1);
+		}
 		double dataMin = (double) arr.minNumber();
 		double dataMax = (double) arr.maxNumber();
 		// System.out.println(rank + " rank from FaultUtils");

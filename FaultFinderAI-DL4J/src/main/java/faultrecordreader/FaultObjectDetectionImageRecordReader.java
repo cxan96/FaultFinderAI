@@ -104,7 +104,7 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 			labelSet.add(d.getSaveName());
 		}
 		labels = new ArrayList<>(labelSet);
-
+		System.out.println(labels.size() + "  lables size");
 		// To ensure consistent order for label assignment (irrespective of file
 		// iteration order), we want to sort the list of labels
 		Collections.sort(labels);

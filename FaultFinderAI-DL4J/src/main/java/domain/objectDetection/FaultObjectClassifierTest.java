@@ -13,9 +13,8 @@ import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
-import domain.models.ModelFactory;
-import faultrecordreader.FaultObjectDetectionImageRecordReader;
-import faults.FaultNames;
+import domain.models.CLASModelFactory;
+import faultrecordreader.CLASObjectRecordReader;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
@@ -28,12 +27,16 @@ public class FaultObjectClassifierTest {
 		// with clas height = 216 ; gridheight = 108
 		int height = 6;
 		int width = 112;
-		int gridHeight = 1;// 3;
-		int gridwidth = 53;// 28;
 		int channels = 1;
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/KunkelPetersYolo.zip";
-		String saveName = "models/binary_classifiers/ComputationalGraphModel/KunkelPetersYoloI.zip";
+		String modelType = "clas";
+		/**
+		 * set by CLASModelFactory
+		 */
+		int gridHeight = 5;// 3;
+		int gridwidth = 111;// 28;
 
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + ".zip";
+		CLASModelFactory factory = new CLASModelFactory(height, width, channels);
 		boolean reTrain = false;
 		FaultObjectClassifier classifier;
 		// check if a saved model exists
@@ -43,11 +46,13 @@ public class FaultObjectClassifierTest {
 			classifier = new FaultObjectClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			// ComputationGraph model =
-			// ModelFactory.computationGraphModelYolo(height, width, channels);
-			ComputationGraph model = ModelFactory.KunkelPetersYolo(height, width, channels);
+			// ComputationGraph model = Models.singleSuperlayerModel(height, width,
+			// channels);
+			// ComputationGraph model = ModelFactory.KunkelPetersYolo(height, width,
+			// channels);
 
 			// KunkelPetersYolo
+			ComputationGraph model = factory.getModel(modelType);
 			classifier = new FaultObjectClassifier(model);
 		}
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
@@ -62,12 +67,13 @@ public class FaultObjectClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		// RecordReader recordReader = new CLASObjectRecordReader("clasdc",
-		// height, width, channels, 6, 28);
-		RecordReader recordReader = new FaultObjectDetectionImageRecordReader(1, 10, FaultNames.CHANNEL_ONE, true, true,
-				height, width, channels, gridHeight, gridwidth);
+		RecordReader recordReader = new CLASObjectRecordReader(modelType, height, width, channels, gridHeight,
+				gridwidth);
+		// RecordReader recordReader = new FaultObjectDetectionImageRecordReader(1, 10,
+		// FaultNames.CHANNEL_ONE, true, true,
+		// height, width, channels, gridHeight, gridwidth);
 
-		int checkPoints = 7;
+		int checkPoints = 15;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);
@@ -76,7 +82,7 @@ public class FaultObjectClassifierTest {
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			classifier.save(saveName);
+			classifier.save(fileName);
 
 			System.out.println("#############################################");
 			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));

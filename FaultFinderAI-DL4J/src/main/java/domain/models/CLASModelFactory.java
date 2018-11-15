@@ -5,36 +5,48 @@ package domain.models;
 
 import org.deeplearning4j.nn.graph.ComputationGraph;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author m.c.kunkel
  *
  */
+@RequiredArgsConstructor
 public class CLASModelFactory {
 
-	int height;
-	int width;
-	int numChannels;
-	int numLabels;
+	private final int height;
+	private final int width;
+	private final int numChannels;
 
-	public CLASModelFactory() {
+	@Getter
+	private int gridWidth;
+	@Getter
+	private int gridHeight;
 
-	}
-
-	public ComputationGraph getModel(String type) {
+	public ComputationGraph getModel(String modelType) {
 		ComputationGraph computationGraph = null;
 		/**
 		 * This is the base case for just one superlayer
 		 */
-		if (type.isEmpty()) {
-			computationGraph = ModelFactory.computationGraphModel(height, width, numChannels, numLabels);
-		} else if (type.equalsIgnoreCase("clasdc")) {
-			computationGraph = ModelFactory.computationGraphModel(height, width, numChannels, numLabels);
-		} else if (type.equalsIgnoreCase("clasRegion")) {
-			computationGraph = ModelFactory.computationGraphModel(height, width, numChannels, numLabels);
-		} else if (type.equalsIgnoreCase("clas")) {
-			computationGraph = ModelFactory.computationGraphModel(height, width, numChannels, numLabels);
+		if (modelType.isEmpty()) {
+			this.gridHeight = 3;
+			this.gridWidth = 28;
+			computationGraph = Models.KunkelPetersYolo(height, width, numChannels);
+		} else if (modelType.equalsIgnoreCase("clasdc")) {
+			this.gridHeight = 6;
+			this.gridWidth = 28;
+			computationGraph = Models.DCModel(height, width, numChannels);
+		} else if (modelType.equalsIgnoreCase("clasRegion")) {
+			this.gridHeight = 36;
+			this.gridWidth = 28;
+			computationGraph = Models.RegionhModel(height, width, numChannels);
+		} else if (modelType.equalsIgnoreCase("clas")) {
+			this.gridHeight = 36 * 3;
+			this.gridWidth = 28;
+			computationGraph = Models.CLASModel(height, width, numChannels);
 		} else {
-			throw new IllegalArgumentException("Invalid input: " + type);
+			throw new IllegalArgumentException("Invalid input: " + modelType);
 
 		}
 

@@ -54,7 +54,7 @@ public class CLASFactoryImpl implements CLASFactory {
 	}
 
 	public static void main(String[] args) {
-		CLASFactory factory = new CLASFactoryImpl("clasRegion", 1);
+		CLASFactory factory = new CLASFactoryImpl("clas", 3);
 		// INDArray ret = factory.getObject().getImage().getImage();
 		INDArray ret = factory.getImage().getImage();
 

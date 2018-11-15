@@ -25,10 +25,10 @@ public class FaultCoordinates {
 							+ " (xMax,yMax) top right position. Received: (" + xMin + "," + yMin + "), (" + xMax + ","
 							+ yMax + ")");
 		}
-		this.xMin = xMin;
-		this.yMin = yMin;
-		this.xMax = xMax;
-		this.yMax = yMax;
+		this.xMin = xMin - 1;
+		this.yMin = yMin - 1;
+		this.xMax = xMax - 1;
+		this.yMax = yMax - 1;
 		this.label = label;
 
 	}
@@ -49,13 +49,13 @@ public class FaultCoordinates {
 		double xCenter = 0;
 		double yCenter = 0;
 		if (this.xMax == this.xMin) {
-			xCenter = (double) this.xMax - 0.5;
+			xCenter = (double) this.xMax + 0.5;
 		} else {
 			xCenter = (double) (this.xMax + this.xMin) * 0.5;
 		}
 		// for the layers
 		if (this.yMax == this.yMin) {
-			yCenter = (double) this.yMax - 0.5;
+			yCenter = (double) this.yMax + 0.5;
 		} else {
 			yCenter = (double) (this.yMax + this.yMin) * 0.5;
 		}

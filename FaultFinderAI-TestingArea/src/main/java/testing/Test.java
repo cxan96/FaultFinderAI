@@ -1,18 +1,31 @@
 package testing;
 
-import java.util.concurrent.ThreadLocalRandom;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
 public class Test {
+	private static double yDiv = 5. / 6.;
+	private static double xDiv = 111. / 112.;
+	public static double[][] HVChannelPriors = { { 8.0 * xDiv, 6.0 * yDiv }, { 16.0 * xDiv, 6.0 * yDiv },
+			{ 32.0 * xDiv, 6.0 * yDiv } };
 
 	public static void main(String[] args) {
 
-		if (!true) {
-			int superLayer = ThreadLocalRandom.current().nextInt(1, 7);
-			System.out.println(superLayer);
+		// double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
 
-		} else {
-			System.out.println("Not today ISIS");
+		double[][] divide = { { 2, 3 } };
+		INDArray priors = Nd4j.create(HVChannelPriors);
+		INDArray quot = Nd4j.create(divide);
+
+		INDArray ret = quot.divi(priors);
+
+		for (int i = 0; i < HVChannelPriors.length; i++) {
+			for (int j = 0; j < HVChannelPriors[0].length; j++) {
+				System.out.println(HVChannelPriors[i][j] + "  " + i + "  " + j + "  " + HVChannelPriors[i][j]);
+
+			}
 		}
+
 	}
 
 }

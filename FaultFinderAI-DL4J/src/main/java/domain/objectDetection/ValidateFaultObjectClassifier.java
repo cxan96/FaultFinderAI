@@ -143,7 +143,7 @@ public class ValidateFaultObjectClassifier {
 		Collections.sort(faultLabels);
 
 		FaultObjectClassifier classifier;
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/OneChannelNewI.zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/KunkelPetersYoloI.zip";
 		// List<String> labels = train.getLabels();
 		ValidateFaultObjectClassifier vObjectClassifier = new ValidateFaultObjectClassifier(fileName);
 
