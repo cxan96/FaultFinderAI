@@ -388,8 +388,27 @@ public class Models {
 		/**
 		 * downsample
 		 */
-		graphBuilder.addLayer("cnn1Block" + blockNum, new ConvolutionLayer.Builder(3, 3).stride(1, 2).nOut(filters[0])
-				.activation(new ActivationLReLU()).padding(0, 1).build(), input);
+		graphBuilder.addLayer("cnn1Block" + blockNum, new ConvolutionLayer.Builder(3, 3).stride(2, 2).nOut(filters[0])
+				.activation(new ActivationLReLU()).padding(1, 1).build(), input);
+		graphBuilder.addLayer(
+				"cnn2Block" + blockNum, new ConvolutionLayer.Builder(1, 1).stride(1, 1).nOut(filters[1])
+						.activation(new ActivationReLU()).convolutionMode(ConvolutionMode.Same).build(),
+				"cnn1Block" + blockNum);
+		graphBuilder.addLayer(
+				"cnn3Block" + blockNum, new ConvolutionLayer.Builder(3, 3).stride(1, 1).nOut(filters[2])
+						.activation(new ActivationReLU()).convolutionMode(ConvolutionMode.Same).build(),
+				"cnn2Block" + blockNum);
+		graphBuilder.addVertex("shortcut" + blockNum, new ElementWiseVertex(Op.Add), "cnn1Block" + blockNum,
+				"cnn3Block" + blockNum);
+	}
+
+	public static void resBlocksSmallSample(GraphBuilder graphBuilder, String input, int blockNum, int... filters) {
+
+		/**
+		 * downsample
+		 */
+		graphBuilder.addLayer("cnn1Block" + blockNum, new ConvolutionLayer.Builder(3, 3).stride(2, 1).nOut(filters[0])
+				.activation(new ActivationLReLU()).padding(1, 0).build(), input);
 		graphBuilder.addLayer(
 				"cnn2Block" + blockNum, new ConvolutionLayer.Builder(1, 1).stride(1, 1).nOut(filters[1])
 						.activation(new ActivationReLU()).convolutionMode(ConvolutionMode.Same).build(),
@@ -429,10 +448,10 @@ public class Models {
 		graphBuilder.addInputs("input").setInputTypes(InputType.convolutional(height, width, numChannels));
 		graphBuilder.addLayer("cnn1", new ConvolutionLayer.Builder(3, 3).stride(1, 1).nOut(32)
 				.activation(new ActivationLReLU()).convolutionMode(ConvolutionMode.Same).build(), "input");
-		resBlock(graphBuilder, "cnn1", 1, 64, 32, 64);
-		resBlock(graphBuilder, "shortcut" + 1, 2, 128, 64, 128);
+		resBlocksSmallSample(graphBuilder, "cnn1", 1, 64, 32, 64);
+		resBlocksSmallSample(graphBuilder, "shortcut" + 1, 2, 128, 64, 128);
 		shortBlock(graphBuilder, "shortcut" + 2, 2, 64, 128);
-		resBlock(graphBuilder, "shortcutShortBlock" + 2, 3, 256, 128, 256);
+		resBlocksSmallSample(graphBuilder, "shortcutShortBlock" + 2, 3, 256, 128, 256);
 		shortBlock(graphBuilder, "shortcut" + 3, 3, 128, 256);
 		shortBlock(graphBuilder, "shortcutShortBlock" + 3, 31, 128, 256);
 		shortBlock(graphBuilder, "shortcutShortBlock" + 31, 32, 128, 256);
