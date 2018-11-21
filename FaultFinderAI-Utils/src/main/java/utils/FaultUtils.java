@@ -141,9 +141,13 @@ public class FaultUtils {
 			for (int y = 0; y < rows; y++) {
 				for (int x = 0; x < cols; x++) {
 
-					double red = arr.getDouble(0, 0, y, x);
-					double green = arr.getDouble(0, 1, y, x);
-					double blue = arr.getDouble(0, 2, y, x);
+					double red = rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x);
+					double green = rank == 3 ? arr.getDouble(1, y, x) : arr.getDouble(0, 1, y, x);
+					double blue = rank == 3 ? arr.getDouble(2, y, x) : arr.getDouble(0, 2, y, x);
+
+//					double red = arr.getDouble(0, 0, y, x);
+//					double green = arr.getDouble(0, 1, y, x);
+//					double blue = arr.getDouble(0, 2, y, x);
 					double rgb = ((red * 65536) + (green * 256) + blue);
 
 					b.setRGB(x, rows - y - 1, (int) rgb);

@@ -53,21 +53,21 @@ public class CLASDriftChamber implements CLASFactory {
 		this.dcFaults = new HashMap<>();
 		if (this.region == 1) {
 			factory = new FaultFactory(1, 10, FaultNames.CHANNEL_ONE, true, true, nchannels);
-			dcFaults.put(1, Pair.of(factory.asImageMatrix(), factory.getFaultList()));
+			dcFaults.put(1, Pair.of(factory.asUnShapedImageMatrix(), factory.getFaultList()));
 			factory = new FaultFactory(2, 10, FaultNames.CHANNEL_ONE, true, true, nchannels);
-			dcFaults.put(2, Pair.of(factory.asImageMatrix(), factory.getFaultList()));
+			dcFaults.put(2, Pair.of(factory.asUnShapedImageMatrix(), factory.getFaultList()));
 
 		} else if (this.region == 2) {
 			factory = new FaultFactory(3, 10, FaultNames.CHANNEL_ONE, true, true, nchannels);
-			dcFaults.put(1, Pair.of(factory.asImageMatrix(), factory.getFaultList()));
+			dcFaults.put(1, Pair.of(factory.asUnShapedImageMatrix(), factory.getFaultList()));
 			factory = new FaultFactory(4, 10, FaultNames.CHANNEL_ONE, true, true, nchannels);
-			dcFaults.put(2, Pair.of(factory.asImageMatrix(), factory.getFaultList()));
+			dcFaults.put(2, Pair.of(factory.asUnShapedImageMatrix(), factory.getFaultList()));
 
 		} else {
 			factory = new FaultFactory(5, 10, FaultNames.CHANNEL_ONE, true, true, nchannels);
-			dcFaults.put(1, Pair.of(factory.asImageMatrix(), factory.getFaultList()));
+			dcFaults.put(1, Pair.of(factory.asUnShapedImageMatrix(), factory.getFaultList()));
 			factory = new FaultFactory(6, 10, FaultNames.CHANNEL_ONE, true, true, nchannels);
-			dcFaults.put(2, Pair.of(factory.asImageMatrix(), factory.getFaultList()));
+			dcFaults.put(2, Pair.of(factory.asUnShapedImageMatrix(), factory.getFaultList()));
 
 		}
 
@@ -84,7 +84,7 @@ public class CLASDriftChamber implements CLASFactory {
 		/**
 		 * Concat along the rows i.e layers
 		 */
-		INDArray ret = Nd4j.concat(2, a, b);
+		INDArray ret = Nd4j.concat(a.rank() == 3 ? 1 : 2, a, b);
 		int rank = ret.rank();
 		int rows = ret.size(rank == 3 ? 1 : 2);
 		int cols = ret.size(rank == 3 ? 2 : 3);
@@ -100,6 +100,7 @@ public class CLASDriftChamber implements CLASFactory {
 
 		for (Fault fault : bList) {
 			fault.offsetFaultCoodinates(6.0, "y");
+
 			aList.add(fault);
 		}
 		this.faultList = aList;
@@ -117,10 +118,11 @@ public class CLASDriftChamber implements CLASFactory {
 		int cols = ret.size(rank == 3 ? 2 : 3);
 		int nchannels = ret.size(rank == 3 ? 0 : 1);
 		// System.out.println(rank + " " + rows + " " + cols + " " + nchannels);
-//
-//		for (Fault fault : c.getFaultList()) {
-//			fault.printWireInformation();
-//		}
+		System.out.println(ret.shapeInfoToString());
+
+		for (Fault fault : c.getFaultList()) {
+			fault.printWireInformation();
+		}
 
 	}
 

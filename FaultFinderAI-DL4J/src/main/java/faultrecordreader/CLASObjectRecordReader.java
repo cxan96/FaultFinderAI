@@ -160,7 +160,7 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 			outImg.put(new INDArrayIndex[] { point(exampleNum), all(), all(), all() }, imageFile.getImage());
 
 			List<Fault> objectsThisImg = objects.get(exampleNum);
-
+			// System.out.println(outImg.shapeInfoToString());
 			label(imageFile, objectsThisImg, outLabel, exampleNum);
 
 			exampleNum++;

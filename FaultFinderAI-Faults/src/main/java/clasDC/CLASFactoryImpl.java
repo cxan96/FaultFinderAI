@@ -54,7 +54,7 @@ public class CLASFactoryImpl implements CLASFactory {
 	}
 
 	public static void main(String[] args) {
-		CLASFactory factory = new CLASFactoryImpl("clas", 3);
+		CLASFactory factory = new CLASFactoryImpl("clasdc", 3);
 		// INDArray ret = factory.getObject().getImage().getImage();
 		INDArray ret = factory.getImage().getImage();
 
@@ -63,7 +63,7 @@ public class CLASFactoryImpl implements CLASFactory {
 		int rows = ret.size(rank == 3 ? 1 : 2);
 		int cols = ret.size(rank == 3 ? 2 : 3);
 		int nchannels = ret.size(rank == 3 ? 0 : 1);
-		System.out.println(rank + " " + rows + " " + cols + " " + nchannels);
+		System.out.println(rank + " " + rows + " " + cols + " " + nchannels + "   " + ret.shapeInfoToString());
 
 		for (Fault fault : factory.getFaultList()) {
 			fault.printWireInformation();

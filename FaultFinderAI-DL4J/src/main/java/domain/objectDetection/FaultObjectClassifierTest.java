@@ -21,7 +21,7 @@ import strategies.MinMaxStrategy;
 public class FaultObjectClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
-		int scoreIterations = 1000;
+		int scoreIterations = 500;
 		// with clasdc height = 12 ; gridheight = 6
 		// with clasRegion height = 72 ; gridheight = 36
 		// with clas height = 216 ; gridheight = 108
@@ -32,8 +32,11 @@ public class FaultObjectClassifierTest {
 		/**
 		 * set by CLASModelFactory
 		 */
-		int gridHeight = 7;// 3;
-		int gridwidth = 45;// 28;
+		/**
+		 * KunkelPetersUYolo gridHeight = 12 gridWidth = 112
+		 */
+		int gridHeight = 12;// 3;
+		int gridwidth = 112;// 28;
 
 		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBW.zip"; // 100Kevents
 																												// events
@@ -102,5 +105,6 @@ public class FaultObjectClassifierTest {
 		// Evaluation evaluation = classifier.evaluate(2, 1, 10000,
 		// recordReader, strategy);
 		// System.out.println(evaluation.stats());
+		System.exit(0);
 	}
 }

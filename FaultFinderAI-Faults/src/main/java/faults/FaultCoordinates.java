@@ -25,10 +25,10 @@ public class FaultCoordinates {
 							+ " (xMax,yMax) top right position. Received: (" + xMin + "," + yMin + "), (" + xMax + ","
 							+ yMax + ")");
 		}
-		this.xMin = xMin - 1;
-		this.yMin = yMin - 1;
-		this.xMax = xMax - 1;
-		this.yMax = yMax - 1;
+		this.xMin = xMin;
+		this.yMin = yMin;
+		this.xMax = xMax;
+		this.yMax = yMax;
 		this.label = label;
 
 	}

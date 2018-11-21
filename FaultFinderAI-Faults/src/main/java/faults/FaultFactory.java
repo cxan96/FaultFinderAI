@@ -22,8 +22,8 @@ public class FaultFactory {
 	private List<Fault> faultList;
 
 	/**
-	 * superLayer is used to call the correct background data, This data has
-	 * been engineered from actual data in Run 3923
+	 * superLayer is used to call the correct background data, This data has been
+	 * engineered from actual data in Run 3923
 	 */
 	private int superLayer;
 
@@ -32,8 +32,7 @@ public class FaultFactory {
 	 */
 	private int[][] data;
 	/**
-	 * retData is an array to of faults that is returned in CLAS the coordinate
-	 * <br>
+	 * retData is an array to of faults that is returned in CLAS the coordinate <br>
 	 * system of x = wires y = layers
 	 */
 	private int[][] retData;
@@ -49,14 +48,14 @@ public class FaultFactory {
 	private boolean randomSuperlayer;
 
 	/**
-	 * nFaults is used to generate the number of background faults to
-	 * differentiate against
+	 * nFaults is used to generate the number of background faults to differentiate
+	 * against
 	 */
 	private int nFaults;
 
 	/**
-	 * randomSmear is to blurr out the faults by the median value of the
-	 * activations from the surrounding neighbors
+	 * randomSmear is to blurr out the faults by the median value of the activations
+	 * from the surrounding neighbors
 	 */
 	private boolean randomSmear;
 
@@ -96,8 +95,8 @@ public class FaultFactory {
 		generateFaults();
 		makeDataSet();
 		/**
-		 * here I am converting the data set back to x = columns = wires y =
-		 * rows = layers
+		 * here I am converting the data set back to x = columns = wires y = rows =
+		 * layers
 		 */
 		convertDataset();
 
@@ -333,19 +332,24 @@ public class FaultFactory {
 		// for (int i = 1; i < 10; i++) {
 		FaultFactory factory = new FaultFactory(3, 10, FaultNames.PIN_SMALL, true, true, channels);
 		factory.draw();
-		Image image = factory.asImageMatrix(2);
-		// FaultUtils.draw(image);
-		INDArray arr = image.getImage();
-		System.out.println(arr.shapeInfoToString());
-		double dataMin = (double) arr.minNumber();
-		double dataMax = (double) arr.maxNumber();
+		Image image = factory.asImageMatrix();
+		Image image2 = factory.asUnShapedImageMatrix();
 
-		System.out.println(dataMin + "  " + dataMax);
-		System.out.println(factory.getLabelInt());
-		for (Fault fault : factory.getFaultList()) {
-			System.out.println(fault.getSubFaultName());
-			fault.getFaultCoordinates().printFaultCoordinates();
-		}
+		System.out.println(image.getImage().shapeInfoToString() + "   " + image2.getImage().shapeInfoToString());
+		System.out.println(image.getImage().rank() + "   " + image2.getImage().rank());
+
+		// FaultUtils.draw(image);
+//		INDArray arr = image.getImage();
+//		System.out.println(arr.shapeInfoToString());
+//		double dataMin = (double) arr.minNumber();
+//		double dataMax = (double) arr.maxNumber();
+//
+//		System.out.println(dataMin + "  " + dataMax);
+//		System.out.println(factory.getLabelInt());
+//		for (Fault fault : factory.getFaultList()) {
+//			System.out.println(fault.getSubFaultName());
+//			fault.getFaultCoordinates().printFaultCoordinates();
+//		}
 
 	}
 }// end
