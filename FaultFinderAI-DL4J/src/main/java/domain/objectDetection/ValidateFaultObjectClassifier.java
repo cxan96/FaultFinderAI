@@ -30,7 +30,7 @@ import org.jlab.groot.base.ColorPalette;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
-import faultrecordreader.FaultObjectDetectionImageRecordReader;
+import faultrecordreader.CLASObjectRecordReader;
 import faultrecordreader.FaultRecorderScaler;
 import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
@@ -38,15 +38,16 @@ import strategies.MinMaxStrategy;
 import utils.FaultUtils;
 
 public class ValidateFaultObjectClassifier {
-	int height = 6;
+	int height = 12;
 	int width = 112;
-	int gridHeight = 3;
-	int gridwidth = 28;
-	int channels = 1;
+	int gridHeight = 11;
+	int gridwidth = 53;
+	int channels = 3;
 	private String fileName;
 	private DataSetIterator test;
 	private FaultObjectClassifier classifier;
 	private RecordReader recordReader;
+	private String modelType = "clasdc";
 
 	public ValidateFaultObjectClassifier(String fileName) {
 		this.fileName = fileName;
@@ -60,8 +61,11 @@ public class ValidateFaultObjectClassifier {
 	}
 
 	private void initialize() {
-		this.recordReader = new FaultObjectDetectionImageRecordReader(1, 10, FaultNames.CHANNEL_ONE, true, true, height,
-				width, channels, gridHeight, gridwidth);
+		// this.recordReader = new FaultObjectDetectionImageRecordReader(1, 10,
+		// FaultNames.CHANNEL_ONE, true, true, height,
+		// width, channels, gridHeight, gridwidth);
+		//
+		this.recordReader = new CLASObjectRecordReader(modelType, height, width, channels, gridHeight, gridwidth);
 		// this.recordReader = new CLASObjectRecordReader("clasdc", height,
 		// width, channels, 6, 28);
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
@@ -143,7 +147,7 @@ public class ValidateFaultObjectClassifier {
 		Collections.sort(faultLabels);
 
 		FaultObjectClassifier classifier;
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/KunkelPetersYoloI.zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/clasdcNoWireGenII.zip";
 		// List<String> labels = train.getLabels();
 		ValidateFaultObjectClassifier vObjectClassifier = new ValidateFaultObjectClassifier(fileName);
 
@@ -156,8 +160,6 @@ public class ValidateFaultObjectClassifier {
 
 		// for (int i = 0; i < 100; i++) {
 		while (noFaultFound) {
-			System.out.println("#################");
-			System.out.println("#################");
 
 			org.nd4j.linalg.dataset.DataSet ds = test.next();
 			List<String> labels = test.getLabels();
@@ -173,10 +175,12 @@ public class ValidateFaultObjectClassifier {
 
 			INDArray features = ds.getFeatures();
 			INDArray results = model.outputSingle(features);
-			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.0001);
-			System.out.println(objs.size() + "  size of objs");
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.000001);
 
 			if (objs.size() > 1) {
+				System.out.println(objs.size() + "  size of objs");
+				System.out.println("#################");
+				System.out.println("#################");
 				noFaultFound = false;
 				// try {
 				// vObjectClassifier

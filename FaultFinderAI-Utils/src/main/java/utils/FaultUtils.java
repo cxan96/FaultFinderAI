@@ -24,28 +24,29 @@ public class FaultUtils {
 	public static int RANGE_MIN = 100;
 	public static int FAULT_RANGE_MAX = 50;
 	public static int FAULT_RANGE_MIN = 0;
-	private static double yDiv = 5. / 6.;
-	private static double xDiv = 111. / 112.;
-//	public static double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
-//	public static double[][] HVPinPriors = { { 8.0, 1.0 }, { 16.0, 1.0 } };
-//	public static double[][] HVFusePriors = { { 6.0, 6.0 } };
-//	public static double[][] HVConnectorPriors = { { 3.0, 6.0 } };
-//	public static double[][] HVWirePriors = { { 1.0, 1.0 } };
 
-	public static double[][] HVChannelPriors = { { 8.0 * xDiv, 6.0 * yDiv }, { 16.0 * xDiv, 6.0 * yDiv },
-			{ 32.0 * xDiv, 6.0 * yDiv } };
-	public static double[][] HVPinPriors = { { 8.0 * xDiv, 1.0 * yDiv }, { 16.0 * xDiv, 1.0 * yDiv } };
-	public static double[][] HVFusePriors = { { 6.0 * xDiv, 6.0 * yDiv } };
-	public static double[][] HVConnectorPriors = { { 3.0 * xDiv, 6.0 * yDiv } };
-	public static double[][] HVWirePriors = { { 1.0 * xDiv, 1.0 * yDiv } };
+	public static double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
+	public static double[][] HVPinPriors = { { 8.0, 1.0 }, { 16.0, 1.0 } };
+	public static double[][] HVFusePriors = { { 6.0, 6.0 } };
+	public static double[][] HVConnectorPriors = { { 3.0, 6.0 } };
+	public static double[][] HVWirePriors = { { 1.0, 1.0 } };
 
-	public static double[][] allPriors = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors,
-			HVWirePriors);
+	public static double[][] allPriors = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors);
 	public static double[][] allPriorsNoWire = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors);
 
 	public static double[][] merge(double[][]... arrays) {
 		return Stream.of(arrays).flatMap(Stream::of) // or use Arrays::stream
 				.toArray(double[][]::new);
+	}
+
+	public static double[][] getPriors(double[][] scales) {
+		double[][] ret = new double[allPriors.length][allPriors[0].length];
+		for (int i = 0; i < allPriors.length; i++) {
+			for (int j = 0; j < allPriors[0].length; j++) {
+				ret[i][j] = allPriors[i][j] / scales[0][j];
+			}
+		}
+		return ret;
 	}
 
 	public static int[][] getData(int superLayer) throws DataFormatException {

@@ -1,5 +1,8 @@
 package faults;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * This enum is used to deal with fault names in a readable manner.
  *
@@ -7,12 +10,20 @@ package faults;
  * the label.
  */
 public enum FaultNames {
-	PIN_SMALL("pin_small", 0, "pin_small"), PIN_BIG("pin_big", 1, "pin_big"), CHANNEL_ONE("Channel 1", 2, "Channel_1"),
-	CHANNEL_TWO("Channel 2", 3, "Channel_2"), CHANNEL_THREE("Channel 3", 4, "Channel_3"),
-	CONNECTOR_E("Connector E", 5, "Connector_E"), CONNECTOR_TREE("Connector Tree", 6, "Connector_Tree"),
-	CONNECTOR_THREE("Connector Three", 7, "Connector_Three"), FUSE_A("Fuse A", 8, "Fuse_A"),
-	FUSE_B("Fuse B", 9, "Fuse_B"), FUSE_C("Fuse C", 10, "Fuse_C"), DEADWIRE("deadwire", 11, "Deadwire"),
-	HOTWIRE("hotwire", 12, "Hotwire"), NOFAULT("No Fault", 13, "No_Fault");
+	PIN_SMALL("pin_small", 0, "pin_small"), PIN_BIG("pin_big", 1, "pin_big"), CHANNEL_ONE("Channel 1", 2,
+			"Channel_1"), CHANNEL_TWO("Channel 2", 3, "Channel_2"), CHANNEL_THREE("Channel 3", 4,
+					"Channel_3"), CONNECTOR_E("Connector E", 5, "Connector_E"), CONNECTOR_TREE("Connector Tree", 6,
+							"Connector_Tree"), CONNECTOR_THREE("Connector Three", 7, "Connector_Three"), FUSE_A(
+									"Fuse A", 8, "Fuse_A"), FUSE_B("Fuse B", 9, "Fuse_B"), FUSE_C("Fuse C", 10,
+											"Fuse_C");/*
+														 * ,
+														 * DEADWIRE("deadwire",
+														 * 11, "Deadwire"),
+														 * HOTWIRE("hotwire",
+														 * 12, "Hotwire"),
+														 * NOFAULT("No Fault",
+														 * 13, "No_Fault");
+														 */
 
 	private final String name;
 	private final int index;
@@ -46,8 +57,13 @@ public enum FaultNames {
 		FaultNames aNames = FaultNames.CHANNEL_ONE;
 		System.out.println(aNames.getSaveName());
 		System.out.println("###########################################");
+		Set<String> labelSet = new HashSet<>();
+
 		for (FaultNames d : FaultNames.values()) {
 			System.out.println(d.getSaveName());
+			labelSet.add(d.getSaveName());
+
 		}
+		System.out.println(labelSet.size());
 	}
 }

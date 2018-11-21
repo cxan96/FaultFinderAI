@@ -22,8 +22,8 @@ public class FaultFactory {
 	private List<Fault> faultList;
 
 	/**
-	 * superLayer is used to call the correct background data, This data has been
-	 * engineered from actual data in Run 3923
+	 * superLayer is used to call the correct background data, This data has
+	 * been engineered from actual data in Run 3923
 	 */
 	private int superLayer;
 
@@ -32,7 +32,8 @@ public class FaultFactory {
 	 */
 	private int[][] data;
 	/**
-	 * retData is an array to of faults that is returned in CLAS the coordinate <br>
+	 * retData is an array to of faults that is returned in CLAS the coordinate
+	 * <br>
 	 * system of x = wires y = layers
 	 */
 	private int[][] retData;
@@ -48,14 +49,14 @@ public class FaultFactory {
 	private boolean randomSuperlayer;
 
 	/**
-	 * nFaults is used to generate the number of background faults to differentiate
-	 * against
+	 * nFaults is used to generate the number of background faults to
+	 * differentiate against
 	 */
 	private int nFaults;
 
 	/**
-	 * randomSmear is to blurr out the faults by the median value of the activations
-	 * from the surrounding neighbors
+	 * randomSmear is to blurr out the faults by the median value of the
+	 * activations from the surrounding neighbors
 	 */
 	private boolean randomSmear;
 
@@ -82,7 +83,7 @@ public class FaultFactory {
 	public FaultFactory(int superLayer, int maxFaults, FaultNames desiredFault, boolean randomSuperlayer,
 			boolean randomSmear, int nChannels) {
 		this.superLayer = superLayer;
-		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
+		this.nFaults = ThreadLocalRandom.current().nextInt(1, maxFaults + 1);
 		this.desiredFault = desiredFault;
 		this.randomSuperlayer = randomSuperlayer;
 		this.randomSmear = randomSmear;
@@ -95,8 +96,8 @@ public class FaultFactory {
 		generateFaults();
 		makeDataSet();
 		/**
-		 * here I am converting the data set back to x = columns = wires y = rows =
-		 * layers
+		 * here I am converting the data set back to x = columns = wires y =
+		 * rows = layers
 		 */
 		convertDataset();
 
@@ -130,7 +131,7 @@ public class FaultFactory {
 	}
 
 	private Fault getFault() {
-		return this.getFault(ThreadLocalRandom.current().nextInt(0, 6));
+		return this.getFault(ThreadLocalRandom.current().nextInt(0, 4));
 	}
 
 	private Fault getFault(int type) {

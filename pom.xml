@@ -9,7 +9,7 @@
 
 	<properties>
 		<!-- <datavec.version>0.9.1</datavec.version> -->
-		<datavec.version>1.0.0-beta</datavec.version>
+		<datavec.version>1.0.0-beta3</datavec.version>
 
 	</properties>
 

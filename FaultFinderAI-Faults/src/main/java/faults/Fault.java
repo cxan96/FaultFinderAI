@@ -33,8 +33,8 @@ public class Fault {
 
 	private void makeSixLayerFaults() {
 		this.notSixLayerFaults = new HashSet<>();
-		notSixLayerFaults.add(FaultNames.HOTWIRE);
-		notSixLayerFaults.add(FaultNames.DEADWIRE);
+		// notSixLayerFaults.add(FaultNames.HOTWIRE);
+		// notSixLayerFaults.add(FaultNames.DEADWIRE);
 		notSixLayerFaults.add(FaultNames.PIN_BIG);
 		notSixLayerFaults.add(FaultNames.PIN_SMALL);
 	}
@@ -98,13 +98,15 @@ public class Fault {
 			int smearValue;
 			// Deadwire has to be different since its not a collection of
 			// activations
-			if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
-				smearValue = ThreadLocalRandom.current().nextInt(5, 7);
-			} else if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
-				smearValue = ThreadLocalRandom.current().nextInt(250, 300);
-			} else {
-				smearValue = ThreadLocalRandom.current().nextInt(5, 15);
-			}
+			// if (this.subFaultName.equals(FaultNames.DEADWIRE)) {
+			// smearValue = ThreadLocalRandom.current().nextInt(5, 7);
+			// } else if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
+			// smearValue = ThreadLocalRandom.current().nextInt(250, 300);
+			// } else {
+			// smearValue = ThreadLocalRandom.current().nextInt(5, 15);
+			// }
+			smearValue = ThreadLocalRandom.current().nextInt(5, 15);
+
 			double lowValue;
 			double highValue;
 			if (smearValue == 0.0) {
@@ -118,14 +120,19 @@ public class Fault {
 			min = (int) (lowValue * averageNeighbors);
 			max = (int) (highValue * averageNeighbors);
 		} else {
-			if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
-				min = lMinMax.get(1) * 2;
-				max = 4 * min;
-			} else {
-				min = 0;
-				max = lMinMax.get(0);
-			}
+			min = 0;
+			max = 0;
+			throw new IllegalArgumentException("I made it here for some reason");
 		}
+		// else {
+		// if (this.subFaultName.equals(FaultNames.HOTWIRE)) {
+		// min = lMinMax.get(1) * 2;
+		// max = 4 * min;
+		// } else {
+		// min = 0;
+		// max = lMinMax.get(0);
+		// }
+		// }
 
 		for (Map.Entry<Integer, Pair<Integer, Integer>> entry : this.getWireInfo().entrySet()) {
 			Integer layer = entry.getKey() - 1;
@@ -166,13 +173,13 @@ public class Fault {
 			}
 
 			/**
-			 * Sum below and above the fault IF the fault is not a 1-6 layer fault. Far less
-			 * faults that do not span six layers
+			 * Sum below and above the fault IF the fault is not a 1-6 layer
+			 * fault. Far less faults that do not span six layers
 			 */
 			if (this.notSixLayerFaults.contains(this.subFaultName)) {
 				/**
-				 * sum activations below the fault superlayer of the fault is not SL1 i.e.
-				 * entry.getKey!=1
+				 * sum activations below the fault superlayer of the fault is
+				 * not SL1 i.e. entry.getKey!=1
 				 */
 				if ((layer + 1) != 1) {
 					for (int j = 0; j < data.length; j++) { // j are the columns
@@ -184,8 +191,8 @@ public class Fault {
 				}
 
 				/**
-				 * sum activations above the fault superlayer of the fault is not SL6 i.e.
-				 * entry.getKey!=6
+				 * sum activations above the fault superlayer of the fault is
+				 * not SL6 i.e. entry.getKey!=6
 				 */
 				if ((layer + 1) != 6) {
 					for (int j = 0; j < data.length; j++) { // j are the columns

@@ -25,17 +25,19 @@ public class FaultObjectClassifierTest {
 		// with clasdc height = 12 ; gridheight = 6
 		// with clasRegion height = 72 ; gridheight = 36
 		// with clas height = 216 ; gridheight = 108
-		int height = 6;
+		int height = 12;
 		int width = 112;
 		int channels = 1;
-		String modelType = "clas";
+		String modelType = "clasdc";
 		/**
 		 * set by CLASModelFactory
 		 */
-		int gridHeight = 5;// 3;
-		int gridwidth = 111;// 28;
+		int gridHeight = 7;// 3;
+		int gridwidth = 45;// 28;
 
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + ".zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBW.zip"; // 100Kevents
+																												// events
+
 		CLASModelFactory factory = new CLASModelFactory(height, width, channels);
 		boolean reTrain = false;
 		FaultObjectClassifier classifier;
@@ -46,9 +48,11 @@ public class FaultObjectClassifierTest {
 			classifier = new FaultObjectClassifier(fileName);
 		} else {
 			// initialize the classifier with a fresh model
-			// ComputationGraph model = Models.singleSuperlayerModel(height, width,
+			// ComputationGraph model = Models.singleSuperlayerModel(height,
+			// width,
 			// channels);
-			// ComputationGraph model = ModelFactory.KunkelPetersYolo(height, width,
+			// ComputationGraph model = ModelFactory.KunkelPetersYolo(height,
+			// width,
 			// channels);
 
 			// KunkelPetersYolo
@@ -69,11 +73,12 @@ public class FaultObjectClassifierTest {
 		// after each checkpoint
 		RecordReader recordReader = new CLASObjectRecordReader(modelType, height, width, channels, gridHeight,
 				gridwidth);
-		// RecordReader recordReader = new FaultObjectDetectionImageRecordReader(1, 10,
+		// RecordReader recordReader = new
+		// FaultObjectDetectionImageRecordReader(1, 10,
 		// FaultNames.CHANNEL_ONE, true, true,
 		// height, width, channels, gridHeight, gridwidth);
 
-		int checkPoints = 15;
+		int checkPoints = 10;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);
@@ -82,7 +87,10 @@ public class FaultObjectClassifierTest {
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			classifier.save(fileName);
+			String saveName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBWII" + i
+					+ ".zip";
+
+			classifier.save(saveName);
 
 			System.out.println("#############################################");
 			System.out.println("Last checkpoint " + i + " at " + dtf.format(now));

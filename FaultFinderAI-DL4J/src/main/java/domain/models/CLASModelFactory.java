@@ -34,8 +34,8 @@ public class CLASModelFactory {
 			this.gridWidth = 28;
 			computationGraph = Models.KunkelPetersYolo(height, width, numChannels);
 		} else if (modelType.equalsIgnoreCase("clasdc")) {
-			this.gridHeight = 6;
-			this.gridWidth = 28;
+			this.gridHeight = 7;
+			this.gridWidth = 45;
 			computationGraph = Models.DCModel(height, width, numChannels);
 		} else if (modelType.equalsIgnoreCase("clasRegion")) {
 			this.gridHeight = 36;
