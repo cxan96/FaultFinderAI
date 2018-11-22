@@ -38,8 +38,8 @@ public class FaultObjectClassifierTest {
 		int gridHeight = 12;// 3;
 		int gridwidth = 112;// 28;
 
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBW.zip"; // 100Kevents
-																												// events
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBWII0.zip"; // 100Kevents
+																													// events
 
 		CLASModelFactory factory = new CLASModelFactory(height, width, channels);
 		boolean reTrain = false;
@@ -82,7 +82,7 @@ public class FaultObjectClassifierTest {
 		// height, width, channels, gridHeight, gridwidth);
 
 		int checkPoints = 10;
-		for (int i = 0; i < checkPoints; i++) {
+		for (int i = 1; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);
 
