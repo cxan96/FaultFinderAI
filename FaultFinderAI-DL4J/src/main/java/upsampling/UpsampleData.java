@@ -16,8 +16,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.primitives.Pair;
 
-import faults.FaultFactory;
-import faults.FaultNames;
+import clasDC.faults.FaultFactory;
+import clasDC.faults.FaultNames;
 import lombok.val;
 import utils.FaultUtils;
 

@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-import faults.FaultNames;
+import clasDC.faults.FaultNames;
 import processHipo.DataProcess;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;

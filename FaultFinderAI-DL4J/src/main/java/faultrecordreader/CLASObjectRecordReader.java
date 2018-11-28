@@ -30,10 +30,11 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 
-import clasDC.CLASFactory;
-import clasDC.CLASFactoryImpl;
-import faults.Fault;
-import faults.FaultNames;
+import clasDC.factories.CLASFactory;
+import clasDC.factories.CLASFactoryImpl;
+import clasDC.faults.Fault;
+import clasDC.faults.FaultNames;
+import clasDC.objects.CLASObject;
 
 /**
  * An fault record reader for object detection.
@@ -56,28 +57,34 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 	protected List<String> labels;
 
 	protected CLASFactory factory = null;
-	private String clasType;
+	private CLASObject clasObject;
 
 	protected Image currentImage;
 
 	/**
 	 *
-	 * @param height        Height of the output images
-	 * @param width         Width of the output images
-	 * @param channels      Number of channels for the output images
-	 * @param gridH         Grid/quantization size (along height dimension) - Y axis
-	 * @param gridW         Grid/quantization size (along height dimension) - X axis
-	 * @param labelProvider ImageObjectLabelProvider - used to look up which objects
-	 *                      are in each image
+	 * @param height
+	 *            Height of the output images
+	 * @param width
+	 *            Width of the output images
+	 * @param channels
+	 *            Number of channels for the output images
+	 * @param gridH
+	 *            Grid/quantization size (along height dimension) - Y axis
+	 * @param gridW
+	 *            Grid/quantization size (along height dimension) - X axis
+	 * @param labelProvider
+	 *            ImageObjectLabelProvider - used to look up which objects are
+	 *            in each image
 	 */
-	public CLASObjectRecordReader(String clasType, int height, int width, int channels, int gridH, int gridW) {
-		this.clasType = clasType;
-		this.height = height;
-		this.width = width;
-		this.channels = channels;
+	public CLASObjectRecordReader(CLASObject clasObject, int gridH, int gridW) {
+		this.clasObject = clasObject;
+		this.height = clasObject.getHeight();
+		this.width = clasObject.getWidth();
+		this.channels = clasObject.getNchannels();
 		this.gridW = gridW;
 		this.gridH = gridH;
-		this.factory = new CLASFactoryImpl(clasType, channels);
+		this.factory = new CLASFactoryImpl(clasObject);
 
 		initialize();
 	}
@@ -85,10 +92,10 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 	private void initialize() {
 		Set<String> labelSet = new HashSet<>();
 		/**
-		 * OK, we need all the faults loaded at once otherwise it doesn't make sense
-		 * with the one-hot representation
+		 * OK, we need all the faults loaded at once otherwise it doesn't make
+		 * sense with the one-hot representation
 		 */
-		for (FaultNames d : FaultNames.values()) {
+		for (FaultNames d : clasObject.getDesiredFaults()) {
 			labelSet.add(d.getSaveName());
 		}
 		labels = new ArrayList<>(labelSet);
@@ -98,13 +105,6 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 		Collections.sort(labels);
 	}
 
-	// MK Testing stuff
-
-	public CLASFactory getFactory() {
-		return factory;
-	}
-
-	// End MK testing stuff
 	@Override
 	public boolean batchesSupported() {
 		// I might want to set this to true so that I train in batches, reduces
@@ -127,7 +127,7 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 
 	@Override
 	public void reset() {
-		this.factory = new CLASFactoryImpl(clasType, channels);
+		this.factory = new CLASFactoryImpl(this.clasObject);
 	}
 
 	@Override
@@ -144,6 +144,7 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 		for (int i = 0; i < num && hasNext(); i++) {
 			faultData.add(factory.getImage());
 			objects.add(factory.getFaultList());
+			reset();
 		}
 
 		int nClasses = labels.size();
@@ -198,20 +199,6 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 			brPost[0] = brPost[0] / width * gridW;
 			brPost[1] = brPost[1] / height * gridH;
 
-			// MK Debugging
-			// System.out.println(" oW " + oW + " oH " + oH + " W " + W + " H "
-			// + H);
-//			if (imgGridY > 55) {
-//				factory.draw();
-//				System.out.println(io.getSubFaultName());
-//				System.out.println(" cx " + cx + " cy " + cy);
-//				System.out.println("io.getFaultCoordinates().getyMin() " + io.getFaultCoordinates().getyMin()
-//						+ " io.getFaultCoordinates().getxMin() " + io.getFaultCoordinates().getxMin());
-//				System.out.println("io.getFaultCoordinates().getyMax() " + io.getFaultCoordinates().getyMax()
-//						+ " io.getFaultCoordinates().getxMax() " + io.getFaultCoordinates().getxMax());
-//				System.out.println(exampleNum + "  " + 0 + "   " + imgGridY + "   " + imgGridX + "  " + tlPost[0]
-//						+ "   " + width + "  " + gridW + "  " + height + "  " + gridH);
-//			}
 			// Put TL, BR into label array:
 			outLabel.putScalar(exampleNum, 0, imgGridY, imgGridX, tlPost[0]);
 			outLabel.putScalar(exampleNum, 1, imgGridY, imgGridX, tlPost[1]);
@@ -229,8 +216,7 @@ public class CLASObjectRecordReader extends BaseImageRecordReader {
 		List<Writable> list = next();
 		URI uri = URI.create("FaultFinderAI");
 		// return new org.datavec.api.records.impl.Record(list, metaData)
-		return new org.datavec.api.records.impl.Record(list,
-				new RecordMetaDataURI(null, FaultObjectDetectionRecordReader.class));
+		return new org.datavec.api.records.impl.Record(list, new RecordMetaDataURI(null, CLASObjectRecordReader.class));
 
 	}
 

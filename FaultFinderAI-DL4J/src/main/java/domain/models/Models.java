@@ -69,40 +69,108 @@ public class Models {
 		return neuralNetwork;
 	}
 
-	public static ComputationGraph KunkelPetersYolo(int height, int width, int numChannels) {
-
-		int numClasses = 14;
-		double[][] priorBoxes = FaultUtils.allPriors;
+	public static ComputationGraph DriftChamber(int height, int width, int numChannels, int numClasses,
+			double[][] priorBoxes) {
 		int nBoxes = priorBoxes.length;
-
 		INDArray priors = Nd4j.create(priorBoxes);
+
 		double lambdaNoObj = 0.5;
 		double lambdaCoord = 1.0;
 
-		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().weightInit(WeightInit.XAVIER)
-				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).updater(new Adam()).graphBuilder()
-				.addInputs("input").setInputTypes(InputType.convolutional(height, width, numChannels))
+		double learningRate = 1e-4;
+		// goes on AdamUpdater
+		// .learningRate(learningRate)
+		double l2Rate = 0.0001;
+		int seed = 123;
+		double leakyReLUVaue = 0.01;
+
+		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().seed(seed)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer).gradientNormalizationThreshold(1.0)
+				.weightInit(WeightInit.XAVIER).updater(new Adam.Builder().learningRate(learningRate).build()).l2(l2Rate)
+				.activation(Activation.IDENTITY).graphBuilder().addInputs("input")
+				.setInputTypes(InputType.convolutional(height, width, numChannels));
+		resBlock(graphBuilder, "input", 1, 64, 128, 64);
+		/**
+		 * set up yolo
+		 */
+
+		graphBuilder
+				/**
+				 * I need this to make the width an odd number
+				 */
+				.addLayer("oddcnn",
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(128)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
+						"activationBlock" + 1)
+				.addLayer("cnn4",
+						new ConvolutionLayer.Builder(1, 1).nOut(nBoxes * (5 + numClasses)).weightInit(WeightInit.XAVIER)
+								.stride(1, 1).convolutionMode(ConvolutionMode.Same).activation(new ActivationIdentity())
+								.build(),
+						"oddcnn")
+				.addLayer("outputs",
+						new Yolo2OutputLayer.Builder().lambbaNoObj(lambdaNoObj).lambdaCoord(lambdaCoord)
+								.boundingBoxPriors(priors).build(),
+						"cnn4")
+				.setOutputs("outputs").backprop(true).pretrain(false);
+
+		ComputationGraph neuralNetwork = new ComputationGraph(graphBuilder.backprop(true).pretrain(false).build());
+
+		// initialize the network
+		neuralNetwork.init();
+		// System.out.println(neuralNetwork.summary(InputType.convolutional(height,
+		// width, numChannels)));
+
+		return neuralNetwork;
+
+	}
+
+	public static ComputationGraph KunkelPetersYolo(int height, int width, int numChannels, int numClasses,
+			double[][] priorBoxes) {
+
+		int nBoxes = priorBoxes.length;
+		INDArray priors = Nd4j.create(priorBoxes);
+
+		double lambdaNoObj = 0.5;
+		double lambdaCoord = 1.0;
+
+		double learningRate = 1e-4;
+		// goes on AdamUpdater
+		// .learningRate(learningRate)
+		double l2Rate = 0.0001;
+		int seed = 123;
+		double leakyReLUVaue = 0.01;
+
+		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().seed(seed)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer).gradientNormalizationThreshold(1.0)
+				.weightInit(WeightInit.XAVIER).updater(new Adam.Builder().learningRate(learningRate).build()).l2(l2Rate)
+				.activation(Activation.IDENTITY).graphBuilder().addInputs("input")
+				.setInputTypes(InputType.convolutional(height, width, numChannels))
 				.addLayer("cnn1",
-						new ConvolutionLayer.Builder(2, 3).nIn(numChannels).stride(1, 1).nOut(40)
-								.activation(new ActivationReLU()).build(),
+						new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(40)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
 						"input")
 				.addLayer("cnn2",
-						new ConvolutionLayer.Builder(2, 2).nIn(40).stride(1, 1).nOut(30)
-								.activation(new ActivationReLU()).build(),
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(30)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
 						"cnn1")
 				.addLayer("pool1",
 						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
 								.build(),
 						"cnn2")
 				.addLayer("cnn3",
-						new ConvolutionLayer.Builder(2, 2).nIn(30).stride(1, 1).nOut(20)
-								.activation(new ActivationReLU()).build(),
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(20)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
 						"pool1")
-				.addLayer("cnn5",
-						new ConvolutionLayer.Builder(1, 1).nIn(128).nOut(nBoxes * (5 + numClasses))
-								.weightInit(WeightInit.XAVIER).stride(1, 1).weightInit(WeightInit.RELU)
-								.activation(Activation.IDENTITY).build(),
+				.addLayer("cnn4",
+						new ConvolutionLayer.Builder(2, 1).stride(1, 1).nOut(20)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
 						"cnn3")
+				.addLayer("cnn5",
+						new ConvolutionLayer.Builder(1, 1).nOut(nBoxes * (5 + numClasses)).weightInit(WeightInit.XAVIER)
+								.stride(1, 1).weightInit(WeightInit.RELU).activation(Activation.IDENTITY).build(),
+						"cnn4")
 				.addLayer("outputs",
 						new Yolo2OutputLayer.Builder().lambbaNoObj(lambdaNoObj).lambdaCoord(lambdaCoord)
 								.boundingBoxPriors(priors).build(),
@@ -113,7 +181,8 @@ public class Models {
 
 		// initialize the network
 		neuralNetwork.init();
-		System.out.println(neuralNetwork.summary(InputType.convolutional(height, width, numChannels)));
+		// System.out.println(neuralNetwork.summary(InputType.convolutional(height,
+		// width, numChannels)));
 
 		return neuralNetwork;
 	}
@@ -121,7 +190,8 @@ public class Models {
 	public static ComputationGraph KunkelPetersUYolo4SL(int height, int width, int numChannels) {
 
 		int numClasses = 11;
-		double[][] priorBoxes = FaultUtils.allPriors;
+		double[][] priorBoxes = FaultUtils.getPriors(new double[][] { { height / 5, width / 111 } });// FaultUtils.allPriors
+
 		int nBoxes = priorBoxes.length;
 
 		INDArray priors = Nd4j.create(priorBoxes);
@@ -155,51 +225,95 @@ public class Models {
 				.addLayer("cnn3", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(128)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"pool1")
-//
+				//
 				.addLayer("cnn4", new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(128)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"cnn3")
-				.addLayer("pool2",
-						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
-								.build(),
-						"cnn4")
-				//
 
-				.addLayer("cnn5", new ConvolutionLayer.Builder(1, 3).stride(1, 1).nOut(256)
-						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
-						"pool2")
-				.addLayer("cnn6", new ConvolutionLayer.Builder(1, 2).stride(1, 1).nOut(256)
-						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
-						"cnn5")
-//
-				// .addLayer("up1", new Upsampling2D.Builder().size(new int[] { 2, 2 }).build(),
-				// "cnn8")
-				.addLayer("oddcnn", new ConvolutionLayer.Builder(1, 1).stride(1, 1).nOut(1024)
-						.activation(new ActivationLReLU(leakyReLUVaue)).padding(1, 0).build(), "cnn6")
-//
-				.addLayer("up1", new Upsampling2D.Builder().size(new int[] { 1, 2 }).build(), "oddcnn")
-				// .addLayer("oddcnn1", new ConvolutionLayer.Builder(2, 1).stride(1,
-				// 1).nOut(512)
-				// .activation(new ActivationLReLU(leakyReLUVaue)).build(), "up1")
+				.addLayer("up3", new Upsampling2D.Builder().size(new int[] { 2, 2 }).build(), "cnn4")
 
-				.addVertex("merge1", new MergeVertex(), "up1", "cnn4")
-//again KPModel
-				.addLayer("upcnn1", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(512)
-						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
-						"merge1")
-				.addLayer("upcnn2", new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(512)
-						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
-						"upcnn1")
-
-				.addLayer("up2", new Upsampling2D.Builder().size(new int[] { 2, 2 }).build(), "upcnn2")
-
-				.addVertex("merge2", new MergeVertex(), "up2", "cnn2")
+				.addVertex("merge2", new MergeVertex(), "up3", "cnn2")
 
 				.addLayer("upcnn3", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(512)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"merge2")
-				.addLayer("upcnn4", new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(256)
+				.addLayer("upcnn4",
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(256)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
+						"upcnn3")
+
+				//
+
+				.addLayer("beforeOutput",
+						new ConvolutionLayer.Builder(1, 1).nOut(nBoxes * (5 + numClasses)).weightInit(WeightInit.XAVIER)
+								.stride(1, 1).weightInit(WeightInit.RELU).activation(Activation.IDENTITY).build(),
+						"upcnn4")
+				.addLayer("outputs",
+						new Yolo2OutputLayer.Builder().lambbaNoObj(lambdaNoObj).lambdaCoord(lambdaCoord)
+								.boundingBoxPriors(priors).build(),
+						"beforeOutput")
+				.setOutputs("outputs").backprop(true).pretrain(false);
+
+		ComputationGraph neuralNetwork = new ComputationGraph(graphBuilder.build());
+
+		// initialize the network
+		neuralNetwork.init();
+		System.out.println(neuralNetwork.summary(InputType.convolutional(height, width, numChannels)));
+
+		return neuralNetwork;
+	}
+
+	public static ComputationGraph KunkelPetersUYolo4SL(int height, int width, int numChannels, int numClasses,
+			double[][] priorBoxes) {
+
+		int nBoxes = priorBoxes.length;
+
+		INDArray priors = Nd4j.create(priorBoxes);
+
+		double lambdaNoObj = 0.5;
+		double lambdaCoord = 1.0;
+
+		double learningRate = 1e-4;
+		// goes on AdamUpdater
+		// .learningRate(learningRate)
+		double l2Rate = 0.0001;
+		int seed = 123;
+		double leakyReLUVaue = 0.01;
+
+		GraphBuilder graphBuilder = new NeuralNetConfiguration.Builder().seed(seed)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer).gradientNormalizationThreshold(1.0)
+				.weightInit(WeightInit.XAVIER).updater(new Adam.Builder().learningRate(learningRate).build()).l2(l2Rate)
+				.activation(Activation.IDENTITY).graphBuilder().addInputs("input")
+				.setInputTypes(InputType.convolutional(height, width, numChannels))
+				.addLayer("cnn1", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(64)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
+						"input")
+				.addLayer("cnn2", new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(64)
+						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
+						"cnn1")
+				.addLayer("pool1",
+						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
+								.build(),
+						"cnn2")
+				.addLayer("cnn3", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(128)
+						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
+						"pool1")
+				//
+				.addLayer("cnn4", new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(128)
+						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
+						"cnn3")
+
+				.addLayer("up3", new Upsampling2D.Builder().size(new int[] { 2, 2 }).build(), "cnn4")
+
+				.addVertex("merge2", new MergeVertex(), "up3", "cnn2")
+
+				.addLayer("upcnn3", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(512)
+						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
+						"merge2")
+				.addLayer("upcnn4",
+						new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(256)
+								.activation(new ActivationLReLU(leakyReLUVaue)).build(),
 						"upcnn3")
 
 				//
@@ -218,8 +332,6 @@ public class Models {
 
 		// initialize the network
 		neuralNetwork.init();
-		System.out.println(neuralNetwork.summary(InputType.convolutional(height, width, numChannels)));
-
 		return neuralNetwork;
 	}
 
@@ -260,7 +372,7 @@ public class Models {
 				.addLayer("cnn3", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(128)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"pool1")
-//
+				//
 				.addLayer("cnn4", new ConvolutionLayer.Builder(2, 2).stride(1, 1).nOut(128)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"cnn3")
@@ -276,10 +388,8 @@ public class Models {
 				.addLayer("cnn6", new ConvolutionLayer.Builder(1, 2).stride(1, 1).nOut(256)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"cnn5")
-				.addLayer("pool3",
-						new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2).stride(2, 2)
-								.build(),
-						"cnn6")
+				.addLayer("pool3", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(2, 2)
+						.stride(2, 2).build(), "cnn6")
 
 				.addLayer("cnn7", new ConvolutionLayer.Builder(1, 3).stride(1, 1).nOut(512)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
@@ -287,22 +397,25 @@ public class Models {
 				.addLayer("cnn8", new ConvolutionLayer.Builder(1, 2).stride(1, 1).nOut(512)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"cnn7")
-//
-				// .addLayer("up1", new Upsampling2D.Builder().size(new int[] { 2, 2 }).build(),
+				//
+				// .addLayer("up1", new Upsampling2D.Builder().size(new int[] {
+				// 2, 2 }).build(),
 				// "cnn8")
 				.addLayer("oddcnn",
 						new ConvolutionLayer.Builder(1, 1).stride(1, 1).nOut(1024)
 								.activation(new ActivationLReLU(leakyReLUVaue)).padding(1, 0).build(),
 						"cnn8")
 				.addLayer("up1", new Upsampling2D.Builder().size(new int[] { 1, 2 }).build(), "oddcnn")
-				// .addLayer("oddcnn1", new ConvolutionLayer.Builder(2, 1).stride(1,
+				// .addLayer("oddcnn1", new ConvolutionLayer.Builder(2,
+				// 1).stride(1,
 				// 1).nOut(512)
-				// .activation(new ActivationLReLU(leakyReLUVaue)).build(), "up1")
-//				
-//		
+				// .activation(new ActivationLReLU(leakyReLUVaue)).build(),
+				// "up1")
+				//
+				//
 
 				.addVertex("merge1", new MergeVertex(), "up1", "cnn6")
-//again KPModel
+				// again KPModel
 				.addLayer("upcnn1", new ConvolutionLayer.Builder(2, 3).stride(1, 1).nOut(512)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"merge1")
@@ -405,10 +518,11 @@ public class Models {
 
 	public static ComputationGraph singleSuperlayerModel(int height, int width, int numChannels) {
 		/**
-		 * This model is inspired by the KunkelPeters model. See ModelFactory.deeperCNN
-		 * Its use is not for object detection, but rather classification of faults.
-		 * Does not give fault location, but trains and works on data extremely well.
-		 * Superlayer is too small of an 'image' for object detection
+		 * This model is inspired by the KunkelPeters model. See
+		 * ModelFactory.deeperCNN Its use is not for object detection, but
+		 * rather classification of faults. Does not give fault location, but
+		 * trains and works on data extremely well. Superlayer is too small of
+		 * an 'image' for object detection
 		 */
 		int numClasses = 14;
 		double[][] priorBoxes = FaultUtils.allPriors;
@@ -495,16 +609,17 @@ public class Models {
 	public static ComputationGraph DCModel(int height, int width, int numChannels) {
 		/**
 		 *
-		 * This is a single driftchamber DC model Inspired by the KunkelPetersModel for
-		 * classification. Here down sample will be done by ConvolutionLayers so remove
-		 * Subsampling layer
+		 * This is a single driftchamber DC model Inspired by the
+		 * KunkelPetersModel for classification. Here down sample will be done
+		 * by ConvolutionLayers so remove Subsampling layer
 		 *
-		 * The final dimensions of this should be height =7 , width = 45 need to scale
-		 * priors by these for YOLO2 layer, if YOLO3 layer, do not scale
+		 * The final dimensions of this should be height =7 , width = 45 need to
+		 * scale priors by these for YOLO2 layer, if YOLO3 layer, do not scale
 		 */
 		/**
-		 * with HotWire, DeadWire and NoFault there are 14 classes, but I suspect that
-		 * these wires are not performing correctly. Lets test that theory.
+		 * with HotWire, DeadWire and NoFault there are 14 classes, but I
+		 * suspect that these wires are not performing correctly. Lets test that
+		 * theory.
 		 */
 		int numClasses = 11;
 		/**
@@ -535,7 +650,8 @@ public class Models {
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
 						"input")
 				/**
-				 * rest is inspired by KunkelPetersModel Except the firstlayer will down sample
+				 * rest is inspired by KunkelPetersModel Except the firstlayer
+				 * will down sample
 				 */
 				.addLayer("cnn1", new ConvolutionLayer.Builder(2, 3).stride(1, 2).nOut(64)
 						.activation(new ActivationLReLU(leakyReLUVaue)).convolutionMode(ConvolutionMode.Same).build(),
@@ -554,13 +670,17 @@ public class Models {
 		 * downsample
 		 */
 		resBlockDC(graphBuilder, "activationBlock", leakyReLUVaue, 1, 64, 128, 64);
-		// resBlockDC(graphBuilder, "activationBlock" + 1, leakyReLUVaue, 2, 128, 256,
+		// resBlockDC(graphBuilder, "activationBlock" + 1, leakyReLUVaue, 2,
+		// 128, 256,
 		// 128);
-		// resBlockDC(graphBuilder, "activationBlock" + 2, leakyReLUVaue, 3, 256, 512,
+		// resBlockDC(graphBuilder, "activationBlock" + 2, leakyReLUVaue, 3,
+		// 256, 512,
 		// 256);
-		// resBlockDC(graphBuilder, "activationBlock" + 3, leakyReLUVaue, 4, 512, 1024,
+		// resBlockDC(graphBuilder, "activationBlock" + 3, leakyReLUVaue, 4,
+		// 512, 1024,
 		// 512);
-		// resBlockDC(graphBuilder, "activationBlock" + 4, leakyReLUVaue, 5, 1024, 2048,
+		// resBlockDC(graphBuilder, "activationBlock" + 4, leakyReLUVaue, 5,
+		// 1024, 2048,
 		// 1024);
 
 		/**
@@ -693,10 +813,8 @@ public class Models {
 						new ConvolutionLayer.Builder(3, 3).stride(2, 2).nOut(128).activation(new ActivationLReLU())
 								.padding(1, 1).build(),
 						"shortcut1")
-				.addLayer("cnn6",
-						new ConvolutionLayer.Builder(1, 1).stride(1, 1).nOut(64).activation(new ActivationReLU())
-								.convolutionMode(ConvolutionMode.Same).build(),
-						"cnn5")
+				.addLayer("cnn6", new ConvolutionLayer.Builder(1, 1).stride(1, 1).nOut(64)
+						.activation(new ActivationReLU()).convolutionMode(ConvolutionMode.Same).build(), "cnn5")
 
 				.addLayer("cnn7",
 						new ConvolutionLayer.Builder(3, 3).stride(1, 1).nOut(128).activation(new ActivationReLU())
@@ -856,11 +974,13 @@ public class Models {
 		/**
 		 * just to see architecture
 		 */
+		double[][] priorBoxes = FaultUtils.allPriors;
 		// Models.CLASModel(216, 112, 3);
 
 		// Models.test(216, 112, 3);
 		// Models.KunkelPeterModel(6, 112, 3, 2);
-		Models.KunkelPetersUYolo4SL(6, 112, 1);
+		ComputationGraph test = Models.DriftChamber(12, 112, 1, 2, priorBoxes);
+		System.out.println(test.summary(InputType.convolutional(12, 112, 1)));
 
 	}
 

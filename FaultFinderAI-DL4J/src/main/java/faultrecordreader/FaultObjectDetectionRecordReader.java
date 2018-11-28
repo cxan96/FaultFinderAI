@@ -28,9 +28,9 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 
-import faults.Fault;
-import faults.FaultFactory;
-import faults.FaultNames;
+import clasDC.faults.Fault;
+import clasDC.faults.FaultFactory;
+import clasDC.faults.FaultNames;
 
 /**
  * An fault record reader for object detection.
@@ -63,13 +63,19 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 
 	/**
 	 *
-	 * @param height        Height of the output images
-	 * @param width         Width of the output images
-	 * @param channels      Number of channels for the output images
-	 * @param gridH         Grid/quantization size (along height dimension) - Y axis
-	 * @param gridW         Grid/quantization size (along height dimension) - X axis
-	 * @param labelProvider ImageObjectLabelProvider - used to look up which objects
-	 *                      are in each image
+	 * @param height
+	 *            Height of the output images
+	 * @param width
+	 *            Width of the output images
+	 * @param channels
+	 *            Number of channels for the output images
+	 * @param gridH
+	 *            Grid/quantization size (along height dimension) - Y axis
+	 * @param gridW
+	 *            Grid/quantization size (along height dimension) - X axis
+	 * @param labelProvider
+	 *            ImageObjectLabelProvider - used to look up which objects are
+	 *            in each image
 	 */
 	public FaultObjectDetectionRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
 			boolean singleFaultGeneration, boolean blurredFaults, int height, int width, int channels, int gridH,
@@ -93,12 +99,15 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 	private void initialize() {
 		Set<String> labelSet = new HashSet<>();
 		/**
-		 * OK, we need all the faults loaded at once otherwise it doesn't make sense
-		 * with the one-hot representation
+		 * OK, we need all the faults loaded at once otherwise it doesn't make
+		 * sense with the one-hot representation
 		 */
 		for (FaultNames d : FaultNames.values()) {
 			labelSet.add(d.getSaveName());
 		}
+		labelSet.remove(FaultNames.DEADWIRE.getSaveName());
+		labelSet.remove(FaultNames.HOTWIRE.getSaveName());
+		labelSet.remove(FaultNames.NOFAULT.getSaveName());
 		labels = new ArrayList<>(labelSet);
 
 		// To ensure consistent order for label assignment (irrespective of file
@@ -190,10 +199,10 @@ public class FaultObjectDetectionRecordReader implements RecordReader {
 		// put the label data into the output label array
 		for (Fault io : objectsThisImg) {
 			/**
-			 * OK here is a little nuance. The locations of the Faults are in natural CLAS
-			 * x->wires; y->layers coordinates. But the featured data itself is in
-			 * columns->x->layers; rows->y->wires so we should SWITCH XCenter <-> YCenter
-			 * XMin <-> YMin XMax <-> YMax
+			 * OK here is a little nuance. The locations of the Faults are in
+			 * natural CLAS x->wires; y->layers coordinates. But the featured
+			 * data itself is in columns->x->layers; rows->y->wires so we should
+			 * SWITCH XCenter <-> YCenter XMin <-> YMin XMax <-> YMax
 			 * 
 			 */
 

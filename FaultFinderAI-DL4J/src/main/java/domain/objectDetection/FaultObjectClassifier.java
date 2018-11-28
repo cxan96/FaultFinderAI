@@ -43,6 +43,18 @@ public class FaultObjectClassifier {
 	}
 
 	/**
+	 * Initializes the FaultClassifier using a readily configured network.<br>
+	 * Using the FaultObjectContainer
+	 *
+	 * @param network
+	 *            The network that serves as the underlying model of
+	 *            FaultClassifier.
+	 */
+	public FaultObjectClassifier(FaultObjectContainer container) {
+		this.network = container.getModel();
+	}
+
+	/**
 	 * Trains the underlying model.
 	 * 
 	 * @param numLabels

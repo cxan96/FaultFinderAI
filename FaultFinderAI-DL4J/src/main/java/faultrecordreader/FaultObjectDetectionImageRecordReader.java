@@ -30,9 +30,10 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 
-import faults.Fault;
-import faults.FaultFactory;
-import faults.FaultNames;
+import clasDC.faults.AbstractFaultFactory;
+import clasDC.faults.Fault;
+import clasDC.faults.FaultFactory;
+import clasDC.faults.FaultNames;
 
 /**
  * An fault record reader for object detection.
@@ -55,36 +56,46 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 	protected List<String> labels;
 
 	protected FaultFactory factory = null;
+	protected AbstractFaultFactory aFactory = null;
+
 	private int label;
 	// args for FaultFactory constructor
 	private int superLayer;
 	private int maxFaults;
 	private FaultNames desiredFault;
-	private boolean singleFaultGeneration;
+	/**
+	 * faultSmearing true: fills the fault region by the average of the
+	 * surrounding neighbors not in the fault region
+	 */
+	private boolean faultSmearing;
 	private boolean blurredFaults;
 
 	protected Image currentImage;
 
 	/**
 	 *
-	 * @param height        Height of the output images
-	 * @param width         Width of the output images
-	 * @param channels      Number of channels for the output images
-	 * @param gridH         Grid/quantization size (along height dimension) - Y axis
-	 * @param gridW         Grid/quantization size (along height dimension) - X axis
-	 * @param labelProvider ImageObjectLabelProvider - used to look up which objects
-	 *                      are in each image
+	 * @param height
+	 *            Height of the output images
+	 * @param width
+	 *            Width of the output images
+	 * @param channels
+	 *            Number of channels for the output images
+	 * @param gridH
+	 *            Grid/quantization size (along height dimension) - Y axis
+	 * @param gridW
+	 *            Grid/quantization size (along height dimension) - X axis
+	 * @param labelProvider
+	 *            ImageObjectLabelProvider - used to look up which objects are
+	 *            in each image
 	 */
 	public FaultObjectDetectionImageRecordReader(int superLayer, int maxFaults, FaultNames desiredFault,
-			boolean singleFaultGeneration, boolean blurredFaults, int height, int width, int channels, int gridH,
-			int gridW) {
+			boolean faultSmearing, boolean blurredFaults, int height, int width, int channels, int gridH, int gridW) {
 		this.superLayer = superLayer;
 		this.maxFaults = maxFaults;
 		this.desiredFault = desiredFault;
-		this.singleFaultGeneration = singleFaultGeneration;
+		this.faultSmearing = faultSmearing;
 		this.blurredFaults = blurredFaults;
-		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, singleFaultGeneration, blurredFaults,
-				channels);
+		this.factory = new FaultFactory(superLayer, maxFaults, desiredFault, faultSmearing, blurredFaults, channels);
 
 		this.height = height;
 		this.width = width;
@@ -94,15 +105,41 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 		initialize();
 	}
 
+	public FaultObjectDetectionImageRecordReader(FaultFactory factory, int height, int width, int channels, int gridH,
+			int gridW) {
+		this.factory = factory;
+		this.height = height;
+		this.width = width;
+		this.channels = factory.getNChannels();
+		this.gridW = gridW;
+		this.gridH = gridH;
+		initialize();
+	}
+
+	public FaultObjectDetectionImageRecordReader(AbstractFaultFactory factory, int height, int width, int channels,
+			int gridH, int gridW) {
+		this.aFactory = factory;
+		this.height = height;
+		this.width = width;
+		this.channels = factory.getNChannels();
+		this.gridW = gridW;
+		this.gridH = gridH;
+		initialize();
+	}
+
 	private void initialize() {
 		Set<String> labelSet = new HashSet<>();
 		/**
-		 * OK, we need all the faults loaded at once otherwise it doesn't make sense
-		 * with the one-hot representation
+		 * OK, we need all the faults loaded at once otherwise it doesn't make
+		 * sense with the one-hot representation
 		 */
 		for (FaultNames d : FaultNames.values()) {
 			labelSet.add(d.getSaveName());
 		}
+		labelSet.remove(FaultNames.DEADWIRE.getSaveName());
+		labelSet.remove(FaultNames.HOTWIRE.getSaveName());
+		labelSet.remove(FaultNames.NOFAULT.getSaveName());
+
 		labels = new ArrayList<>(labelSet);
 		System.out.println(labels.size() + "  lables size");
 		// To ensure consistent order for label assignment (irrespective of file
@@ -139,7 +176,7 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 
 	@Override
 	public void reset() {
-		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.singleFaultGeneration,
+		this.factory = new FaultFactory(this.superLayer, this.maxFaults, this.desiredFault, this.faultSmearing,
 				this.blurredFaults, this.channels);
 	}
 
@@ -171,6 +208,9 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 		for (int i = 0; i < faultData.size(); i++) {
 			Image imageFile = faultData.get(i);
 			this.currentImage = imageFile;
+			System.out.println(
+					"#### imageFile.getImage().shapeInfoToString() #####" + imageFile.getImage().shapeInfoToString());
+
 			Nd4j.getAffinityManager().ensureLocation(imageFile.getImage(), AffinityManager.Location.DEVICE);
 
 			outImg.put(new INDArrayIndex[] { point(exampleNum), all(), all(), all() }, imageFile.getImage());
@@ -182,8 +222,7 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 			exampleNum++;
 		}
 		reset();
-		// System.out.println("#########" + outLabel.shapeInfoToString() + " " +
-		// objects.size());
+		System.out.println("#########" + outLabel.shapeInfoToString() + " " + objects.size());
 		return new NDArrayRecordBatch(Arrays.asList(outImg, outLabel));
 	}
 
@@ -217,17 +256,22 @@ public class FaultObjectDetectionImageRecordReader extends BaseImageRecordReader
 			// MK Debugging
 			// System.out.println(" oW " + oW + " oH " + oH + " W " + W + " H "
 			// + H);
-//			if (imgGridY > 55) {
-//				factory.draw();
-//				System.out.println(io.getSubFaultName());
-//				System.out.println(" cx " + cx + " cy " + cy);
-//				System.out.println("io.getFaultCoordinates().getyMin() " + io.getFaultCoordinates().getyMin()
-//						+ " io.getFaultCoordinates().getxMin() " + io.getFaultCoordinates().getxMin());
-//				System.out.println("io.getFaultCoordinates().getyMax() " + io.getFaultCoordinates().getyMax()
-//						+ " io.getFaultCoordinates().getxMax() " + io.getFaultCoordinates().getxMax());
-//				System.out.println(exampleNum + "  " + 0 + "   " + imgGridY + "   " + imgGridX + "  " + tlPost[0]
-//						+ "   " + width + "  " + gridW + "  " + height + "  " + gridH);
-//			}
+			// if (imgGridY > 55) {
+			// factory.draw();
+			// System.out.println(io.getSubFaultName());
+			// System.out.println(" cx " + cx + " cy " + cy);
+			// System.out.println("io.getFaultCoordinates().getyMin() " +
+			// io.getFaultCoordinates().getyMin()
+			// + " io.getFaultCoordinates().getxMin() " +
+			// io.getFaultCoordinates().getxMin());
+			// System.out.println("io.getFaultCoordinates().getyMax() " +
+			// io.getFaultCoordinates().getyMax()
+			// + " io.getFaultCoordinates().getxMax() " +
+			// io.getFaultCoordinates().getxMax());
+			// System.out.println(exampleNum + " " + 0 + " " + imgGridY + " " +
+			// imgGridX + " " + tlPost[0]
+			// + " " + width + " " + gridW + " " + height + " " + gridH);
+			// }
 			// Put TL, BR into label array:
 			outLabel.putScalar(exampleNum, 0, imgGridY, imgGridX, tlPost[0]);
 			outLabel.putScalar(exampleNum, 1, imgGridY, imgGridX, tlPost[1]);

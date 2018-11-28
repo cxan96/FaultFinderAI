@@ -18,9 +18,9 @@ import org.datavec.api.writable.IntWritable;
 import org.datavec.api.writable.NDArrayWritable;
 import org.datavec.api.writable.Writable;
 
-import faults.Fault;
-import faults.FaultFactory;
-import faults.FaultNames;
+import clasDC.faults.Fault;
+import clasDC.faults.FaultFactory;
+import clasDC.faults.FaultNames;
 
 public class KunkelPetersFaultRecorder implements RecordReader {
 

@@ -5,8 +5,8 @@ import java.util.Scanner;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-import faults.FaultFactory;
-import faults.FaultNames;
+import clasDC.faults.FaultFactory;
+import clasDC.faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 

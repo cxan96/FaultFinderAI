@@ -35,7 +35,8 @@ public class FaultUtils {
 	public static double[][] allPriorsNoWire = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors);
 
 	public static double[][] merge(double[][]... arrays) {
-		return Stream.of(arrays).flatMap(Stream::of) // or use Arrays::stream
+		return Stream.of(arrays).flatMap(Stream::of).distinct() // or use
+																// Arrays::stream
 				.toArray(double[][]::new);
 	}
 
@@ -44,6 +45,18 @@ public class FaultUtils {
 		for (int i = 0; i < allPriors.length; i++) {
 			for (int j = 0; j < allPriors[0].length; j++) {
 				ret[i][j] = allPriors[i][j] / scales[0][j];
+			}
+		}
+		return ret;
+	}
+
+	public static double[][] getPriors(double[][] priors, double[][] scales) {
+		double[][] ret = new double[priors.length][priors[0].length];
+		for (int i = 0; i < priors.length; i++) {
+			for (int j = 0; j < priors[0].length; j++) {
+				// System.out.println(priors[i][j] + " " + scales[0][j] + " " +
+				// priors[i][j] / scales[0][j]);
+				ret[i][j] = priors[i][j] / scales[0][j];
 			}
 		}
 		return ret;
@@ -145,9 +158,9 @@ public class FaultUtils {
 					double green = rank == 3 ? arr.getDouble(1, y, x) : arr.getDouble(0, 1, y, x);
 					double blue = rank == 3 ? arr.getDouble(2, y, x) : arr.getDouble(0, 2, y, x);
 
-//					double red = arr.getDouble(0, 0, y, x);
-//					double green = arr.getDouble(0, 1, y, x);
-//					double blue = arr.getDouble(0, 2, y, x);
+					// double red = arr.getDouble(0, 0, y, x);
+					// double green = arr.getDouble(0, 1, y, x);
+					// double blue = arr.getDouble(0, 2, y, x);
 					double rgb = ((red * 65536) + (green * 256) + blue);
 
 					b.setRGB(x, rows - y - 1, (int) rgb);

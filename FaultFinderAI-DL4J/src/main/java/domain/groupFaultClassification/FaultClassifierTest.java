@@ -15,10 +15,10 @@ import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
+import clasDC.faults.FaultNames;
 import client.FaultClassifier;
 import domain.models.ModelFactory;
 import faultrecordreader.KunkelPetersFaultRecorder;
-import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 

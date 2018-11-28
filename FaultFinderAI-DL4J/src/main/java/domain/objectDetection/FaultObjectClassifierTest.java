@@ -4,17 +4,20 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
-import domain.models.CLASModelFactory;
-import faultrecordreader.CLASObjectRecordReader;
+import clasDC.faults.FaultNames;
+import clasDC.objects.CLASObject;
+import clasDC.objects.DriftChamber;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
@@ -22,26 +25,21 @@ public class FaultObjectClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
 		int scoreIterations = 500;
-		// with clasdc height = 12 ; gridheight = 6
-		// with clasRegion height = 72 ; gridheight = 36
-		// with clas height = 216 ; gridheight = 108
-		int height = 12;
-		int width = 112;
-		int channels = 1;
-		String modelType = "clasdc";
 		/**
-		 * set by CLASModelFactory
+		 * Create a CLASObject for the container
 		 */
+		CLASObject clasObject = DriftChamber.builder().region(1).nchannels(1).maxFaults(10).desiredFaults(Stream
+				.of(FaultNames.CONNECTOR_TREE, FaultNames.PIN_SMALL).collect(Collectors.toCollection(ArrayList::new)))
+				.singleFaultGen(true).build();
 		/**
-		 * KunkelPetersUYolo gridHeight = 12 gridWidth = 112
+		 * FaultObjectContainer contains all the necessaries to run the model
 		 */
-		int gridHeight = 12;// 3;
-		int gridwidth = 112;// 28;
+		FaultObjectContainer container = FaultObjectContainer.builder().clasObject(clasObject).build();
 
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBWII0.zip"; // 100Kevents
-																													// events
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + clasObject.getObjectType()
+				+ "NoWireGenBW.zip"; // 100Kevents
+		// events
 
-		CLASModelFactory factory = new CLASModelFactory(height, width, channels);
 		boolean reTrain = false;
 		FaultObjectClassifier classifier;
 		// check if a saved model exists
@@ -50,18 +48,10 @@ public class FaultObjectClassifierTest {
 			// initialize the classifier with the saved model
 			classifier = new FaultObjectClassifier(fileName);
 		} else {
-			// initialize the classifier with a fresh model
-			// ComputationGraph model = Models.singleSuperlayerModel(height,
-			// width,
-			// channels);
-			// ComputationGraph model = ModelFactory.KunkelPetersYolo(height,
-			// width,
-			// channels);
-
-			// KunkelPetersYolo
-			ComputationGraph model = factory.getModel(modelType);
-			classifier = new FaultObjectClassifier(model);
+			// Get the model that belongs to the FaultObjectContainer
+			classifier = new FaultObjectClassifier(container);
 		}
+		// Need to normalize the data
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 
 		// set up a local web-UI to monitor the training available at
@@ -74,12 +64,7 @@ public class FaultObjectClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		RecordReader recordReader = new CLASObjectRecordReader(modelType, height, width, channels, gridHeight,
-				gridwidth);
-		// RecordReader recordReader = new
-		// FaultObjectDetectionImageRecordReader(1, 10,
-		// FaultNames.CHANNEL_ONE, true, true,
-		// height, width, channels, gridHeight, gridwidth);
+		RecordReader recordReader = container.getRecordReader();
 
 		int checkPoints = 10;
 		for (int i = 1; i < checkPoints; i++) {
@@ -90,8 +75,8 @@ public class FaultObjectClassifierTest {
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			String saveName = "models/binary_classifiers/ComputationalGraphModel/" + modelType + "NoWireGenBWII" + i
-					+ ".zip";
+			String saveName = "models/binary_classifiers/ComputationalGraphModel/" + clasObject.getObjectType()
+					+ "NoWireGenBW" + i + ".zip";
 
 			classifier.save(saveName);
 

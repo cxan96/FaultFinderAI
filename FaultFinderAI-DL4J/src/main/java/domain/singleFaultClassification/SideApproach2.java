@@ -22,9 +22,9 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 
+import clasDC.faults.FaultNames;
 import faultrecordreader.FaultRecorderScaler;
 import faultrecordreader.KunkelPetersFaultRecorder;
-import faults.FaultNames;
 import strategies.MinMaxStrategy;
 
 public class SideApproach2 {

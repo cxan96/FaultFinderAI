@@ -30,18 +30,18 @@ import org.jlab.groot.base.ColorPalette;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
-import faultrecordreader.CLASObjectRecordReader;
+import clasDC.faults.FaultNames;
+import faultrecordreader.FaultObjectDetectionImageRecordReader;
 import faultrecordreader.FaultRecorderScaler;
-import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 import utils.FaultUtils;
 
 public class ValidateFaultObjectClassifier {
-	int height = 12;
+	int height = 6;
 	int width = 112;
-	int gridHeight = 11;
-	int gridwidth = 53;
+	int gridHeight = 5;
+	int gridwidth = 111;
 	int channels = 3;
 	private String fileName;
 	private DataSetIterator test;
@@ -65,9 +65,12 @@ public class ValidateFaultObjectClassifier {
 		// FaultNames.CHANNEL_ONE, true, true, height,
 		// width, channels, gridHeight, gridwidth);
 		//
-		this.recordReader = new CLASObjectRecordReader(modelType, height, width, channels, gridHeight, gridwidth);
-		// this.recordReader = new CLASObjectRecordReader("clasdc", height,
-		// width, channels, 6, 28);
+
+		// this.recordReader = new CLASObjectRecordReader(modelType, height,
+		// width, channels, gridHeight, gridwidth);
+
+		RecordReader recordReader = new FaultObjectDetectionImageRecordReader(1, 10, FaultNames.CHANNEL_ONE, true, true,
+				height, width, channels, gridHeight, gridwidth);
 		FaultRecordScalerStrategy strategy = new MinMaxStrategy();
 		this.test = new RecordReaderDataSetIterator.Builder(recordReader, 1).regression(1).maxNumBatches(1)
 				.preProcessor(new FaultRecorderScaler(strategy)).build();
@@ -85,9 +88,9 @@ public class ValidateFaultObjectClassifier {
 		return this.test;
 	}
 
-	public RecordReader getRecordReader() {
-		return this.recordReader;
-	}
+	// public RecordReader getRecordReader() {
+	// return this.recordReader;
+	// }
 
 	public void loadImage(INDArray arr) throws java.lang.Exception {
 		// INDArray arr = recordReader.getFactory().getFeatureVectorAsMatrix();
@@ -147,7 +150,7 @@ public class ValidateFaultObjectClassifier {
 		Collections.sort(faultLabels);
 
 		FaultObjectClassifier classifier;
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/clasdcNoWireGenII.zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/NoWireGenColor9.zip";
 		// List<String> labels = train.getLabels();
 		ValidateFaultObjectClassifier vObjectClassifier = new ValidateFaultObjectClassifier(fileName);
 
@@ -175,7 +178,7 @@ public class ValidateFaultObjectClassifier {
 
 			INDArray features = ds.getFeatures();
 			INDArray results = model.outputSingle(features);
-			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.000001);
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.0001);
 
 			if (objs.size() > 1) {
 				System.out.println(objs.size() + "  size of objs");

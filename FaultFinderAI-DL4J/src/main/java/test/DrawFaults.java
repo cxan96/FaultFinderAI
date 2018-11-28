@@ -18,10 +18,10 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
+import clasDC.faults.FaultNames;
 import domain.objectDetection.FaultObjectClassifier;
 import faultrecordreader.FaultObjectDetectionImageRecordReader;
 import faultrecordreader.FaultRecorderScaler;
-import faults.FaultNames;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 import utils.FaultUtils;
