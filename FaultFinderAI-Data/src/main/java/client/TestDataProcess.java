@@ -35,14 +35,14 @@ public class TestDataProcess {
 		INDArray arr2 = dataProcess.asImageMartix(1, 1, 3).getImage();
 
 		int rank = arr1.rank();
-		int rows = arr1.size(rank == 3 ? 1 : 2);
-		int cols = arr1.size(rank == 3 ? 2 : 3);
-		int nchannels = arr1.size(rank == 3 ? 0 : 1);
+		int rows = (int) arr1.size(rank == 3 ? 1 : 2);
+		int cols = (int) arr1.size(rank == 3 ? 2 : 3);
+		int nchannels = (int) arr1.size(rank == 3 ? 0 : 1);
 
 		int rank2 = arr2.rank();
-		int rows2 = arr2.size(rank == 3 ? 1 : 2);
-		int cols2 = arr2.size(rank == 3 ? 2 : 3);
-		int nchannels2 = arr2.size(rank == 3 ? 0 : 1);
+		int rows2 = (int) arr2.size(rank == 3 ? 1 : 2);
+		int cols2 = (int) arr2.size(rank == 3 ? 2 : 3);
+		int nchannels2 = (int) arr2.size(rank == 3 ? 0 : 1);
 		System.out.println(rank + "  " + rows + "  " + cols + "  " + nchannels);
 		System.out.println(rank2 + "  " + rows2 + "  " + cols2 + "  " + nchannels2);
 

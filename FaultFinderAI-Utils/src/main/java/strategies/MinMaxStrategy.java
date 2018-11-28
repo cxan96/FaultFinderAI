@@ -22,9 +22,9 @@ public class MinMaxStrategy implements FaultRecordScalerStrategy {
 		if (rank == 2) {
 			applyMinMax(features);
 		} else {
-			int nchannels = features.size(rank == 3 ? 0 : 1);
-			int rows = features.size(rank == 3 ? 1 : 2);
-			int cols = features.size(rank == 3 ? 2 : 3);
+			int nchannels = (int) features.size(rank == 3 ? 0 : 1);
+			int rows = (int) features.size(rank == 3 ? 1 : 2);
+			int cols = (int) features.size(rank == 3 ? 2 : 3);
 
 			if (nchannels == 1) {
 				applyMinMax(features);

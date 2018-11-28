@@ -119,12 +119,12 @@ public class FaultUtils {
 		int cols;
 		int nchannels = 1;
 		if (rank == 2) {
-			rows = arr.size(0);
-			cols = arr.size(1);
+			rows = (int) arr.size(0);
+			cols = (int) arr.size(1);
 		} else {
-			rows = arr.size(rank == 3 ? 1 : 2);
-			cols = arr.size(rank == 3 ? 2 : 3);
-			nchannels = arr.size(rank == 3 ? 0 : 1);
+			rows = (int) arr.size(rank == 3 ? 1 : 2);
+			cols = (int) arr.size(rank == 3 ? 2 : 3);
+			nchannels = (int) arr.size(rank == 3 ? 0 : 1);
 		}
 		double dataMin = (double) arr.minNumber();
 		double dataMax = (double) arr.maxNumber();
@@ -214,7 +214,7 @@ public class FaultUtils {
 		INDArray a = toColor(nChannels, data);
 
 		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
-		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
+		a = a.reshape(ArrayUtil.combine(new long[] { 1 }, a.shape()));
 		Image i = new Image(a, nChannels, data.rows(), data.columns());
 
 		return i;
@@ -225,8 +225,8 @@ public class FaultUtils {
 		INDArray a = toColor(nChannels, data);
 
 		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
-		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
-		a = a.reshape(ArrayUtil.combine(new int[] { 1 }, a.shape()));
+		a = a.reshape(ArrayUtil.combine(new long[] { 1 }, a.shape()));
+		a = a.reshape(ArrayUtil.combine(new long[] { 1 }, a.shape()));
 		// a = a.reshape('c', a.shape()[0], a.shape()[1], a.shape()[2],
 		// a.shape()[3], a.shape()[4]);
 		Image i = new Image(a, nChannels, data.rows(), data.columns());

@@ -92,12 +92,12 @@ public class DrawFaults {
 		INDArray features = ds.getFeatures();
 		INDArray labels = ds.getLabels();
 		int rank = labels.rank();
-		int rows = labels.size(rank == 3 ? 1 : 2);
-		int cols = labels.size(rank == 3 ? 2 : 3);
-		int one = labels.size(0);
-		int two = labels.size(1);
-		int size1 = labels.size(1);
-		int c = labels.size(1) - 4;
+		int rows = (int) labels.size(rank == 3 ? 1 : 2);
+		int cols = (int) labels.size(rank == 3 ? 2 : 3);
+		int one = (int) labels.size(0);
+		int two = (int) labels.size(1);
+		int size1 = (int) labels.size(1);
+		int c = (int) labels.size(1) - 4;
 		int[] nhw = new int[] { 1, 3, 28 };
 
 //		for (int i = 0; i < two; i++) {

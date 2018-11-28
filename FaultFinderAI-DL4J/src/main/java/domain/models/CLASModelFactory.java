@@ -149,8 +149,8 @@ public class CLASModelFactory {
 
 		List<GridDimensions> gridDimensions = new ArrayList<>();
 		conf.getNetworkOutputs().forEach(k -> {
-			int height = vertexOutputs.get(k).getShape()[1];
-			int width = vertexOutputs.get(k).getShape()[2];
+			int height = (int) vertexOutputs.get(k).getShape()[1];
+			int width = (int) vertexOutputs.get(k).getShape()[2];
 			gridDimensions.add(new GridDimensions(height, width));
 		});
 		this.gridHeight = gridDimensions.get(0).getHeight();

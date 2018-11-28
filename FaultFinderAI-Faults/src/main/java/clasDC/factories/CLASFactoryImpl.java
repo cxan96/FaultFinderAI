@@ -79,9 +79,9 @@ public class CLASFactoryImpl implements CLASFactory {
 
 		FaultUtils.draw(factory.getImage());
 		int rank = ret.rank();
-		int rows = ret.size(rank == 3 ? 1 : 2);
-		int cols = ret.size(rank == 3 ? 2 : 3);
-		int nchannels = ret.size(rank == 3 ? 0 : 1);
+		int rows = (int) ret.size(rank == 3 ? 1 : 2);
+		int cols = (int) ret.size(rank == 3 ? 2 : 3);
+		int nchannels = (int) ret.size(rank == 3 ? 0 : 1);
 		System.out.println(rank + " " + rows + " " + cols + " " + nchannels + "   " + ret.shapeInfoToString());
 
 		for (Fault fault : factory.getFaultList()) {

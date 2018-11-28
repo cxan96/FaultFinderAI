@@ -54,7 +54,7 @@ public class SideApproach2 {
 			Random r = new Random(12345);
 			while (iter.hasNext()) {
 				DataSet ds = iter.next();
-				featuresTrain.add(ds.getFeatureMatrix());
+				featuresTrain.add(ds.getFeatures());
 				labelsTrain.add(ds.getLabels());
 				INDArray indexes = Nd4j.argMax(ds.getLabels(), 1); // Convert
 																	// from

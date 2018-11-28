@@ -91,9 +91,9 @@ public class CLASDriftChamber extends CLASComponent {
 		 */
 		INDArray ret = Nd4j.concat(a.rank() == 3 ? 1 : 2, a, b);
 		int rank = ret.rank();
-		int rows = ret.size(rank == 3 ? 1 : 2);
-		int cols = ret.size(rank == 3 ? 2 : 3);
-		int nchannels = ret.size(rank == 3 ? 0 : 1);
+		int rows = (int) ret.size(rank == 3 ? 1 : 2);
+		int cols = (int) ret.size(rank == 3 ? 2 : 3);
+		int nchannels = (int) ret.size(rank == 3 ? 0 : 1);
 
 		this.image = new Image(ret, nchannels, rows, cols);
 
@@ -122,9 +122,9 @@ public class CLASDriftChamber extends CLASComponent {
 		FaultUtils.draw(c.getImage());
 
 		int rank = ret.rank();
-		int rows = ret.size(rank == 3 ? 1 : 2);
-		int cols = ret.size(rank == 3 ? 2 : 3);
-		int nchannels = ret.size(rank == 3 ? 0 : 1);
+		int rows = (int) ret.size(rank == 3 ? 1 : 2);
+		int cols = (int) ret.size(rank == 3 ? 2 : 3);
+		int nchannels = (int) ret.size(rank == 3 ? 0 : 1);
 		// System.out.println(rank + " " + rows + " " + cols + " " + nchannels);
 		System.out.println(ret.shapeInfoToString());
 

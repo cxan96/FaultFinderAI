@@ -8,7 +8,7 @@ public class SigmoidStrategy implements FaultRecordScalerStrategy {
 	public void normalize(INDArray features) {
 
 		new StandardScore().normalize(features);
-		double[] dubs = new double[features.length()];
+		double[] dubs = new double[(int) features.length()];
 		for (int i = 0; i < features.length(); i++) {
 			double aDub = 1.0 / (1.0 + Math.exp(-features.getDouble(i)));
 			dubs[i] = aDub;

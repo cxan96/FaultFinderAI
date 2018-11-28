@@ -56,9 +56,9 @@ public class CLASDCSystem extends CLASComponent {
 	private void concat() {
 		INDArray a = dcRegions.get(1).getImage().getImage();
 		int rank = a.rank();
-		int rows = a.size(rank == 3 ? 1 : 2);
-		int cols = a.size(rank == 3 ? 2 : 3);
-		int nchannels = a.size(rank == 3 ? 0 : 1);
+		int rows = (int) a.size(rank == 3 ? 1 : 2);
+		int cols = (int) a.size(rank == 3 ? 2 : 3);
+		int nchannels = (int) a.size(rank == 3 ? 0 : 1);
 		INDArray ret = a;
 		// ret = ret.reshape(ArrayUtil.combine(new int[] { 1 }, ret.shape()));
 		for (int i = 2; i < 4; i++) {
@@ -78,9 +78,9 @@ public class CLASDCSystem extends CLASComponent {
 
 		}
 		rank = ret.rank();
-		rows = ret.size(rank == 3 ? 1 : 2);
-		cols = ret.size(rank == 3 ? 2 : 3);
-		nchannels = ret.size(rank == 3 ? 0 : 1);
+		rows = (int) ret.size(rank == 3 ? 1 : 2);
+		cols = (int) ret.size(rank == 3 ? 2 : 3);
+		nchannels = (int) ret.size(rank == 3 ? 0 : 1);
 
 		this.image = new Image(ret, nchannels, rows, cols);
 
@@ -95,9 +95,9 @@ public class CLASDCSystem extends CLASComponent {
 
 		FaultUtils.draw(factory.getImage());
 		int rank = ret.rank();
-		int rows = ret.size(rank == 3 ? 1 : 2);
-		int cols = ret.size(rank == 3 ? 2 : 3);
-		int nchannels = ret.size(rank == 3 ? 0 : 1);
+		int rows = (int) ret.size(rank == 3 ? 1 : 2);
+		int cols = (int) ret.size(rank == 3 ? 2 : 3);
+		int nchannels = (int) ret.size(rank == 3 ? 0 : 1);
 		System.out.println(rank + " " + rows + " " + cols + " " + nchannels);
 
 		for (Fault fault : factory.getFaultList()) {
