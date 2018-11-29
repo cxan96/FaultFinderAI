@@ -45,8 +45,8 @@ public abstract class AbstractFaultFactory {
 	protected List<Fault> faultList;
 
 	/**
-	 * superLayer is used to call the correct background data, This data has
-	 * been engineered from actual data in Run 3923
+	 * superLayer is used to call the correct background data, This data has been
+	 * engineered from actual data in Run 3923
 	 */
 	protected int superLayer;
 
@@ -56,8 +56,7 @@ public abstract class AbstractFaultFactory {
 	@Getter(AccessLevel.NONE)
 	protected int[][] data;
 	/**
-	 * retData is an array to of faults that is returned in CLAS the coordinate
-	 * <br>
+	 * retData is an array to of faults that is returned in CLAS the coordinate <br>
 	 * system of x = wires y = layers
 	 */
 	@Getter(AccessLevel.NONE)
@@ -75,20 +74,20 @@ public abstract class AbstractFaultFactory {
 	protected boolean randomSuperlayer;
 
 	/**
-	 * nFaults is used to generate the number of background faults to
-	 * differentiate against
+	 * nFaults is used to generate the number of background faults to differentiate
+	 * against
 	 */
 	protected int nFaults;
 
 	/**
-	 * maxFaults total number of faults the user would want to see in the
-	 * data-set the number generated will be randomized until thi number i.e.
-	 * this.nFaults = ThreadLocalRandom.current().nextInt(1, maxFaults + 1);
+	 * maxFaults total number of faults the user would want to see in the data-set
+	 * the number generated will be randomized until thi number i.e. this.nFaults =
+	 * ThreadLocalRandom.current().nextInt(1, maxFaults + 1);
 	 */
 	protected int maxFaults;
 	/**
-	 * randomSmear is to blurr out the faults by the median value of the
-	 * activations from the surrounding neighbors
+	 * randomSmear is to blurr out the faults by the median value of the activations
+	 * from the surrounding neighbors
 	 */
 	protected boolean randomSmear;
 
@@ -97,8 +96,8 @@ public abstract class AbstractFaultFactory {
 	 */
 	protected FaultNames desiredFault;
 	/**
-	 * desiredFaults is a list of user defined faults. used to check if the
-	 * fault to learn from was generated
+	 * desiredFaults is a list of user defined faults. used to check if the fault to
+	 * learn from was generated
 	 */
 	protected List<FaultNames> desiredFaults = null;
 
@@ -110,7 +109,7 @@ public abstract class AbstractFaultFactory {
 	protected void initialize() {
 		Preconditions.checkNotNull(desiredFaults,
 				"The list of desired faults cannot be null. Please add faults to the list in the builder desiredFault(List<FaultNames>)");
-		this.nFaults = ThreadLocalRandom.current().nextInt(1, maxFaults + 1);
+		this.nFaults = ThreadLocalRandom.current().nextInt(0, maxFaults + 1);
 		if (randomSuperlayer) {
 			this.superLayer = ThreadLocalRandom.current().nextInt(1, 7);
 		}

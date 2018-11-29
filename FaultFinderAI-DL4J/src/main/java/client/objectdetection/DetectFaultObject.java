@@ -37,16 +37,18 @@ public class DetectFaultObject {
 		/**
 		 * Create a CLASObject for the container
 		 */
-		CLASObject clasObject = DriftChamber.builder().region(1).nchannels(1).maxFaults(1)
-				.desiredFaults(Stream.of(FaultNames.CONNECTOR_TREE).collect(Collectors.toCollection(ArrayList::new)))
-				.singleFaultGen(true).build();
+		CLASObject clasObject = DriftChamber.builder().region(1).nchannels(3).maxFaults(3).desiredFaults(Stream
+				.of(FaultNames.FUSE_A, FaultNames.FUSE_B, FaultNames.FUSE_C, FaultNames.CONNECTOR_TREE,
+						FaultNames.CONNECTOR_THREE, FaultNames.CONNECTOR_E, FaultNames.CHANNEL_ONE,
+						FaultNames.CHANNEL_TWO, FaultNames.CHANNEL_THREE, FaultNames.PIN_BIG, FaultNames.PIN_SMALL)
+				.collect(Collectors.toCollection(ArrayList::new))).singleFaultGen(false).build();
 		/**
 		 * FaultObjectContainer contains all the necessaries to run the model
 		 */
 		FaultObjectContainer container = FaultObjectContainer.builder().clasObject(clasObject).build();
 
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/" + clasObject.getObjectType()
-				+ "NoWireGenBW.zip"; // 100Kevents
+		String fileName = "/Users/michaelkunkel/Dropbox/Work/IKP/CNN/CompModels/" + clasObject.getObjectType()
+				+ "NoWireGenBW5.zip"; // 100Kevents
 		// events
 		FaultObjectClassifier classifier;
 		// check if a saved model exists
@@ -73,16 +75,16 @@ public class DetectFaultObject {
 		// after each checkpoint
 		RecordReader recordReader = container.getRecordReader();
 
-		int checkPoints = 10;
-		for (int i = 0; i < checkPoints; i++) {
+		int checkPoints = 100;
+		for (int i = 6; i < checkPoints; i++) {
 			// train the classifier
-			classifier.train(2, 1, 10000, 1, recordReader, strategy);
+			classifier.train(2, 1, 10000, 1, recordReader, strategy);// 10000
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime now = LocalDateTime.now();
 
 			// save the trained model
-			String saveName = "models/binary_classifiers/ComputationalGraphModel/" + clasObject.getObjectType()
+			String saveName = "/Users/michaelkunkel/Dropbox/Work/IKP/CNN/CompModels/" + clasObject.getObjectType()
 					+ "NoWireGenBW" + i + ".zip";
 
 			classifier.save(saveName);

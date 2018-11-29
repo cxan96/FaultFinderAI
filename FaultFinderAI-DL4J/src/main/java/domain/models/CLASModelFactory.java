@@ -45,14 +45,17 @@ public class CLASModelFactory {
 	@Getter
 	ComputationGraph computationGraph = null;
 
+	private InputType inputType = null;
+
 	@Builder
-	private CLASModelFactory(CLASObject clasOject) {
+	public CLASModelFactory(CLASObject clasOject) {
 		this.height = clasOject.getHeight();
 		this.width = clasOject.getWidth();
 		this.numChannels = clasOject.getNchannels();
 		this.numClasses = clasOject.getDesiredFaults().stream().distinct().collect(Collectors.toList()).size();
 		this.priors = clasOject.getPriors();
 		this.modelType = clasOject.getObjectType();
+		this.inputType = InputType.convolutional(height, width, numChannels);
 		setModel();
 	}
 
@@ -81,18 +84,15 @@ public class CLASModelFactory {
 					{ (double) width / (double) this.gridWidth, (double) height / (double) this.gridHeight } });// FaultUtils.allPriors
 
 			this.computationGraph = Models.DriftChamber(height, width, numChannels, numClasses, priorBoxes);
-			System.out.println(computationGraph.summary(InputType.convolutional(height, width, numChannels)));
-			System.out.println(Arrays.deepToString(priors));
-			System.out.println(Arrays.deepToString(priorBoxes));
-
-		} else if (modelType.equalsIgnoreCase("Region")) {
-			this.gridHeight = 36;
-			this.gridWidth = 28;
-			this.computationGraph = Models.RegionhModel(height, width, numChannels);
-		} else if (modelType.equalsIgnoreCase("DCSystem")) {
-			this.gridHeight = 36 * 3;
-			this.gridWidth = 28;
-			this.computationGraph = Models.CLASModel(height, width, numChannels);
+			disclosure(priorBoxes);
+//		} else if (modelType.equalsIgnoreCase("Region")) {
+//			this.gridHeight = 36;
+//			this.gridWidth = 28;
+//			this.computationGraph = Models.RegionhModel(height, width, numChannels);
+//		} else if (modelType.equalsIgnoreCase("DCSystem")) {
+//			this.gridHeight = 36 * 3;
+//			this.gridWidth = 28;
+//			this.computationGraph = Models.CLASModel(height, width, numChannels);
 		} else {
 			throw new IllegalArgumentException("Invalid input: " + modelType);
 
@@ -162,6 +162,19 @@ public class CLASModelFactory {
 	private class GridDimensions {
 		private int height;
 		private int width;
+
+	}
+
+	private void disclosure(double[][] priorBoxes) {
+		System.out.println("###############################################");
+		System.out.println("############# Disclosure of model #############");
+		System.out.println("This model parameters are ");
+		System.out.println(computationGraph.summary(inputType));
+		System.out.println("###############################################");
+		System.out.println(
+				"With numClasses  = " + numClasses + " and bounding boxes set to " + Arrays.deepToString(priorBoxes));
+		System.out.println("###############################################");
+		System.out.println("###############################################");
 
 	}
 
