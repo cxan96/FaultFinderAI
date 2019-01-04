@@ -2,12 +2,20 @@ package utils;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.stream.Stream;
 import java.util.zip.DataFormatException;
 
 import org.bytedeco.javacv.CanvasFrame;
 import org.datavec.image.data.Image;
+import org.deeplearning4j.nn.api.Layer;
+import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
+import org.deeplearning4j.nn.conf.layers.Upsampling2D;
+import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.jlab.groot.base.ColorPalette;
+import org.jlab.groot.base.TColorPalette;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 import org.nd4j.linalg.api.concurrency.AffinityManager;
@@ -28,7 +36,7 @@ public class FaultUtils {
 	public static double[][] HVChannelPriors = { { 8.0, 6.0 }, { 16.0, 6.0 }, { 32.0, 6.0 } };
 	public static double[][] HVPinPriors = { { 8.0, 1.0 }, { 16.0, 1.0 } };
 	public static double[][] HVFusePriors = { { 6.0, 6.0 } };
-	public static double[][] HVConnectorPriors = { { 3.0, 6.0 } };
+	public static double[][] HVConnectorPriors = { { 4.0, 6.0 } };
 	public static double[][] HVWirePriors = { { 1.0, 1.0 } };
 
 	public static double[][] allPriors = merge(HVChannelPriors, HVPinPriors, HVFusePriors, HVConnectorPriors);
@@ -60,6 +68,33 @@ public class FaultUtils {
 			}
 		}
 		return ret;
+	}
+
+	public static double[][] getPriors(double[][] priors, double[][] scales, boolean switched) {
+		double[][] ret = getPriors(priors, scales);
+		if (switched) {
+			double[][] arr = new double[priors[0].length][priors.length];
+			for (int i = 0; i < arr.length; i++) {
+				for (int j = 0; j < arr[0].length; j++) {
+					// System.out.println(priors[i][j] + " " + scales[0][j] + "
+					// " +
+					// priors[i][j] / scales[0][j]);
+					arr[i][j] = ret[j][i];
+				}
+			}
+			double[][] arr2 = new double[priors.length][priors[0].length];
+			for (int i = 0; i < arr2.length; i++) {
+				for (int j = 0; j < arr2[0].length; j++) {
+					// System.out.println(priors[i][j] + " " + scales[0][j] + "
+					// " +
+					// priors[i][j] / scales[0][j]);
+					arr2[arr2.length - 1 - i][arr2[0].length - 1 - j] = arr[j][i];
+				}
+			}
+			return arr2;
+		} else {
+			return ret;
+		}
 	}
 
 	public static int[][] getData(int superLayer) throws DataFormatException {
@@ -109,21 +144,61 @@ public class FaultUtils {
 		canvas.draw(hData);
 	}
 
+	/**
+	 * 
+	 * @param image
+	 * @return displays the image of the INDArray
+	 */
 	public static void draw(Image image) {
 		draw(image.getImage());
 	}
 
+	/**
+	 * 
+	 * @param image
+	 * @param title
+	 */
+	public static void draw(Image image, String title) {
+		draw(image.getImage(), title);
+	}
+
+	public static void draw(Image image, String title, String paletteType) {
+		draw(image.getImage(), title, paletteType);
+	}
+
+	/**
+	 * 
+	 * @param image
+	 * @return displays the image of the INDArray for <br>
+	 *         specified int channel RGB - > 1,2,3
+	 * 
+	 */
+	public static void draw(Image image, int channel) {
+		draw(image.getImage(), channel);
+	}
+
+	/**
+	 * 
+	 * @param arr
+	 * @return displays contents of INDArray
+	 */
 	public static void draw(INDArray arr) {
+		draw(arr, "FU Plot");
+	}
+
+	/**
+	 * 
+	 * @param arr
+	 *            input INDarray
+	 * @parm Title of figure
+	 * @return displays contents of INDArray
+	 */
+	public static void draw(INDArray arr, String title) {
 		int rank = arr.rank();
-		int rows;
-		int cols;
+		int rows = getRowsCols(arr)[0];
+		int cols = getRowsCols(arr)[1];
 		int nchannels = 1;
-		if (rank == 2) {
-			rows = (int) arr.size(0);
-			cols = (int) arr.size(1);
-		} else {
-			rows = (int) arr.size(rank == 3 ? 1 : 2);
-			cols = (int) arr.size(rank == 3 ? 2 : 3);
+		if (rank != 2) {
 			nchannels = (int) arr.size(rank == 3 ? 0 : 1);
 		}
 		double dataMin = (double) arr.minNumber();
@@ -131,22 +206,27 @@ public class FaultUtils {
 		// System.out.println(rank + " rank from FaultUtils");
 
 		BufferedImage b = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
-		// BufferedImage bb = new BufferedImage(width, height, imageType)
 		ColorPalette palette = new ColorPalette();
+		System.out.println(arr.shapeInfoToString() + "  shape");
 		if (nchannels == 1) {
 
 			for (int y = 0; y < rows; y++) {
 				for (int x = 0; x < cols; x++) {
-
-					Color weightColor = palette.getColor3D(
-							rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x), dataMax - dataMin, false);
+					Color weightColor = null;
+					if (rank == 2) {
+						weightColor = palette.getColor3D(arr.getDouble(y, x), dataMax - dataMin, false);
+					} else {
+						weightColor = palette.getColor3D(rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x),
+								dataMax - dataMin, false);
+					}
 
 					int red = weightColor.getRed();
 					int green = weightColor.getGreen();
 					int blue = weightColor.getBlue();
 					int rgb = (red * 65536) + (green * 256) + blue;
 
-					b.setRGB(x, rows - y - 1, rgb);
+					// b.setRGB(x, rows - y - 1, rgb);
+					b.setRGB(x, y, rgb);
 
 				}
 			}
@@ -163,7 +243,8 @@ public class FaultUtils {
 					// double blue = arr.getDouble(0, 2, y, x);
 					double rgb = ((red * 65536) + (green * 256) + blue);
 
-					b.setRGB(x, rows - y - 1, (int) rgb);
+					// b.setRGB(x, rows - y - 1, (int) rgb);
+					b.setRGB(x, y, (int) rgb);
 
 				}
 			}
@@ -171,16 +252,182 @@ public class FaultUtils {
 			throw new ArithmeticException("Number of channels must be 1 or 3");
 		}
 		CanvasFrame cframe = new CanvasFrame("FaultUtils Plotted Me");
-		cframe.setTitle("FU Plot");
+		cframe.setTitle(title);
 		cframe.setCanvasSize(800, 600);
 		cframe.showImage(b);
 	}
 
-	public static INDArray toColor(int nChannels, INDArray data) {
-		double dataMin = (double) data.minNumber();
-		double dataMax = (double) data.maxNumber();
-		int rows = data.rows();
-		int cols = data.columns();
+	// "kDefault","kRainBow",
+	// "kVisibleSpectrum","kDarkBodyRadiator","kInvertedDarkBodyRadiator"
+	// /**
+	// *
+	// * @param arr
+	// * INDarray: input INDArray title String: name of figure
+	// * paletteType String: LUT Palette to draw;
+	// *
+	// "kDefault","kRainBow","kVisibleSpectrum","kDarkBodyRadiator","kInvertedDarkBodyRadiator"
+	// *
+	// * @return displays contents of INDArray
+	// */
+	/**
+	 * 
+	 * @param arr
+	 *            INDarray: input INDArray
+	 * @param title
+	 *            String: name of figure
+	 * @param paletteType
+	 *            String: LUT Palette to draw;
+	 *            "kDefault","kRainBow","kVisibleSpectrum","kDarkBodyRadiator","kInvertedDarkBodyRadiator"
+	 * 
+	 * @return displays contents of INDArray
+	 */
+	public static void draw(INDArray arr, String title, String paletteType) {
+		int rank = arr.rank();
+		int rows = getRowsCols(arr)[0];
+		int cols = getRowsCols(arr)[1];
+		int nchannels = 1;
+		if (rank != 2) {
+			nchannels = (int) arr.size(rank == 3 ? 0 : 1);
+		}
+		double dataMin = (double) arr.minNumber();
+		double dataMax = (double) arr.maxNumber();
+		// System.out.println(rank + " rank from FaultUtils");
+
+		BufferedImage b = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
+		TColorPalette palette = new TColorPalette();
+		palette.setPalette(paletteType);
+		System.out.println(arr.shapeInfoToString() + "  shape");
+		if (nchannels == 1) {
+
+			for (int y = 0; y < rows; y++) {
+				for (int x = 0; x < cols; x++) {
+					Color weightColor = null;
+					if (rank == 2) {
+						// weightColor = palette.getColor3D(arr.getDouble(y, x),
+						// dataMax - dataMin, false);
+						weightColor = palette.getColor3D(arr.getDouble(y, x), dataMin, dataMax, false);
+					} else {
+						// weightColor = palette.getColor3D(rank == 3 ?
+						// arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x),
+						// dataMax - dataMin, false);
+						weightColor = palette.getColor3D(rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x),
+								dataMin, dataMax, false);
+					}
+
+					int red = weightColor.getRed();
+					int green = weightColor.getGreen();
+					int blue = weightColor.getBlue();
+					int rgb = (red * 65536) + (green * 256) + blue;
+
+					// b.setRGB(x, rows - y - 1, rgb);
+					b.setRGB(x, y, rgb);
+
+				}
+			}
+		} else if (nchannels == 3) {
+			for (int y = 0; y < rows; y++) {
+				for (int x = 0; x < cols; x++) {
+
+					double red = rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x);
+					double green = rank == 3 ? arr.getDouble(1, y, x) : arr.getDouble(0, 1, y, x);
+					double blue = rank == 3 ? arr.getDouble(2, y, x) : arr.getDouble(0, 2, y, x);
+
+					// double red = arr.getDouble(0, 0, y, x);
+					// double green = arr.getDouble(0, 1, y, x);
+					// double blue = arr.getDouble(0, 2, y, x);
+					double rgb = ((red * 65536) + (green * 256) + blue);
+
+					// b.setRGB(x, rows - y - 1, (int) rgb);
+					b.setRGB(x, y, (int) rgb);
+
+				}
+			}
+		} else {
+			throw new ArithmeticException("Number of channels must be 1 or 3");
+		}
+		CanvasFrame cframe = new CanvasFrame("FaultUtils Plotted Me");
+		cframe.setTitle(title);
+		cframe.setCanvasSize(800, 600);
+		cframe.showImage(b);
+	}
+
+	/**
+	 * 
+	 * @param arr
+	 * @return displays contents of INDArray for <br>
+	 *         specified RGB -> 1,2,3
+	 */
+
+	public static void draw(INDArray arr, int channel) {
+		draw(arr, channel, "FU Plot");
+	}
+
+	/**
+	 * 
+	 * @param arr
+	 * @param String
+	 *            title -> title of figure
+	 * @return displays contents of INDArray for <br>
+	 *         specified RGB -> 1,2,3
+	 */
+	public static void draw(INDArray arr, int channel, String title) {
+		int rank = arr.rank();
+		int nchannels = 1;
+		if (rank != 2) {
+			nchannels = (int) arr.size(rank == 3 ? 0 : 1);
+		}
+		if (nchannels == 1) {// regardless of input channel, plot the data
+								// because there is not a color INDArray
+			draw(arr, title);
+		} else if (nchannels == 3) {
+
+			int rows = getRowsCols(arr)[0];
+			int cols = getRowsCols(arr)[1];
+
+			BufferedImage b = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
+
+			for (int y = 0; y < rows; y++) {
+				for (int x = 0; x < cols; x++) {
+
+					double red = rank == 3 ? arr.getDouble(0, y, x) : arr.getDouble(0, 0, y, x);
+					double green = rank == 3 ? arr.getDouble(1, y, x) : arr.getDouble(0, 1, y, x);
+					double blue = rank == 3 ? arr.getDouble(2, y, x) : arr.getDouble(0, 2, y, x);
+
+					double rgb;
+					// double rgb = ((red * 65536) + (green * 256) + blue);
+
+					if (channel == 1) {
+						// b.setRGB(x, rows - y - 1, (int) (red * 65536));
+						b.setRGB(x, y, (int) (red * 65536));
+
+					} else if (channel == 2) {
+						// b.setRGB(x, rows - y - 1, (int) (green * 256));
+						b.setRGB(x, y, (int) (green * 256));
+
+					} else if (channel == 3) {
+						// b.setRGB(x, rows - y - 1, (int) blue);
+						b.setRGB(x, y, (int) blue);
+
+					} else {
+						throw new ArithmeticException("Can only draw channel 1, 2 or 3");
+					}
+				}
+			}
+			CanvasFrame cframe = new CanvasFrame("FaultUtils Plotted Me");
+			cframe.setTitle(title);
+			cframe.setCanvasSize(800, 600);
+			cframe.showImage(b);
+		} else {
+			throw new ArithmeticException("Number of channels must be 1 or 3");
+		}
+	}
+
+	public static INDArray toColor(int nChannels, INDArray input) {
+		double dataMin = (double) input.minNumber();
+		double dataMax = (double) input.maxNumber();
+		int rank = input.rank();
+		int rows = getRowsCols(input)[0];
+		int cols = getRowsCols(input)[1];
 		// System.out.println(nChannels + " ######### NCHANNELS");
 
 		INDArray a = Nd4j.create(nChannels, rows, cols);
@@ -188,13 +435,83 @@ public class FaultUtils {
 		if (nChannels == 1) {
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
-					a.putScalar(0, i, j, data.getDouble(i, j));
+					if (rank == 2) {
+						a.putScalar(0, i, j, input.getDouble(i, j));
+					} else {
+						a.putScalar(0, i, j, rank == 3 ? input.getDouble(0, i, j) : input.getDouble(0, 0, i, j));
+					}
 				}
 			}
 		} else if (nChannels == 3) {
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
-					Color weightColor = palette.getColor3D(data.getDouble(i, j), dataMax - dataMin, false);
+					double value;
+					if (rank == 2) {
+						value = input.getDouble(i, j);
+					} else {
+						value = rank == 3 ? input.getDouble(0, i, j) : input.getDouble(0, 0, i, j);
+					}
+
+					Color weightColor = palette.getColor3D(value, dataMax - dataMin, false);
+					int red = weightColor.getRed();
+					int green = weightColor.getGreen();
+					int blue = weightColor.getBlue();
+					a.putScalar(0, i, j, red);
+					a.putScalar(1, i, j, green);
+					a.putScalar(2, i, j, blue);
+
+				}
+			}
+		} else {
+			throw new ArithmeticException("Number of channels must be 1 or 3");
+		}
+		return a;
+	}
+
+	/**
+	 * 
+	 * @param nChannels
+	 *            Number of channels 1 or 3
+	 * @param input
+	 *            INDArray input
+	 * @param paletteType
+	 *            String: LUT Palette to draw;
+	 *            "kDefault","kRainBow","kVisibleSpectrum","kDarkBodyRadiator","kInvertedDarkBodyRadiator"
+	 * 
+	 * @return displays contents of INDArray
+	 */
+	public static INDArray toColor(int nChannels, INDArray input, String paletteType) {
+		double dataMin = (double) input.minNumber();
+		double dataMax = (double) input.maxNumber();
+		int rank = input.rank();
+		int rows = getRowsCols(input)[0];
+		int cols = getRowsCols(input)[1];
+		// System.out.println(nChannels + " ######### NCHANNELS");
+
+		INDArray a = Nd4j.create(nChannels, rows, cols);
+		TColorPalette palette = new TColorPalette();
+		palette.setPalette(paletteType);
+		if (nChannels == 1) {
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < cols; j++) {
+					if (rank == 2) {
+						a.putScalar(0, i, j, input.getDouble(i, j));
+					} else {
+						a.putScalar(0, i, j, rank == 3 ? input.getDouble(0, i, j) : input.getDouble(0, 0, i, j));
+					}
+				}
+			}
+		} else if (nChannels == 3) {
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < cols; j++) {
+					double value;
+					if (rank == 2) {
+						value = input.getDouble(i, j);
+					} else {
+						value = rank == 3 ? input.getDouble(0, i, j) : input.getDouble(0, 0, i, j);
+					}
+
+					Color weightColor = palette.getColor3D(value, dataMax - dataMin, false);
 					int red = weightColor.getRed();
 					int green = weightColor.getGreen();
 					int blue = weightColor.getBlue();
@@ -226,7 +543,6 @@ public class FaultUtils {
 
 		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
 		a = a.reshape(ArrayUtil.combine(new long[] { 1 }, a.shape()));
-		a = a.reshape(ArrayUtil.combine(new long[] { 1 }, a.shape()));
 		// a = a.reshape('c', a.shape()[0], a.shape()[1], a.shape()[2],
 		// a.shape()[3], a.shape()[4]);
 		Image i = new Image(a, nChannels, data.rows(), data.columns());
@@ -246,6 +562,170 @@ public class FaultUtils {
 
 	}
 
+	public static Image asImage(int nChannels, INDArray input) {
+		int rows = getRowsCols(input)[0];
+		int cols = getRowsCols(input)[1];
+		INDArray a = toColor(nChannels, input);
+		Nd4j.getAffinityManager().tagLocation(a, AffinityManager.Location.HOST);
+		// a = a.reshape(ArrayUtil.combine(new long[] { 1 }, a.shape()));
+		// a = a.reshape('c', a.shape()[0], a.shape()[1], a.shape()[2],
+		// a.shape()[3], a.shape()[4]);
+		Image i = new Image(a, nChannels, rows, cols);
+
+		return i;
+
+		// int rows = getRowsCols(data)[0];
+		// int cols = getRowsCols(data)[1];
+		// Nd4j.getAffinityManager().tagLocation(data,
+		// AffinityManager.Location.HOST);
+		// Image i = new Image(data, nChannels, rows, cols);
+		// return i;
+
+	}
+
+	public static int[] scaleImage(int preferredImageSize, int imageHeight, int imageWidth) {
+
+		int heightScale = preferredImageSize / imageHeight;
+		int widthScale = preferredImageSize / imageWidth;
+		double heightRemainder = (double) preferredImageSize - (double) heightScale * imageHeight;
+		double widthRemainder = (double) preferredImageSize - (double) widthScale * imageWidth;
+		int heightPadding = (int) heightRemainder / 2;
+		int widthPadding = (int) widthRemainder / 2;
+
+		return new int[] { heightScale, widthScale, heightPadding, widthPadding };
+	}
+
+	public static int[] scaleImage(int[] preferredImageSize, int imageHeight, int imageWidth) {
+
+		int heightScale = preferredImageSize[0] / imageHeight;
+		int widthScale = preferredImageSize[1] / imageWidth;
+		double heightRemainder = (double) preferredImageSize[0] - (double) heightScale * imageHeight;
+		double widthRemainder = (double) preferredImageSize[1] - (double) widthScale * imageWidth;
+		int heightPadding = (int) heightRemainder / 2;
+		int widthPadding = (int) widthRemainder / 2;
+
+		return new int[] { heightScale, widthScale, heightPadding, widthPadding };
+	}
+
+	public static int[] scaleImage(int imageHeight, int imageWidth) {
+		return scaleImage(416, imageHeight, imageWidth);
+	}
+
+	public static INDArray scaleImage(INDArray input, int imageHeight, int imageWidth) {
+		int[] scales = scaleImage(imageHeight, imageWidth);
+		INDArray ret = FaultUtils.upSampleArray(input, new int[] { scales[0], scales[1] });
+		return FaultUtils.zeroBorder(ret, scales[2], scales[3]);
+	}
+
+	public static INDArray scaleImage(INDArray input, int preferredImageSize, int imageHeight, int imageWidth) {
+		int[] scales = scaleImage(preferredImageSize, imageHeight, imageWidth);
+		INDArray ret = FaultUtils.upSampleArray(input, new int[] { scales[0], scales[1] });
+		return FaultUtils.zeroBorder(ret, scales[2], scales[3]);
+	}
+
+	public static INDArray scaleImage(INDArray input, int[] preferredImageSize, int imageHeight, int imageWidth) {
+		int[] scales = scaleImage(preferredImageSize, imageHeight, imageWidth);
+		INDArray ret = FaultUtils.upSampleArray(input, new int[] { scales[0], scales[1] });
+		return FaultUtils.zeroBorder(ret, scales[2], scales[3]);
+	}
+
+	public static INDArray zeroBorder(INDArray input) {
+		return zeroBorder(input, 1, 1);
+	}
+
+	public static INDArray zeroBorder(INDArray input, int heightPad, int widthPad) {
+		int rank = input.rank();
+		int nchannels = (int) input.size(input.rank() == 3 ? 0 : 1);
+		int rows = getRowsCols(input)[0];
+		int cols = getRowsCols(input)[1];
+		if (nchannels == 1) {
+			input = Nd4j.prepend(input, widthPad, 0, input.rank() - 1);
+			input = Nd4j.prepend(input, heightPad, 0, input.rank() - 2);
+			input = Nd4j.append(input, widthPad, 0, input.rank() - 1);
+			input = Nd4j.append(input, heightPad, 0, input.rank() - 2);
+			return input;
+
+		} else {
+			throw new IllegalArgumentException("CHANNEL = 3 not yet supported");
+		}
+		/*
+		 * ColorPalette palette = new ColorPalette(); // Find the minimum of the
+		 * 3D matrix INDArray to1D = Nd4j.create(1, rows, cols); for (int y = 0;
+		 * y < rows; y++) { for (int x = 0; x < cols; x++) { double red = rank
+		 * == 3 ? input.getDouble(0, y, x) : input.getDouble(0, 0, y, x); double
+		 * green = rank == 3 ? input.getDouble(1, y, x) : input.getDouble(0, 1,
+		 * y, x); double blue = rank == 3 ? input.getDouble(2, y, x) :
+		 * input.getDouble(0, 2, y, x); // b.setRGB(x, rows - y - 1, (int) (red
+		 * * 65536));
+		 * 
+		 * // b.setRGB(x, rows - y - 1, (int) (green * 256));
+		 * 
+		 * // b.setRGB(x, rows - y - 1, (int) blue); System.out.print(((red /
+		 * 65536) + (green / 256) + blue) + "  "); to1D.putScalar(0, y, x, (red
+		 * / 65536) + (green / 256) + blue); } System.out.println(); }
+		 * draw(to1D);
+		 * 
+		 * double dataMax = (double) to1D.maxNumber(); double dataMin = (double)
+		 * to1D.minNumber(); // now get this color and the number for this color
+		 * Color weightColor = palette.getColor3D(dataMin, dataMax - dataMin,
+		 * false); int red = weightColor.getRed(); int green =
+		 * weightColor.getGreen(); int blue = weightColor.getBlue(); // now put
+		 * this into each slice INDArray slice = input.slice(0); // red INDArray
+		 * redColors = slice.slice(0); redColors = Nd4j.prepend(redColors,
+		 * widthPad, red, redColors.rank() - 1); redColors =
+		 * Nd4j.prepend(redColors, heightPad, red, redColors.rank() - 2);
+		 * redColors = Nd4j.append(redColors, widthPad, red, redColors.rank() -
+		 * 1); redColors = Nd4j.append(redColors, heightPad, red,
+		 * redColors.rank() - 2); // green INDArray greenColors =
+		 * slice.slice(1); greenColors = Nd4j.prepend(greenColors, widthPad,
+		 * green, greenColors.rank() - 1); greenColors =
+		 * Nd4j.prepend(greenColors, heightPad, green, greenColors.rank() - 2);
+		 * greenColors = Nd4j.append(greenColors, widthPad, green,
+		 * greenColors.rank() - 1); greenColors = Nd4j.append(greenColors,
+		 * heightPad, green, greenColors.rank() - 2); // blue INDArray
+		 * blueColors = slice.slice(2); blueColors = Nd4j.prepend(blueColors,
+		 * widthPad, blue, blueColors.rank() - 1); blueColors =
+		 * Nd4j.prepend(blueColors, heightPad, blue, blueColors.rank() - 2);
+		 * blueColors = Nd4j.append(blueColors, widthPad, blue,
+		 * blueColors.rank() - 1); blueColors = Nd4j.append(blueColors,
+		 * heightPad, blue, blueColors.rank() - 2);
+		 * 
+		 * // INDArray ret = Nd4j.create(3, rows, cols); INDArray a =
+		 * Nd4j.accumulate(redColors, greenColors, blueColors); // INDArray a =
+		 * Nd4j.hstack(redColors, greenColors); // a = Nd4j.hstack(a,
+		 * blueColors);
+		 * 
+		 * Nd4j.getAffinityManager().tagLocation(a,
+		 * AffinityManager.Location.HOST); a = a.reshape(ArrayUtil.combine(new
+		 * long[] { 1 }, a.shape())); return a;
+		 */
+
+		// } else {
+		// throw new ArithmeticException("Number of channels must be 1 or 3");
+		// }
+
+	}
+
+	public static INDArray zeroXBorder(INDArray input) {
+		input = Nd4j.prepend(input, 1, 0, input.rank() - 1);
+		input = Nd4j.append(input, 1, 0, input.rank() - 1);
+		return input;
+	}
+
+	/**
+	 * 
+	 * @param arr
+	 * @return {nRows, nCols}
+	 */
+	public static int[] getRowsCols(INDArray arr) {
+		int rank = arr.rank();
+		if (rank == 2) {
+			return new int[] { (int) arr.size(0), (int) arr.size(1) };
+		} else {
+			return new int[] { (int) arr.size(rank == 3 ? 1 : 2), (int) arr.size(rank == 3 ? 2 : 3) };
+		}
+	}
+
 	public static H2F getHist(int[][] data) {
 		H2F hData = new H2F("Data", 112, 1, 112, 6, 0, 6);
 		for (int i = 0; i < data[0].length; i++) { // i are the rows
@@ -256,6 +736,31 @@ public class FaultUtils {
 			}
 		}
 		return hData;
+	}
+
+	public static INDArray upSampleArray(INDArray input, int[] size) {
+		return getUpsampling2DLayer(size).activate(input, false, LayerWorkspaceMgr.noWorkspaces());
+	}
+
+	public static INDArray downSampleArray(INDArray input, int[] kernalSize, int[] stride) {
+		return getSubsamplingLayer(kernalSize, stride).activate(input, false, LayerWorkspaceMgr.noWorkspaces());
+	}
+
+	public static Layer getUpsampling2DLayer(int[] size) {
+		NeuralNetConfiguration conf = new NeuralNetConfiguration.Builder()
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer).seed(123)
+				.layer(new Upsampling2D.Builder().size(size).build()).build();
+		return conf.getLayer().instantiate(conf, null, 0, null, true);
+	}
+
+	public static Layer getSubsamplingLayer(int[] kernelSize, int[] stride) {
+		NeuralNetConfiguration conf = new NeuralNetConfiguration.Builder()
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer).seed(123)
+				.layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX).kernelSize(kernelSize)
+						.stride(stride).build())
+				.build();
+
+		return conf.getLayer().instantiate(conf, null, 0, null, true);
 	}
 
 	public static int[][] dataSector1 = { { 49, 49, 49, 29, 181, 135 }, { 100, 74, 334, 241, 611, 537 },
@@ -500,5 +1005,23 @@ public class FaultUtils {
 			}
 		}
 		return retValue;
+	}
+
+	public static void main(String[] args) {
+
+		int[] tempscale = FaultUtils.scaleImage(6, 112);
+
+		double[][] scales = { { 1.0 / (double) tempscale[1], 1.0 / (double) tempscale[0] } };
+
+		double[][] priors = allPriors;
+		double[][] test = getPriors(priors,
+				new double[][] { { (double) (1.0 / (double) (416 / 112)), 1.0 / (double) (416 / 6) } });
+		double[][] testII = priors;
+		testII = FaultUtils.getPriors(testII, scales);
+
+		System.out.println(Arrays.deepToString(allPriors));
+		System.out.println(Arrays.deepToString(test));
+		System.out.println(Arrays.deepToString(testII));
+
 	}
 }

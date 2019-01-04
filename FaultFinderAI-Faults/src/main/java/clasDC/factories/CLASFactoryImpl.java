@@ -2,6 +2,7 @@ package clasDC.factories;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,6 +13,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import clasDC.faults.Fault;
 import clasDC.faults.FaultNames;
 import clasDC.objects.CLASObject;
+import clasDC.objects.CLASObject.ContainerType;
 import clasDC.objects.DCSystem;
 import clasDC.objects.DriftChamber;
 import clasDC.objects.Region;
@@ -37,24 +39,26 @@ public class CLASFactoryImpl implements CLASFactory {
 		if (this.clasObject instanceof SuperLayer) {
 			SuperLayer obj = (SuperLayer) this.clasObject;
 			this.clasFactory = CLASSuperlayer.builder().superlayer(obj.getSuperlayer()).nchannels(obj.getNchannels())
-					.maxFaults(obj.getMaxFaults()).desiredFaults(obj.getDesiredFaults())
-					.singleFaultGen(obj.isSingleFaultGen()).build();
+					.minFaults(obj.getMinFaults()).maxFaults(obj.getMaxFaults()).desiredFault(obj.getDesiredFault())
+					.desiredFaults(obj.getDesiredFaults()).singleFaultGen(obj.isSingleFaultGen())
+					.isScaled(obj.isScaled()).desiredFaultGenRate(obj.getDesiredFaultGenRate()).build();
 		} else if (this.clasObject instanceof DriftChamber) {
 			DriftChamber obj = (DriftChamber) this.clasObject;
 			this.clasFactory = CLASDriftChamber.builder().region(obj.getRegion()).nchannels(obj.getNchannels())
-					.maxFaults(obj.getMaxFaults()).desiredFaults(obj.getDesiredFaults())
+					.minFaults(obj.getMinFaults()).maxFaults(obj.getMaxFaults()).desiredFaults(obj.getDesiredFaults())
 					.singleFaultGen(obj.isSingleFaultGen()).build();
 		} else if (this.clasObject instanceof Region) {
 			Region obj = (Region) this.clasObject;
 			this.clasFactory = CLASDCRegion.builder().region(obj.getRegion()).nchannels(obj.getNchannels())
-					.maxFaults(obj.getMaxFaults()).desiredFaults(obj.getDesiredFaults())
+					.minFaults(obj.getMinFaults()).maxFaults(obj.getMaxFaults()).desiredFaults(obj.getDesiredFaults())
 					.singleFaultGen(obj.isSingleFaultGen()).build();
 		} else if (this.clasObject instanceof DCSystem) {
 			DCSystem obj = (DCSystem) this.clasObject;
-			this.clasFactory = CLASDCSystem.builder().nchannels(obj.getNchannels()).maxFaults(obj.getMaxFaults())
-					.desiredFaults(obj.getDesiredFaults()).singleFaultGen(obj.isSingleFaultGen()).build();
+			this.clasFactory = CLASDCSystem.builder().nchannels(obj.getNchannels()).minFaults(obj.getMinFaults())
+					.maxFaults(obj.getMaxFaults()).desiredFaults(obj.getDesiredFaults())
+					.singleFaultGen(obj.isSingleFaultGen()).build();
 		} else {
-			throw new IllegalArgumentException("Invalid input: " + this.clasObject);
+			throw new IllegalArgumentException("Invalid input: " + this.clasObject + "  for a clasObject");
 		}
 	}
 
@@ -67,26 +71,45 @@ public class CLASFactoryImpl implements CLASFactory {
 
 	}
 
+	public INDArray getSegmentationLabels() {
+		return this.clasFactory.getSegmentationLabels();
+	}
+
+	@Override
+	public Map<FaultNames, INDArray> faultLocationLabels() {
+		return this.clasFactory.faultLocationLabels();
+
+	}
+
+	@Override
+	public Map<String, INDArray> locationLabels() {
+		return this.clasFactory.locationLabels();
+
+	}
+
+	public CLASFactory getNewFactory() {
+		this.clasFactory = this.clasFactory.getNewFactory();
+		return this.clasFactory;
+
+	}
+
 	public static void main(String[] args) {
-		CLASObject object = SuperLayer.builder().superlayer(2).nchannels(1).maxFaults(10).singleFaultGen(true)
-				.desiredFaults(Stream.of(FaultNames.CONNECTOR_TREE, FaultNames.CHANNEL_THREE, FaultNames.PIN_SMALL)
-						.collect(Collectors.toCollection(ArrayList::new)))
-				.build();
+		FaultNames desiredFault = FaultNames.CHANNEL_THREE;
+		CLASObject object = SuperLayer.builder().superlayer(3).nchannels(1).minFaults(2).maxFaults(2)
+				.desiredFaults(Stream.of(FaultNames.FUSE_A, FaultNames.FUSE_B, FaultNames.FUSE_C,
+						FaultNames.CONNECTOR_TREE, FaultNames.CONNECTOR_THREE, FaultNames.CONNECTOR_E,
+						FaultNames.CHANNEL_ONE, FaultNames.CHANNEL_TWO, FaultNames.CHANNEL_THREE, FaultNames.PIN_BIG,
+						FaultNames.PIN_SMALL).collect(Collectors.toCollection(ArrayList::new)))
+				.singleFaultGen(false).containerType(ContainerType.SEG).desiredFault(desiredFault)
+				.desiredFaultGenRate(0.45).build();
 
 		CLASFactory factory = CLASFactoryImpl.builder().clasObject(object).build();
-		// INDArray ret = factory.getObject().getImage().getImage();
-		INDArray ret = factory.getImage().getImage();
-
-		FaultUtils.draw(factory.getImage());
-		int rank = ret.rank();
-		int rows = (int) ret.size(rank == 3 ? 1 : 2);
-		int cols = (int) ret.size(rank == 3 ? 2 : 3);
-		int nchannels = (int) ret.size(rank == 3 ? 0 : 1);
-		System.out.println(rank + " " + rows + " " + cols + " " + nchannels + "   " + ret.shapeInfoToString());
-
-		for (Fault fault : factory.getFaultList()) {
-			fault.printWireInformation();
+		for (int i = 0; i < 10; i++) {
+			FaultUtils.draw(factory.getImage());
+			System.out.println(factory.faultLocationLabels().get(desiredFault));
+			factory = factory.getNewFactory();
 		}
+
 	}
 
 }

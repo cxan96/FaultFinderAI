@@ -34,6 +34,15 @@ public class HVPinFault extends FaultData {
 
 	}
 
+	public HVPinFault(int xplace, int yplace) {
+		setuphvPinSegmentation();
+		this.xRnd = xplace;
+		this.yRnd = yplace;
+		setFaultName();
+		this.faultyWires = getRandomPair();
+
+	}
+
 	private Map<Integer, Pair<Integer, Integer>> getRandomPair() {
 		Map<Integer, Pair<Integer, Integer>> aNewMap = new HashMap<>();
 		aNewMap.put(this.yRnd, this.hvPinSegmentation.get(this.xRnd));
@@ -57,7 +66,8 @@ public class HVPinFault extends FaultData {
 
 	@Override
 	public Fault getInformation() {
-		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires);
+		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires,
+				Pair.of(this.xRnd, this.yRnd));
 	}
 
 	private void setFaultName() {

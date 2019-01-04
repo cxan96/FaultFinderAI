@@ -12,9 +12,13 @@ import org.deeplearning4j.nn.graph.ComputationGraph;
 
 import clasDC.faults.FaultNames;
 import clasDC.objects.CLASObject;
-import clasDC.objects.DriftChamber;
+import clasDC.objects.CLASObject.ContainerType;
+import clasDC.objects.SuperLayer;
 import domain.models.CLASModelFactory;
-import faultrecordreader.CLASObjectRecordReader;
+import faultrecordreader.ImageSegmentationRecordReader;
+import faultrecordreader.KunkelPetersFaultRecorderNew;
+import faultrecordreader.MultiClassRecordReader;
+import faultrecordreader.SlicingRecordReader;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -43,7 +47,6 @@ public class FaultObjectContainer {
 	@Getter
 	RecordReader recordReader = null;
 
-	// CLASObjectRecordReader
 	@Builder
 	private FaultObjectContainer(CLASObject clasObject) {
 		this.clasObject = clasObject;
@@ -51,21 +54,33 @@ public class FaultObjectContainer {
 	}
 
 	private void init() {
-		this.factory = CLASModelFactory.builder().clasOject(this.clasObject).build();
+		this.factory = CLASModelFactory.builder().clasObject(this.clasObject).build();
 		this.model = factory.getComputationGraph();
 		this.gridHeight = factory.getGridHeight();
 		this.gridWidth = factory.getGridWidth();
-		this.recordReader = new CLASObjectRecordReader(clasObject, this.gridHeight, this.gridWidth);
+		this.recordReader = setRecordReader();
+	}
 
+	public RecordReader setRecordReader() {
+		if (clasObject.getContainerType().equals(ContainerType.CLASS)) {
+			return new KunkelPetersFaultRecorderNew(this.clasObject);
+		} else if (clasObject.getContainerType().equals(ContainerType.OBJ)) {
+			return new SlicingRecordReader(this.clasObject);
+		} else if (clasObject.getContainerType().equals(ContainerType.SEG)) {
+			return new ImageSegmentationRecordReader(this.clasObject);
+		} else if (clasObject.getContainerType().equals(ContainerType.MULTICLASS)) {
+			return new MultiClassRecordReader(this.clasObject);
+		} else {
+			throw new IllegalArgumentException("The container type is not recognized " + clasObject.getContainerType());
+		}
 	}
 
 	public static void main(String[] args) {
-		CLASObject object = DriftChamber.builder().region(1).nchannels(1).maxFaults(10)
+		CLASObject object = SuperLayer.builder().superlayer(1).nchannels(1).maxFaults(10)
 				.desiredFaults(Stream.of(FaultNames.CONNECTOR_TREE, FaultNames.CONNECTOR_TREE, FaultNames.CHANNEL_THREE,
 						FaultNames.PIN_SMALL).collect(Collectors.toCollection(ArrayList::new)))
-				.singleFaultGen(false).build();
+				.singleFaultGen(false).containerType(ContainerType.SEG).build();
 		FaultObjectContainer container = FaultObjectContainer.builder().clasObject(object).build();
-		System.out.println(container.getGridHeight() + "   " + container.getGridWidth());
 	}
 
 }

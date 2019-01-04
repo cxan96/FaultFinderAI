@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
+import org.nd4j.linalg.api.ndarray.INDArray;
+
+import lombok.Getter;
 
 public class FaultDataContainer {
 
@@ -83,9 +86,13 @@ public class FaultDataContainer {
 
 	class Container {
 
+		@Getter
 		private int sector;
+		@Getter
 		private int superLayer;
+		@Getter
 		private int[][] data;
+		private INDArray features;
 
 		public Container(int sector, int superLayer) {
 			this.sector = sector;
@@ -94,20 +101,20 @@ public class FaultDataContainer {
 
 		}
 
-		public int getSector() {
-			return sector;
-		}
+		public Container(int sector, int superLayer, INDArray features) {
+			this.sector = sector;
+			this.superLayer = superLayer;
+			this.features = features;
 
-		public int getSuperLayer() {
-			return superLayer;
 		}
 
 		public void increment(int wire, int layer) {
 			data[layer - 1][wire - 1]++;
 		}
 
-		public int[][] getData() {
-			return this.data;
+		public INDArray getFeatures() {
+			return this.features;
+
 		}
 
 		private FaultDataContainer getOuterType() {

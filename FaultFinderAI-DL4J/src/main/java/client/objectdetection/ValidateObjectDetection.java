@@ -34,7 +34,8 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
 import clasDC.faults.FaultNames;
 import clasDC.objects.CLASObject;
-import clasDC.objects.DriftChamber;
+import clasDC.objects.CLASObject.ContainerType;
+import clasDC.objects.SuperLayer;
 import domain.objectDetection.FaultObjectClassifier;
 import domain.objectDetection.FaultObjectContainer;
 import faultrecordreader.FaultRecorderScaler;
@@ -99,16 +100,16 @@ public class ValidateObjectDetection {
 		/**
 		 * Create a CLASObject for the container
 		 */
-		CLASObject clasObject = DriftChamber.builder().region(1).nchannels(1).maxFaults(10).desiredFaults(Stream
-				.of(FaultNames.CONNECTOR_TREE, FaultNames.PIN_SMALL).collect(Collectors.toCollection(ArrayList::new)))
-				.singleFaultGen(true).build();
+		CLASObject clasObject = SuperLayer.builder().superlayer(1).nchannels(1).minFaults(1).maxFaults(3)
+				.desiredFaults(Stream.of(FaultNames.FUSE_A).collect(Collectors.toCollection(ArrayList::new)))
+				.singleFaultGen(true).isScaled(false).containerType(ContainerType.OBJ).build();
 		/**
 		 * FaultObjectContainer contains all the necessaries to run the model
 		 */
 		FaultObjectContainer container = FaultObjectContainer.builder().clasObject(clasObject).build();
 
 		Set<String> labelSet = new HashSet<>();
-		for (FaultNames d : FaultNames.values()) {
+		for (FaultNames d : clasObject.getDesiredFaults()) {
 			labelSet.add(d.getSaveName());
 		}
 
@@ -116,7 +117,7 @@ public class ValidateObjectDetection {
 		Collections.sort(faultLabels);
 
 		FaultObjectClassifier classifier;
-		String fileName = "models/binary_classifiers/ComputationalGraphModel/DriftChamberNoWireGenBW3.zip";
+		String fileName = "models/binary_classifiers/ComputationalGraphModel/SuperLayerSingleFault_FUSEA_15.zip";
 		// List<String> labels = train.getLabels();
 		ValidateObjectDetection vObjectClassifier = new ValidateObjectDetection(fileName, container);
 
@@ -147,7 +148,7 @@ public class ValidateObjectDetection {
 
 			INDArray features = ds.getFeatures();
 			INDArray results = model.outputSingle(features);
-			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.0001);
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.512);
 
 			if (objs.size() > 1) {
 				System.out.println(objs.size() + "  size of objs");

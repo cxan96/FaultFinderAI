@@ -29,6 +29,34 @@ public class HVConnectorFault extends FaultData {
 
 	}
 
+	public HVConnectorFault(FaultNames faultName, int xplace) {
+		setupBundles();
+		// For completeness
+		this.yRnd = 1;
+		this.xRnd = xplace;
+
+		this.faultName = faultName;
+		getCorrectBundle();
+	}
+
+	/**
+	 * getCorrectBundle will set the this.faultyWires correctly depending on the
+	 * FaultNames and the xplace the xplace is the location of the bundle 1 - 14
+	 * location for each bundle
+	 */
+	private void getCorrectBundle() {
+
+		if (faultName.equals(FaultNames.CONNECTOR_E)) {
+			this.faultyWires = modifyMap(this.xRnd * 8, this.eMap);
+		} else if (faultName.equals(FaultNames.CONNECTOR_TREE)) {
+			this.faultyWires = modifyMap(this.xRnd * 8, this.treeMap);
+		} else if (faultName.equals(FaultNames.CONNECTOR_THREE)) {
+			this.faultyWires = modifyMap(this.xRnd * 8, this.threeMap);
+		} else {
+			throw new IllegalAccessError("This " + faultName + " is not defined");
+		}
+	}
+
 	private void setupBundles() {
 		setupEMap();
 		setupTreeMap();
@@ -123,7 +151,8 @@ public class HVConnectorFault extends FaultData {
 
 	@Override
 	public Fault getInformation() {
-		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires);
+		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires,
+				Pair.of(this.xRnd, this.yRnd));
 	}
 
 }

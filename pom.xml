@@ -1,6 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	
 	<groupId>com.IKP</groupId>
 	<artifactId>FaultFinderAI</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -8,10 +9,8 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<!-- <datavec.version>0.9.1</datavec.version> -->
 		<dl4j.version>1.0.0-beta3</dl4j.version>
 		<ndj.version>1.0.0-beta3</ndj.version>
-
 	</properties>
 
 	<repositories>
@@ -59,16 +58,16 @@
 				<artifactId>coat-libs</artifactId>
 				<version>5.1-SNAPSHOT</version>
 			</dependency>
-			<dependency>
+<!-- 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>3.0.1</version>
-			</dependency>
-			<dependency>
+			</dependency> -->
+<!-- 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-collections4</artifactId>
 				<version>4.1</version>
-			</dependency>
+			</dependency> -->
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
@@ -102,7 +101,6 @@
 		<module>FaultFinderAI-Data</module>
 		<module>FaultFinderAI-DL4J</module>
 		<module>FaultFinderAI-Utils</module>
-		<module>FaultFinderAI-TestingArea</module>
 		<module>FaultFinderAI-Faults</module>
 	</modules>
 </project>

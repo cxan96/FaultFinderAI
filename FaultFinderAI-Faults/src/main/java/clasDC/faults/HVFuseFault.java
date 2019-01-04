@@ -37,6 +37,35 @@ public class HVFuseFault extends FaultData {
 
 	}
 
+	/**
+	 * @param xplace
+	 */
+	public HVFuseFault(FaultNames faultName, int xplace) {
+		setupBundles();
+		this.faultName = faultName;
+		this.xRnd = xplace;
+		this.yRnd = ThreadLocalRandom.current().nextInt(1, 7);
+		getCorrectBundle();
+	}
+
+	/**
+	 * getCorrectBundle will set the this.faultyWires correctly depending on the
+	 * FaultNames and the xplace the xplace is the location of the bundle 1 - 14
+	 * location for each bundle
+	 */
+	private void getCorrectBundle() {
+
+		if (faultName.equals(FaultNames.FUSE_A)) {
+			this.faultyWires = modifyMap(this.xRnd * 16, this.bundleA);
+		} else if (faultName.equals(FaultNames.FUSE_B)) {
+			this.faultyWires = modifyMap(this.xRnd * 16, this.bundleB);
+		} else if (faultName.equals(FaultNames.FUSE_C)) {
+			this.faultyWires = modifyMap(this.xRnd * 16, this.bundleC);
+		} else {
+			throw new IllegalAccessError("This " + faultName + " is not defined");
+		}
+	}
+
 	private Map<Integer, Pair<Integer, Integer>> getRandomPair() {
 		return this.findWireRange(this.xRnd, this.yRnd);
 	}
@@ -162,7 +191,8 @@ public class HVFuseFault extends FaultData {
 
 	@Override
 	public Fault getInformation() {
-		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires);
+		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires,
+				Pair.of(this.xRnd, this.yRnd));
 	}
 
 }

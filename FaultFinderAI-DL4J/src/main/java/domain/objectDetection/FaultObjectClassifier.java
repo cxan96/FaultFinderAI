@@ -6,13 +6,15 @@ import java.util.Collection;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
+import clasDC.faults.FaultNames;
+import clasDC.objects.CLASObject.ContainerType;
 import faultrecordreader.FaultRecorderScaler;
 import strategies.FaultRecordScalerStrategy;
 
@@ -20,6 +22,7 @@ public class FaultObjectClassifier {
 
 	/** The network that is used as the underlying model. */
 	private ComputationGraph network;
+	private FaultObjectContainer container;
 
 	/**
 	 * Initializes the FaultClassifier using a saved model.
@@ -28,7 +31,28 @@ public class FaultObjectClassifier {
 	 *            The file that the model is loaded from.
 	 */
 	public FaultObjectClassifier(String fileName) throws IOException {
+
 		this.network = ModelSerializer.restoreComputationGraph(new File(fileName));
+
+	}
+
+	public FaultObjectClassifier(String fileName, FaultObjectContainer container) throws IOException {
+		this.container = container;
+		if (container.getClasObject().getContainerType().equals(ContainerType.CLASS)) {
+			this.network = ModelSerializer.restoreMultiLayerNetwork(new File(fileName)).toComputationGraph();
+		} else {
+			this.network = ModelSerializer.restoreComputationGraph(new File(fileName));
+		}
+
+	}
+
+	public FaultObjectClassifier(String fileName, ContainerType container) throws IOException {
+		if (container.equals(ContainerType.CLASS) || container.equals(ContainerType.MULTICLASS)) {
+			this.network = ModelSerializer.restoreMultiLayerNetwork(new File(fileName)).toComputationGraph();
+		} else {
+			this.network = ModelSerializer.restoreComputationGraph(new File(fileName));
+		}
+
 	}
 
 	/**
@@ -51,6 +75,7 @@ public class FaultObjectClassifier {
 	 *            FaultClassifier.
 	 */
 	public FaultObjectClassifier(FaultObjectContainer container) {
+		this.container = container;
 		this.network = container.getModel();
 	}
 
@@ -72,10 +97,32 @@ public class FaultObjectClassifier {
 	public void train(int numLabels, int batchSize, int batchNum, int epochs, RecordReader recordReader,
 			FaultRecordScalerStrategy strategy) {
 		// set up the DatasetIterator
-		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).regression(1)
-				// currently there are 14 labels in the dataset
-				.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
-		// .classification(1, numLabels)
+		DataSetIterator iterator = null;
+
+		if (container.getClasObject().getContainerType().equals(ContainerType.CLASS)) {
+			iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).classification(1, numLabels)
+					.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+		} else if (container.getClasObject().getContainerType().equals(ContainerType.OBJ)) {
+			FaultNames desiredFault = container.getClasObject().getDesiredFault();
+			if (desiredFault.equals(FaultNames.PIN_SMALL) || desiredFault.equals(FaultNames.PIN_BIG)
+					|| desiredFault.equals(FaultNames.DEADWIRE) || desiredFault.equals(FaultNames.HOTWIRE)) {
+
+				iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).regression(1)
+						.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+			} else {
+				iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).classification(1, numLabels)
+						.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+				System.out.println(iterator.toString());
+			}
+		} else if (container.getClasObject().getContainerType().equals(ContainerType.MULTICLASS)) {
+			iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).regression(1)
+					.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+		} else if (container.getClasObject().getContainerType().equals(ContainerType.SEG)) {
+			iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).regression(1)
+					.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+		} else {
+			throw new IllegalArgumentException("Object Type not known " + container.getClasObject().getContainerType());
+		}
 		// this trains the model on batchNum batches for the desired number of
 		// epochs
 		this.network.fit(iterator, epochs);
@@ -129,6 +176,19 @@ public class FaultObjectClassifier {
 
 		// perform the testing
 		Evaluation evaluation = this.network.evaluate(iterator);
+
+		// return the results
+		return evaluation;
+	}
+
+	public INDArray evaluateNew(int batchSize, int batchNum, RecordReader recordReader,
+			FaultRecordScalerStrategy strategy) {
+		// set up the DatasetIterator
+		DataSetIterator iterator = new RecordReaderDataSetIterator.Builder(recordReader, batchSize).regression(1)
+				.maxNumBatches(batchNum).preProcessor(new FaultRecorderScaler(strategy)).build();
+
+		// perform the testing
+		INDArray evaluation = this.network.evaluate(iterator);
 
 		// return the results
 		return evaluation;

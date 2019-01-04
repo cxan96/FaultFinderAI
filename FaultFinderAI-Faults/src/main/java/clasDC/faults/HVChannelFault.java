@@ -30,6 +30,13 @@ public class HVChannelFault extends FaultData {
 		this.faultyWires = getRandomPair();
 	}
 
+	public HVChannelFault(int xplace) {
+		setuphvChannelSegmentation();
+		this.xRnd = xplace;
+		setFaultName();
+		this.faultyWires = getRandomPair();
+	}
+
 	private Map<Integer, Pair<Integer, Integer>> getRandomPair() {
 		Map<Integer, Pair<Integer, Integer>> aNewMap = new HashMap<>();
 		for (int i = 1; i < 7; i++) {
@@ -51,7 +58,8 @@ public class HVChannelFault extends FaultData {
 
 	@Override
 	public Fault getInformation() {
-		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires);
+		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires,
+				Pair.of(this.xRnd, this.yRnd));
 	}
 
 	private void setFaultName() {
@@ -62,5 +70,10 @@ public class HVChannelFault extends FaultData {
 		} else {
 			this.faultName = FaultNames.CHANNEL_THREE;
 		}
+	}
+
+	public static void main(String[] args) {
+		Fault fault = new HVChannelFault(3).getInformation();
+		fault.printWireInformation();
 	}
 }

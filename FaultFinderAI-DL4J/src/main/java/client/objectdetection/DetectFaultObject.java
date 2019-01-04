@@ -20,7 +20,8 @@ import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 
 import clasDC.faults.FaultNames;
 import clasDC.objects.CLASObject;
-import clasDC.objects.DriftChamber;
+import clasDC.objects.CLASObject.ContainerType;
+import clasDC.objects.SuperLayer;
 import domain.objectDetection.FaultObjectClassifier;
 import domain.objectDetection.FaultObjectContainer;
 import strategies.FaultRecordScalerStrategy;
@@ -37,11 +38,14 @@ public class DetectFaultObject {
 		/**
 		 * Create a CLASObject for the container
 		 */
-		CLASObject clasObject = DriftChamber.builder().region(1).nchannels(3).maxFaults(3).desiredFaults(Stream
-				.of(FaultNames.FUSE_A, FaultNames.FUSE_B, FaultNames.FUSE_C, FaultNames.CONNECTOR_TREE,
-						FaultNames.CONNECTOR_THREE, FaultNames.CONNECTOR_E, FaultNames.CHANNEL_ONE,
-						FaultNames.CHANNEL_TWO, FaultNames.CHANNEL_THREE, FaultNames.PIN_BIG, FaultNames.PIN_SMALL)
-				.collect(Collectors.toCollection(ArrayList::new))).singleFaultGen(false).build();
+		// , FaultNames.FUSE_B, FaultNames.FUSE_C, FaultNames.CONNECTOR_TREE,
+		// FaultNames.CONNECTOR_THREE, FaultNames.CONNECTOR_E,
+		// FaultNames.CHANNEL_ONE,
+		// FaultNames.CHANNEL_TWO, FaultNames.CHANNEL_THREE, FaultNames.PIN_BIG,
+		CLASObject clasObject = SuperLayer.builder().superlayer(1).nchannels(1).minFaults(1).maxFaults(3)
+				.desiredFaults(Stream.of(FaultNames.FUSE_A, FaultNames.PIN_SMALL)
+						.collect(Collectors.toCollection(ArrayList::new)))
+				.singleFaultGen(false).containerType(ContainerType.OBJ).build();
 		/**
 		 * FaultObjectContainer contains all the necessaries to run the model
 		 */

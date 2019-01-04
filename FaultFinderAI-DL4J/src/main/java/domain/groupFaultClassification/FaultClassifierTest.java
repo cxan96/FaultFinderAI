@@ -8,28 +8,35 @@ import java.util.Scanner;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.nd4j.evaluation.classification.Evaluation;
 
 import clasDC.faults.FaultNames;
 import client.FaultClassifier;
-import domain.models.ModelFactory;
+import domain.models.Models;
 import faultrecordreader.KunkelPetersFaultRecorder;
 import strategies.FaultRecordScalerStrategy;
 import strategies.MinMaxStrategy;
 
+/**
+ * 
+ * @author m.c.kunkel
+ * @author Christian Peters
+ *
+ *         This was the original class used for classification <br>
+ *         Should Always Work (SAW)
+ */
 public class FaultClassifierTest {
 	public static void main(String args[]) throws IOException {
 		// the model is stored here
 		int scoreIterations = 1000;
-		int nchannels = 3;
-		boolean conv3D = true;
-
-		String fileName = "models/binary_classifiers/benchmark/3DTest.zip";
+		int nchannels = 1;
+		FaultNames desiredFault = FaultNames.HOTWIRE;
+		String fileName = "models/Classifiers/" + desiredFault.getSaveName() + ".zip";
 		FaultClassifier classifier;
 		// check if a saved model exists
 		if ((new File(fileName)).exists()) {
@@ -39,14 +46,12 @@ public class FaultClassifierTest {
 		} else {
 			// initialize the classifier with a fresh model
 			MultiLayerNetwork model = null;
-			if (nchannels == 3) {
+			if (nchannels == 1) {
 
-				model = ModelFactory.deeperCNN3D(6, 112, nchannels, 2);
+				model = Models.KunkelPeters(6, 112, nchannels, 2);
 
 			} else {
-				// model = ModelFactory.MKTestCNN(6, 112, nchannels, 2);
-				model = ModelFactory.deeperCNN(6, 112, nchannels, 2);
-
+				throw new IllegalArgumentException("Only channel = 1 currently supported");
 			}
 
 			classifier = new FaultClassifier(model);
@@ -63,9 +68,8 @@ public class FaultClassifierTest {
 
 		// train the classifier for a number of checkpoints and save the model
 		// after each checkpoint
-		RecordReader recordReader = new KunkelPetersFaultRecorder(2, 10, FaultNames.PIN_SMALL, true, true, nchannels,
-				conv3D);
-		int checkPoints = 4;
+		RecordReader recordReader = new KunkelPetersFaultRecorder(3, 10, desiredFault, true, true, nchannels);
+		int checkPoints = 5;
 		for (int i = 0; i < checkPoints; i++) {
 			// train the classifier
 			classifier.train(2, 1, 10000, 1, recordReader, strategy);
@@ -87,7 +91,7 @@ public class FaultClassifierTest {
 		}
 
 		// evaluate the classifier
-		Evaluation evaluation = classifier.evaluate(2, 1, 10000, recordReader, strategy);
+		Evaluation evaluation = classifier.evaluate(2, 1, 100000, recordReader, strategy);
 		System.out.println(evaluation.stats());
 		// // lets compare recall here
 		// int tPositive = 0;

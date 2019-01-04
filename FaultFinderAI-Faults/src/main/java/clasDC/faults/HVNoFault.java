@@ -16,7 +16,7 @@ public class HVNoFault extends FaultData {
 	protected Fault getInformation() {
 		this.faultyWires = new HashMap<>();
 		this.faultyWires.put(this.yRnd, Pair.of(xRnd, xRnd));
-		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires);
-
+		return new Fault(this.getClass().getSimpleName(), this.faultName, this.faultyWires,
+				Pair.of(this.xRnd, this.yRnd));
 	}
 }

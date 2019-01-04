@@ -18,12 +18,13 @@ import org.deeplearning4j.nn.graph.vertex.GraphVertex;
 import org.deeplearning4j.nn.graph.vertex.VertexIndices;
 
 import clasDC.faults.FaultNames;
+import clasDC.faults.FaultSlidingInformation;
 import clasDC.objects.CLASObject;
-import clasDC.objects.DriftChamber;
+import clasDC.objects.CLASObject.ContainerType;
+import clasDC.objects.SuperLayer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import utils.FaultUtils;
 
 /**
  * @author m.c.kunkel
@@ -31,13 +32,15 @@ import utils.FaultUtils;
  */
 public class CLASModelFactory {
 
-	private final int height;
-	private final int width;
-	private final int numChannels;
+	private int height;
+	private int width;
+	private int numChannels;
 	private int numClasses;
 	private double[][] priors;
 	private String modelType;
-
+	private FaultNames desiredFault;
+	private ContainerType containerType;
+	private CLASObject clasObject;
 	@Getter
 	private int gridWidth;
 	@Getter
@@ -48,51 +51,140 @@ public class CLASModelFactory {
 	private InputType inputType = null;
 
 	@Builder
-	public CLASModelFactory(CLASObject clasOject) {
-		this.height = clasOject.getHeight();
-		this.width = clasOject.getWidth();
-		this.numChannels = clasOject.getNchannels();
-		this.numClasses = clasOject.getDesiredFaults().stream().distinct().collect(Collectors.toList()).size();
-		this.priors = clasOject.getPriors();
-		this.modelType = clasOject.getObjectType();
-		this.inputType = InputType.convolutional(height, width, numChannels);
+	public CLASModelFactory(CLASObject clasObject) {
+		this.numChannels = clasObject.getNchannels();
+		this.priors = clasObject.getPriors();
+		this.modelType = clasObject.getObjectType();
+		this.desiredFault = clasObject.getDesiredFault();
+		this.clasObject = clasObject;
+		this.containerType = clasObject.getContainerType();
+		init();
 		setModel();
 	}
 
-	public void setModel() {
-		ComputationGraph temp = null;
+	/**
+	 * init() will set the correct height, width, numclasses depending on the
+	 * CLASObject+ContainerType+DesiredFault
+	 * 
+	 * THIS NEEDS TO BE FIXED BECAUSE numclasses is set in CLASObject <br>
+	 * Fix one or the other
+	 */
+	private void init() {
+		if (this.containerType.equals(ContainerType.SEG)) {
+			this.height = this.clasObject.getHeight();
+			this.width = this.clasObject.getWidth();
+			this.numClasses = this.clasObject.getDesiredFaults().stream().distinct().collect(Collectors.toList())
+					.size();
+
+		} else if (this.containerType.equals(ContainerType.CLASS)) {
+			this.height = this.clasObject.getHeight();
+			this.width = this.clasObject.getWidth();
+			this.numClasses = 2;
+
+		} else if (this.containerType.equals(ContainerType.OBJ)) {
+			if (this.desiredFault == null) {
+				throw new IllegalArgumentException("Cannot perform object detection without a desired fault");
+			}
+			this.width = this.desiredFault.getFSlidingInformation().getXEnd()[0]
+					- this.desiredFault.getFSlidingInformation().getXStart()[0];
+			if (this.desiredFault.equals(FaultNames.PIN_SMALL) || this.desiredFault.equals(FaultNames.PIN_BIG)
+					|| this.desiredFault.equals(FaultNames.DEADWIRE) || this.desiredFault.equals(FaultNames.HOTWIRE)) {
+				this.height = 2;
+				this.numClasses = 3;
+			} else {
+				this.height = 6;
+				this.numClasses = 2;
+			}
+		} else if (this.containerType.equals(ContainerType.MULTICLASS)) {
+			FaultSlidingInformation faultSlidingInformation = this.desiredFault.getFSlidingInformation();
+			this.height = this.clasObject.getHeight();
+			// if (this.desiredFault.equals(FaultNames.CHANNEL_ONE)) {
+			// this.width = faultSlidingInformation.getXStart()[0] + 18;
+			// this.numClasses = 3;
+			// } else {
+
+			this.width = faultSlidingInformation.getXEnd()[faultSlidingInformation.getXLength() - 1]
+					- faultSlidingInformation.getXStart()[0];
+			this.numClasses = (int) this.desiredFault.getPossiblePositions().length();
+			System.out.println(this.height + "  " + this.width);
+
+		} else {
+			throw new IllegalArgumentException("The container type is not recognized " + containerType);
+		}
+
+		this.inputType = InputType.convolutional(height, width, numChannels);
+
+	}
+
+	private void setModel() {
+		if (containerType.equals(ContainerType.CLASS)) {
+			System.out.println("The model is set to Classification Model");
+			setClassificationModel();
+		} else if (containerType.equals(ContainerType.OBJ)) {
+			System.out.println("The model is set to Object Detection Model");
+			setObjectModel();
+		} else if (containerType.equals(ContainerType.MULTICLASS)) {
+			System.out.println("The model is set to MultiClass Model");
+			setMultiClassModel();
+		} else if (containerType.equals(ContainerType.SEG)) {
+			System.out.println("The model is set to Segmentation Model");
+			setSegmentationModel();
+		} else {
+			throw new IllegalArgumentException("The container type is not recognized " + containerType);
+		}
+	}
+
+	private void setClassificationModel() {
+		this.computationGraph = Models.KunkelPeters(height, width, numChannels, numClasses).toComputationGraph();
+	}
+
+	private void setObjectModel() {
 		/*
 		 * This is the base case for just one superlayer
 		 */
 		if (modelType.equalsIgnoreCase("SuperLayer")) {
-			temp = Models.KunkelPetersUYolo4SL(height, width, numChannels, numClasses, priors);
-			setGridDimensions(temp);
-			double[][] priorBoxes = FaultUtils.getPriors(priors,
-					new double[][] { { height / this.gridHeight, width / this.gridWidth } });// FaultUtils.allPriors
-			this.computationGraph = Models.KunkelPetersUYolo4SL(height, width, numChannels, numClasses, priorBoxes);
-			System.out.println(computationGraph.summary(InputType.convolutional(height, width, numChannels)));
+			// PIN_SMALL,PIN_BIG,DEADWIRE, HOTWIRE all use multilabel
+			// classification using regresssion
+			if (this.desiredFault.equals(FaultNames.PIN_SMALL) || this.desiredFault.equals(FaultNames.PIN_BIG)
+					|| this.desiredFault.equals(FaultNames.DEADWIRE) || this.desiredFault.equals(FaultNames.HOTWIRE)) {
+
+				this.computationGraph = Models.deeperDNNMultiClass(height, width, numChannels, numClasses)
+						.toComputationGraph();
+			} else {
+				this.computationGraph = Models.KunkelPeters(height, width, numChannels, numClasses)
+						.toComputationGraph();
+			}
+
+		} else {
+			throw new IllegalArgumentException("Invalid input: " + modelType);
 
 		}
+	}
+
+	private void setSegmentationModel() {
 		/*
-		 * This is the base case for just one DriftChamber
+		 * This is the base case for just one superlayer
 		 */
-		else if (modelType.equalsIgnoreCase("DriftChamber")) {
+		if (modelType.equalsIgnoreCase("SuperLayer")) {
+			// this.computationGraph = SegmentationModels.UFault(252, 252, 1);
+			this.computationGraph = SegmentationModels.KunkelPetersUYolo4SL(8, 116, numChannels);
+			System.out.println(computationGraph.summary(InputType.convolutional(8, 116, numChannels)));
 
-			temp = Models.DriftChamber(height, width, numChannels, numClasses, priors);
-			setGridDimensions(temp);
-			double[][] priorBoxes = FaultUtils.getPriors(priors, new double[][] {
-					{ (double) width / (double) this.gridWidth, (double) height / (double) this.gridHeight } });// FaultUtils.allPriors
+		}
+	}
 
-			this.computationGraph = Models.DriftChamber(height, width, numChannels, numClasses, priorBoxes);
-			disclosure(priorBoxes);
-//		} else if (modelType.equalsIgnoreCase("Region")) {
-//			this.gridHeight = 36;
-//			this.gridWidth = 28;
-//			this.computationGraph = Models.RegionhModel(height, width, numChannels);
-//		} else if (modelType.equalsIgnoreCase("DCSystem")) {
-//			this.gridHeight = 36 * 3;
-//			this.gridWidth = 28;
-//			this.computationGraph = Models.CLASModel(height, width, numChannels);
+	private void setMultiClassModel() {
+		/*
+		 * This is the base case for just one superlayer
+		 */
+		if (modelType.equalsIgnoreCase("SuperLayer")) {
+			if (this.desiredFault.equals(FaultNames.DEADWIRE) || this.desiredFault.equals(FaultNames.HOTWIRE)) {
+				this.computationGraph = Models.wireMultiClass(height, width, numChannels, numClasses)
+						.toComputationGraph();
+			} else {
+				this.computationGraph = Models.deeperDNNMultiClass(height, width, numChannels, numClasses)
+						.toComputationGraph();
+			}
 		} else {
 			throw new IllegalArgumentException("Invalid input: " + modelType);
 
@@ -179,13 +271,25 @@ public class CLASModelFactory {
 	}
 
 	public static void main(String[] args) {
-		CLASObject object = DriftChamber.builder().region(1).nchannels(1).maxFaults(10)
-				.desiredFaults(Stream.of(FaultNames.CONNECTOR_TREE, FaultNames.CONNECTOR_TREE, FaultNames.CHANNEL_THREE,
-						FaultNames.PIN_SMALL).collect(Collectors.toCollection(ArrayList::new)))
-				.singleFaultGen(true).build();
+		CLASObject object = SuperLayer.builder().superlayer(1).nchannels(1).minFaults(8).maxFaults(10)
+				.desiredFault(FaultNames.PIN_BIG)
+				.desiredFaults(
+						Stream.of(FaultNames.CONNECTOR_THREE, FaultNames.CONNECTOR_TREE, FaultNames.CHANNEL_THREE,
+								FaultNames.PIN_SMALL).collect(Collectors.toCollection(ArrayList::new)))
+				.singleFaultGen(false).isScaled(true).containerType(ContainerType.OBJ).build();
 		CLASModelFactory mFactory = new CLASModelFactory(object);
 		System.out.println(mFactory.getGridWidth() + "  " + mFactory.getGridHeight());
 		mFactory.getComputationGraph();
+		// System.out.println(Arrays.deepToString(object.getPriors()));
+		//
+		// List<FaultNames> aList =
+		// object.getDesiredFaults().stream().distinct().collect(Collectors.toList());
+		// for (FaultNames fault : aList) {
+		// System.out.println(fault.getSaveName());
+		// }
+		// int numClasses =
+		// object.getDesiredFaults().stream().distinct().collect(Collectors.toList()).size();
+		// System.out.println(numClasses);
 	}
 
 }

@@ -1,9 +1,0 @@
-File out_clas_003923.evio.80.hipo
-
-FAULT			Sector			SuperLayer
-Pin_Small		4				3
-Pin_Small		2				2
-Pin_Small		2				1
-Pin_Small		1				5
-Pin_Small		1				4
-Pin_Small		1				2
